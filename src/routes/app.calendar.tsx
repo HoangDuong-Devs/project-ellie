@@ -26,6 +26,7 @@ import { useReminderScheduler, requestNotificationPermission } from "@/hooks/use
 import { uid } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
+import { solarToLunar, getHolidaysForDate, formatLunarShort, formatLunarFull } from "@/lib/lunar";
 import {
   COLORS,
   COLOR_KEYS,
