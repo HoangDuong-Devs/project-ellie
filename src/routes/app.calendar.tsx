@@ -652,6 +652,11 @@ function MonthView({
           const out = d.getMonth() !== cursor.getMonth();
           const isToday = sameDay(d, today);
           const list = byDay.get(key) || [];
+          const lunar = solarToLunar(d.getDate(), d.getMonth() + 1, d.getFullYear());
+          const holidays = getHolidaysForDate(d);
+          const hasPublic = holidays.some((h) => h.type === "public");
+          const hasTrad = holidays.some((h) => h.type === "traditional");
+          const isFirstLunar = lunar.day === 1;
           return (
             <DroppableDay key={key} dateKey={key}>
               <div
@@ -659,18 +664,36 @@ function MonthView({
                   "min-h-[92px] cursor-pointer rounded-xl border p-1.5 transition-all",
                   out ? "border-transparent bg-muted/20 text-muted-foreground/60" : "border-border bg-card hover:border-primary/40",
                   isToday && "border-primary bg-pink-500/5",
+                  hasPublic && !out && "border-rose-300/60 bg-rose-50/40",
                 )}
                 onClick={(e) => {
                   if ((e.target as HTMLElement).closest("[data-event]")) return;
                   onCreate(d);
                 }}
                 onDoubleClick={() => onPickDay(d)}
+                title={[formatLunarFull(lunar), ...holidays.map((h) => h.name)].join("\n")}
               >
-                <div className={cn("mb-1 text-xs font-semibold", isToday && "text-gradient-brand")}>
-                  {d.getDate()}
+                <div className="mb-0.5 flex items-start justify-between gap-1">
+                  <div className={cn("text-xs font-semibold leading-none", isToday && "text-gradient-brand", hasPublic && !out && !isToday && "text-rose-600")}>
+                    {d.getDate()}
+                  </div>
+                  <div className={cn("text-[9px] font-medium leading-none", isFirstLunar ? "text-primary font-semibold" : "text-muted-foreground/70")}>
+                    {formatLunarShort(lunar)}
+                  </div>
                 </div>
+                {holidays.length > 0 && !out && (
+                  <div
+                    className={cn(
+                      "mb-0.5 truncate text-[9px] font-medium leading-tight",
+                      hasPublic ? "text-rose-600" : hasTrad ? "text-amber-600" : "text-muted-foreground",
+                    )}
+                    title={holidays.map((h) => h.name).join(", ")}
+                  >
+                    {holidays[0].name}
+                  </div>
+                )}
                 <div className="space-y-0.5">
-                  {list.slice(0, 3).map((o) => {
+                  {list.slice(0, 2).map((o) => {
                     const cal = calMap.get(o.calendarId);
                     const color = (o.color || cal?.color || "pink") as CalendarColor;
                     return (
@@ -693,8 +716,8 @@ function MonthView({
                       </DraggableEvent>
                     );
                   })}
-                  {list.length > 3 && (
-                    <div className="px-1 text-[10px] text-muted-foreground">+{list.length - 3} nữa</div>
+                  {list.length > 2 && (
+                    <div className="px-1 text-[10px] text-muted-foreground">+{list.length - 2} nữa</div>
                   )}
                 </div>
               </div>
