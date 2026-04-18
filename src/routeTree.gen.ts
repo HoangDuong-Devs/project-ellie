@@ -13,7 +13,6 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppScheduleRouteImport } from './routes/app.schedule'
 import { Route as AppGoalsRouteImport } from './routes/app.goals'
 import { Route as AppFocusRouteImport } from './routes/app.focus'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
@@ -37,11 +36,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppScheduleRoute = AppScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
   getParentRoute: () => AppRoute,
 } as any)
 const AppGoalsRoute = AppGoalsRouteImport.update({
@@ -72,7 +66,6 @@ export interface FileRoutesByFullPath {
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
-  '/app/schedule': typeof AppScheduleRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
@@ -82,7 +75,6 @@ export interface FileRoutesByTo {
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
-  '/app/schedule': typeof AppScheduleRoute
   '/app/settings': typeof AppSettingsRoute
   '/app': typeof AppIndexRoute
 }
@@ -94,7 +86,6 @@ export interface FileRoutesById {
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
-  '/app/schedule': typeof AppScheduleRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/': typeof AppIndexRoute
 }
@@ -107,7 +98,6 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/focus'
     | '/app/goals'
-    | '/app/schedule'
     | '/app/settings'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -117,7 +107,6 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/focus'
     | '/app/goals'
-    | '/app/schedule'
     | '/app/settings'
     | '/app'
   id:
@@ -128,7 +117,6 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/focus'
     | '/app/goals'
-    | '/app/schedule'
     | '/app/settings'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -168,13 +156,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/schedule': {
-      id: '/app/schedule'
-      path: '/schedule'
-      fullPath: '/app/schedule'
-      preLoaderRoute: typeof AppScheduleRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/goals': {
       id: '/app/goals'
       path: '/goals'
@@ -211,7 +192,6 @@ interface AppRouteChildren {
   AppFinanceRoute: typeof AppFinanceRoute
   AppFocusRoute: typeof AppFocusRoute
   AppGoalsRoute: typeof AppGoalsRoute
-  AppScheduleRoute: typeof AppScheduleRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -221,7 +201,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppFinanceRoute: AppFinanceRoute,
   AppFocusRoute: AppFocusRoute,
   AppGoalsRoute: AppGoalsRoute,
-  AppScheduleRoute: AppScheduleRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
 }
