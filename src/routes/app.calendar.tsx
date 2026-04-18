@@ -146,7 +146,9 @@ function CalendarPage() {
       const exists = prev.some((p) => p.id === it.id);
       return exists ? prev.map((p) => (p.id === it.id ? it : p)) : [it, ...prev];
     });
-    if (it.reminderMinutes != null && !notifAsked) {
+    const hasReminder =
+      it.reminderMinutes != null || (it.reminders && it.reminders.length > 0);
+    if (hasReminder && !notifAsked) {
       setNotifAsked(true);
       requestNotificationPermission();
     }
@@ -1263,46 +1265,28 @@ function EventModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs text-muted-foreground">Lặp lại</label>
-              <select
-                value={form.recurrence}
-                onChange={(e) => update("recurrence", e.target.value as RecurrenceFreq)}
-                className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
-              >
-                {(Object.keys(RECURRENCE_LABELS) as RecurrenceFreq[]).map((k) => (
-                  <option key={k} value={k}>{RECURRENCE_LABELS[k]}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="flex items-center gap-1 text-xs text-muted-foreground"><Bell className="h-3 w-3" /> Nhắc nhở</label>
-              <select
-                value={form.reminderMinutes ?? ""}
-                onChange={(e) =>
-                  update("reminderMinutes", e.target.value === "" ? undefined : Number(e.target.value))
-                }
-                className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
-              >
-                {REMINDER_OPTIONS.map((o) => (
-                  <option key={String(o.value)} value={o.value ?? ""}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <RecurrenceEditor
+            value={{
+              recurrence: form.recurrence,
+              recurrenceRule: form.recurrenceRule,
+              recurrenceUntil: form.recurrenceUntil,
+            }}
+            onChange={(v) => {
+              setForm((f) => ({
+                ...f,
+                recurrence: v.recurrence,
+                recurrenceRule: v.recurrenceRule,
+                recurrenceUntil: v.recurrenceUntil,
+              }));
+            }}
+            anchorDate={parseLocal(form.startISO)}
+          />
 
-          {form.recurrence !== "none" && (
-            <div>
-              <label className="text-xs text-muted-foreground">Lặp đến ngày (tuỳ chọn)</label>
-              <input
-                type="date"
-                value={form.recurrenceUntil || ""}
-                onChange={(e) => update("recurrenceUntil", e.target.value || undefined)}
-                className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
-              />
-            </div>
-          )}
+          <RemindersEditor
+            value={form.reminders ?? (form.reminderMinutes != null ? [form.reminderMinutes] : [])}
+            onChange={(arr) => setForm((f) => ({ ...f, reminders: arr, reminderMinutes: undefined }))}
+          />
+
 
           <textarea
             placeholder="Mô tả (tuỳ chọn)"
