@@ -857,6 +857,7 @@ function WeekView({
           );
         })}
       </div>
+      </div>
     </div>
   );
 }
