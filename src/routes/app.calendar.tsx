@@ -31,9 +31,11 @@ import {
   COLORS,
   COLOR_KEYS,
   RECURRENCE_LABELS,
-  REMINDER_OPTIONS,
+  REMINDER_PRESETS,
+  WEEKDAY_SHORT,
   addDays,
   addMonths,
+  describeRecurrence,
   expandOccurrences,
   fmtRange,
   fmtTime,
@@ -51,6 +53,8 @@ import type {
   CalendarColor,
   CalendarItem,
   RecurrenceFreq,
+  RecurrenceRule,
+  WeekDay,
 } from "@/types/calendar";
 import type { Todo } from "@/types/schedule";
 
