@@ -771,10 +771,19 @@ function WeekView({
           <div />
           {days.map((d, i) => {
             const isT = sameDay(d, today);
+            const lunar = solarToLunar(d.getDate(), d.getMonth() + 1, d.getFullYear());
+            const holidays = getHolidaysForDate(d);
+            const top = holidays[0];
             return (
-              <div key={d.toISOString()} className="border-l border-border px-2 py-2 text-center">
+              <div key={d.toISOString()} className="border-l border-border px-2 py-2 text-center" title={top ? top.name : undefined}>
                 <div className="text-[10px] font-semibold text-muted-foreground">{WEEK_LABELS[i]}</div>
-                <div className={cn("text-base font-bold", isT && "text-gradient-brand")}>{d.getDate()}</div>
+                <div className={cn("text-base font-bold", isT && "text-gradient-brand", top?.type === "public" && !isT && "text-rose-600")}>{d.getDate()}</div>
+                <div className="text-[9px] text-muted-foreground/80">ÂL {formatLunarShort(lunar)}</div>
+                {top && (
+                  <div className={cn("mt-0.5 truncate text-[9px] font-medium", top.type === "public" ? "text-rose-600" : top.type === "traditional" ? "text-amber-600" : "text-muted-foreground")}>
+                    {top.name}
+                  </div>
+                )}
               </div>
             );
           })}
