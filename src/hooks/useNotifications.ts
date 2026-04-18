@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import type { CalendarItem } from "@/types/calendar";
-import { parseLocal } from "@/lib/calendar";
+import { getReminderOffsets, parseLocal } from "@/lib/calendar";
 
 /**
- * Background scheduler: every 30s scan upcoming items, fire browser
- * notification when reminder window crosses "now". Tracks fired ids in a
- * Set to avoid duplicates within the session.
+ * Background scheduler: every 30s scan upcoming items, fire one notification
+ * per reminder offset when its window crosses "now". Tracks fired keys to
+ * prevent duplicates within the session.
  */
 export function useReminderScheduler(items: CalendarItem[]) {
   const firedRef = useRef<Set<string>>(new Set());
@@ -17,21 +17,24 @@ export function useReminderScheduler(items: CalendarItem[]) {
       if (Notification.permission !== "granted") return;
       const now = Date.now();
       for (const it of items) {
-        if (it.reminderMinutes == null) continue;
+        const offsets = getReminderOffsets(it);
+        if (offsets.length === 0) continue;
         const start = parseLocal(it.startISO).getTime();
-        const fireAt = start - it.reminderMinutes * 60_000;
-        const key = `${it.id}@${fireAt}`;
-        if (firedRef.current.has(key)) continue;
-        // Fire if we're within a 60s window after fireAt and before start
-        if (now >= fireAt && now <= start + 60_000) {
-          try {
-            new Notification(it.title, {
-              body: it.description || "Sự kiện sắp bắt đầu",
-              tag: key,
-            });
-            firedRef.current.add(key);
-          } catch {
-            /* ignore */
+        for (const off of offsets) {
+          const fireAt = start - off * 60_000;
+          const key = `${it.id}@${fireAt}`;
+          if (firedRef.current.has(key)) continue;
+          if (now >= fireAt && now <= fireAt + 60_000) {
+            try {
+              const body =
+                off === 0
+                  ? it.description || "Sự kiện bắt đầu ngay bây giờ"
+                  : `Bắt đầu trong ${off < 60 ? `${off} phút` : off < 1440 ? `${Math.round(off / 60)} giờ` : `${Math.round(off / 1440)} ngày`}`;
+              new Notification(it.title, { body, tag: key });
+              firedRef.current.add(key);
+            } catch {
+              /* ignore */
+            }
           }
         }
       }

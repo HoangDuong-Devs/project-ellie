@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import {
   ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, CalendarDays,
-  Plus, Target, Trash2, TrendingDown, TrendingUp, Wallet,
+  Plus, Target, Trash2, TrendingDown, TrendingUp, Wallet, Filter, X,
 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { formatVND, uid } from "@/lib/format";
@@ -134,9 +134,9 @@ function Finance() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Thu T" value={summary.income} icon={TrendingUp} positive />
-        <StatCard label="Chi T" value={summary.expense} icon={TrendingDown} />
-        <StatCard label="Số dư T" value={summary.balance} icon={Wallet} positive={summary.balance >= 0} />
+        <StatCard label="Thu trong tháng" value={summary.income} icon={TrendingUp} positive />
+        <StatCard label="Chi trong tháng" value={summary.expense} icon={TrendingDown} />
+        <StatCard label="Số dư tháng" value={summary.balance} icon={Wallet} positive={summary.balance >= 0} />
       </div>
 
       {/* Add form (always visible) */}
@@ -240,6 +240,7 @@ function ListView({ tx, onRemove, year, month }: { tx: Transaction[]; onRemove: 
   const [filterCat, setFilterCat] = useState<string>("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const filtered = useMemo(() => {
     return tx
@@ -256,25 +257,65 @@ function ListView({ tx, onRemove, year, month }: { tx: Transaction[]; onRemove: 
   }, [tx, filterType, filterCat, from, to, year, month]);
 
   const allCats = Array.from(new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES]));
+  const activeCount = (filterType !== "all" ? 1 : 0) + (filterCat !== "all" ? 1 : 0) + (from ? 1 : 0) + (to ? 1 : 0);
 
   return (
     <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
-      <div className="mb-4 flex flex-wrap gap-2">
-        <select value={filterType} onChange={(e) => setFilterType(e.target.value as "all" | TxType)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm">
-          <option value="all">Tất cả loại</option>
-          <option value="income">Thu</option>
-          <option value="expense">Chi</option>
-        </select>
-        <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm">
-          <option value="all">Tất cả danh mục</option>
-          {allCats.map((c) => <option key={c}>{c}</option>)}
-        </select>
-        <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm" placeholder="Từ" />
-        <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm" placeholder="Đến" />
-        {(from || to || filterType !== "all" || filterCat !== "all") && (
-          <button onClick={() => { setFrom(""); setTo(""); setFilterType("all"); setFilterCat("all"); }} className="rounded-xl border border-border px-3 py-2 text-xs hover:bg-accent/10">Xóa lọc</button>
-        )}
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <button
+          onClick={() => setShowFilters((v) => !v)}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-all",
+            showFilters || activeCount > 0
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border hover:bg-accent/10",
+          )}
+        >
+          <Filter className="h-4 w-4" />
+          Bộ lọc
+          {activeCount > 0 && (
+            <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-brand px-1.5 text-[10px] font-bold text-white">
+              {activeCount}
+            </span>
+          )}
+        </button>
+        <span className="text-xs text-muted-foreground">{filtered.length} giao dịch</span>
       </div>
+
+      {showFilters && (
+        <div className="mb-4 space-y-3 rounded-2xl border border-border bg-muted/20 p-3">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Loại</label>
+              <select value={filterType} onChange={(e) => setFilterType(e.target.value as "all" | TxType)} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
+                <option value="all">Tất cả loại</option>
+                <option value="income">Thu</option>
+                <option value="expense">Chi</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Danh mục</label>
+              <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
+                <option value="all">Tất cả danh mục</option>
+                {allCats.map((c) => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Khoảng ngày</label>
+            <div className="flex items-center gap-2">
+              <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+              <span className="text-xs text-muted-foreground">đến</span>
+              <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+          </div>
+          {activeCount > 0 && (
+            <button onClick={() => { setFrom(""); setTo(""); setFilterType("all"); setFilterCat("all"); }} className="inline-flex items-center gap-1 rounded-xl border border-border bg-background px-3 py-1.5 text-xs hover:bg-accent/10">
+              <X className="h-3 w-3" /> Xóa tất cả bộ lọc
+            </button>
+          )}
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">Không có giao dịch.</p>

@@ -8,7 +8,19 @@ export type CalendarColor =
   | "blue"
   | "purple";
 
-export type RecurrenceFreq = "none" | "daily" | "weekly" | "monthly" | "yearly";
+export type RecurrenceFreq = "none" | "daily" | "weekly" | "monthly" | "yearly" | "custom";
+
+// Mon=0, Tue=1, ..., Sun=6 (matches our week labels)
+export type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+export interface RecurrenceRule {
+  freq: Exclude<RecurrenceFreq, "none">;
+  interval?: number; // every N units (default 1)
+  byWeekDays?: WeekDay[]; // for weekly: which days
+  monthlyMode?: "dayOfMonth" | "dayOfWeek"; // for monthly
+  count?: number; // ends after N occurrences
+  until?: string; // YYYY-MM-DD inclusive
+}
 
 export interface CalendarItem {
   id: string;
@@ -20,8 +32,10 @@ export interface CalendarItem {
   calendarId: string;
   color?: CalendarColor; // override calendar color
   recurrence: RecurrenceFreq;
-  recurrenceUntil?: string; // YYYY-MM-DD
-  reminderMinutes?: number; // null/undefined = no reminder
+  recurrenceRule?: RecurrenceRule; // detailed config
+  recurrenceUntil?: string; // legacy quick-until
+  reminderMinutes?: number; // legacy single reminder
+  reminders?: number[]; // multiple reminder offsets in minutes
   createdAt: string;
 }
 
