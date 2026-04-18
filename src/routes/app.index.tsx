@@ -106,7 +106,7 @@ function Dashboard() {
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-semibold">Việc cần làm</h3>
             <Link
-              to="/app/schedule"
+              to="/app/calendar"
               className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
             >
               Xem tất cả <ArrowRight className="h-3 w-3" />
