@@ -194,7 +194,7 @@ function Finance() {
                 <XAxis dataKey="name" stroke="currentColor" fontSize={12} />
                 <YAxis stroke="currentColor" fontSize={11} tickFormatter={(v) => `${v / 1_000_000}M`} />
                 <Tooltip
-                  formatter={(v: number) => formatVND(v)}
+                  formatter={(v) => formatVND(Number(v))}
                   contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)" }}
                 />
                 <Legend />
@@ -220,7 +220,7 @@ function Finance() {
                       <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v: number) => formatVND(v)} />
+                  <Tooltip formatter={(v) => formatVND(Number(v))} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

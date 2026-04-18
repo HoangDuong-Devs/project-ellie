@@ -14,13 +14,20 @@ import { useEffect, useState } from "react";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+type NavItem = {
+  to: "/app" | "/app/finance" | "/app/schedule" | "/app/focus" | "/app/goals";
+  label: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+};
+
+const NAV: NavItem[] = [
   { to: "/app", label: "Tổng quan", icon: LayoutDashboard, exact: true },
   { to: "/app/finance", label: "Tài chính", icon: Wallet },
   { to: "/app/schedule", label: "Lịch trình", icon: CalendarDays },
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
-] as const;
+];
 
 export function AppShell() {
   const { pathname } = useLocation();
