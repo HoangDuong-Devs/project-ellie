@@ -924,8 +924,25 @@ function DayView({
     return () => clearInterval(id);
   }, []);
 
+  const lunar = solarToLunar(cursor.getDate(), cursor.getMonth() + 1, cursor.getFullYear());
+  const holidays = getHolidaysForDate(cursor);
+
   return (
     <div className="overflow-hidden rounded-2xl border border-border">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/20 px-3 py-2 text-xs">
+        <span className="text-muted-foreground">{formatLunarFull(lunar)}</span>
+        {holidays.map((h) => (
+          <span
+            key={h.name}
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[10px] font-medium",
+              h.type === "public" ? "bg-rose-100 text-rose-700" : h.type === "traditional" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground",
+            )}
+          >
+            {h.name}
+          </span>
+        ))}
+      </div>
       {allDay.length > 0 && (
         <div className="border-b border-border bg-card p-2">
           <div className="mb-1 text-[10px] font-semibold text-muted-foreground">Cả ngày</div>
