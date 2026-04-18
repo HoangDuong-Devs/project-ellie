@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Plus, Trash2, Check } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Plus, Trash2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { uid } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
-import type { Priority, ScheduleItem, Todo } from "@/types/schedule";
+import type { Priority, Todo } from "@/types/schedule";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/schedule")({
@@ -12,48 +12,24 @@ export const Route = createFileRoute("/app/schedule")({
   component: Schedule,
 });
 
-const DAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7..20
+const DAY_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+
+function startOfWeek(d: Date) {
+  const x = new Date(d);
+  const day = (x.getDay() + 6) % 7; // Mon=0
+  x.setDate(x.getDate() - day);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function ymd(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 function Schedule() {
   const [todos, setTodos] = useLocalStorage<Todo[]>("ellie:todos", []);
-  const [items, setItems] = useLocalStorage<ScheduleItem[]>("ellie:schedule", []);
-  const [tab, setTab] = useState<"todos" | "week">("todos");
+  const [weekOffset, setWeekOffset] = useState(0);
 
-  return (
-    <div>
-      <PageHeader
-        title="Lịch trình & Todo"
-        description="Quản lý công việc theo mức ưu tiên và lên thời khóa biểu tuần."
-      />
-
-      <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1 shadow-soft">
-        <button
-          onClick={() => setTab("todos")}
-          className={cn(
-            "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
-            tab === "todos" ? "bg-gradient-brand text-white shadow-soft" : "text-muted-foreground",
-          )}
-        >
-          Todo
-        </button>
-        <button
-          onClick={() => setTab("week")}
-          className={cn(
-            "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
-            tab === "week" ? "bg-gradient-brand text-white shadow-soft" : "text-muted-foreground",
-          )}
-        >
-          Lịch tuần
-        </button>
-      </div>
-
-      {tab === "todos" ? <TodosView todos={todos} setTodos={setTodos} /> : <WeekView items={items} setItems={setItems} />}
-    </div>
-  );
-}
-
-function TodosView({ todos, setTodos }: { todos: Todo[]; setTodos: (t: Todo[]) => void }) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [due, setDue] = useState("");
@@ -74,7 +50,6 @@ function TodosView({ todos, setTodos }: { todos: Todo[]; setTodos: (t: Todo[]) =
     setTitle("");
     setDue("");
   }
-
   function toggle(id: string) {
     setTodos(todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
   }
@@ -93,8 +68,41 @@ function TodosView({ todos, setTodos }: { todos: Todo[]; setTodos: (t: Todo[]) =
     "Đã xong": todos.filter((t) => t.done),
   };
 
+  const weekStart = useMemo(() => {
+    const s = startOfWeek(new Date());
+    s.setDate(s.getDate() + weekOffset * 7);
+    return s;
+  }, [weekOffset]);
+
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekStart);
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+  }, [weekStart]);
+
+  const todosByDay = useMemo(() => {
+    const map = new Map<string, Todo[]>();
+    weekDays.forEach((d) => map.set(ymd(d), []));
+    todos.forEach((t) => {
+      if (!t.dueDate) return;
+      const key = ymd(new Date(t.dueDate));
+      if (map.has(key)) map.get(key)!.push(t);
+    });
+    return map;
+  }, [todos, weekDays]);
+
+  const todayKey = ymd(new Date());
+
   return (
-    <>
+    <div>
+      <PageHeader
+        title="Lịch trình & Todo"
+        description="Thêm việc cần làm và xem lịch tuần."
+      />
+
+      {/* Add Todo */}
       <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto]">
           <input
@@ -128,6 +136,7 @@ function TodosView({ todos, setTodos }: { todos: Todo[]; setTodos: (t: Todo[]) =
         </div>
       </section>
 
+      {/* Todo groups */}
       <div className="mt-5 grid gap-4 lg:grid-cols-3">
         {Object.entries(groups).map(([label, list]) => (
           <section key={label} className="rounded-3xl border border-border bg-card p-5 shadow-soft">
@@ -188,67 +197,82 @@ function TodosView({ todos, setTodos }: { todos: Todo[]; setTodos: (t: Todo[]) =
           </section>
         ))}
       </div>
-    </>
-  );
-}
 
-function WeekView({
-  items,
-  setItems,
-}: {
-  items: ScheduleItem[];
-  setItems: (i: ScheduleItem[]) => void;
-}) {
-  function addAt(day: number, hour: number) {
-    const title = window.prompt("Tên sự kiện?");
-    if (!title) return;
-    setItems([
-      ...items,
-      { id: uid(), title, day, startHour: hour, duration: 1 },
-    ]);
-  }
-  function remove(id: string) {
-    setItems(items.filter((i) => i.id !== id));
-  }
-
-  return (
-    <section className="overflow-x-auto rounded-3xl border border-border bg-card p-3 shadow-soft">
-      <div className="min-w-[640px]">
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border">
-          <div />
-          {DAYS.map((d) => (
-            <div key={d} className="py-2 text-center text-xs font-semibold">
-              {d}
-            </div>
-          ))}
-        </div>
-        {HOURS.map((h) => (
-          <div key={h} className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border/40">
-            <div className="px-2 py-3 text-right text-xs text-muted-foreground">{h}:00</div>
-            {DAYS.map((_, di) => {
-              const it = items.find((x) => x.day === di && x.startHour === h);
-              return (
-                <button
-                  key={di}
-                  onClick={() => (it ? remove(it.id) : addAt(di, h))}
-                  className={cn(
-                    "h-12 border-l border-border/40 text-xs transition-all",
-                    it
-                      ? "bg-gradient-brand text-white shadow-soft"
-                      : "text-transparent hover:bg-muted/40 hover:text-muted-foreground",
-                  )}
-                  title={it ? "Click để xóa" : "Click để thêm"}
-                >
-                  {it ? it.title : "+"}
-                </button>
-              );
-            })}
+      {/* Week view of todos */}
+      <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="font-semibold">Lịch tuần</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setWeekOffset((v) => v - 1)}
+              className="rounded-full border border-border p-1.5 hover:bg-accent/10"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-sm font-medium">
+              {weekDays[0].toLocaleDateString("vi-VN")} – {weekDays[6].toLocaleDateString("vi-VN")}
+            </span>
+            <button
+              onClick={() => setWeekOffset((v) => v + 1)}
+              className="rounded-full border border-border p-1.5 hover:bg-accent/10"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setWeekOffset(0)}
+              className="ml-2 rounded-full border border-border px-3 py-1 text-xs hover:bg-accent/10"
+            >
+              Hôm nay
+            </button>
           </div>
-        ))}
-      </div>
-      <p className="mt-3 px-2 text-xs text-muted-foreground">
-        Mẹo: Click ô trống để thêm sự kiện, click sự kiện để xóa.
-      </p>
-    </section>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          {weekDays.map((d, i) => {
+            const key = ymd(d);
+            const list = todosByDay.get(key) || [];
+            const isToday = key === todayKey;
+            return (
+              <div
+                key={key}
+                className={cn(
+                  "rounded-2xl border p-3 transition-all",
+                  isToday ? "border-primary bg-gradient-to-br from-pink-500/5 to-cyan-500/5" : "border-border bg-muted/30",
+                )}
+              >
+                <div className="mb-2 flex items-baseline justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground">{DAY_LABELS[i]}</span>
+                  <span className={cn("text-lg font-bold", isToday && "text-gradient-brand")}>{d.getDate()}</span>
+                </div>
+                {list.length === 0 ? (
+                  <p className="py-2 text-center text-[11px] text-muted-foreground">—</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {list.map((t) => (
+                      <li
+                        key={t.id}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-lg bg-background p-1.5 text-[11px]",
+                          t.done && "opacity-50 line-through",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "inline-block h-1.5 w-1.5 shrink-0 rounded-full",
+                            t.priority === "high" && "bg-rose-500",
+                            t.priority === "medium" && "bg-amber-500",
+                            t.priority === "low" && "bg-emerald-500",
+                          )}
+                        />
+                        <span className="truncate">{t.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }
