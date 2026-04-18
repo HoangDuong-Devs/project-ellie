@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Wallet,
   CalendarDays,
+  CalendarRange,
   Timer,
   Target,
   Settings,
@@ -15,7 +16,7 @@ import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  to: "/app" | "/app/finance" | "/app/schedule" | "/app/focus" | "/app/goals";
+  to: "/app" | "/app/finance" | "/app/schedule" | "/app/calendar" | "/app/focus" | "/app/goals";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
@@ -25,6 +26,7 @@ const NAV: NavItem[] = [
   { to: "/app", label: "Tổng quan", icon: LayoutDashboard, exact: true },
   { to: "/app/finance", label: "Tài chính", icon: Wallet },
   { to: "/app/schedule", label: "Lịch trình", icon: CalendarDays },
+  { to: "/app/calendar", label: "Vạn niên", icon: CalendarRange },
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
 ];
