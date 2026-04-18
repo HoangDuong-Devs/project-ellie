@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import {
   ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, CalendarDays,
-  Plus, Target, Trash2, TrendingDown, TrendingUp, Wallet,
+  Plus, Target, Trash2, TrendingDown, TrendingUp, Wallet, Filter, X,
 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { formatVND, uid } from "@/lib/format";
@@ -134,9 +134,9 @@ function Finance() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Thu T" value={summary.income} icon={TrendingUp} positive />
-        <StatCard label="Chi T" value={summary.expense} icon={TrendingDown} />
-        <StatCard label="Số dư T" value={summary.balance} icon={Wallet} positive={summary.balance >= 0} />
+        <StatCard label="Thu trong tháng" value={summary.income} icon={TrendingUp} positive />
+        <StatCard label="Chi trong tháng" value={summary.expense} icon={TrendingDown} />
+        <StatCard label="Số dư tháng" value={summary.balance} icon={Wallet} positive={summary.balance >= 0} />
       </div>
 
       {/* Add form (always visible) */}
