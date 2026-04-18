@@ -741,121 +741,123 @@ function WeekView({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border">
-      {/* Header row */}
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-muted/30">
-        <div />
-        {days.map((d, i) => {
-          const isT = sameDay(d, today);
-          return (
-            <div key={d.toISOString()} className="border-l border-border px-2 py-2 text-center">
-              <div className="text-[10px] font-semibold text-muted-foreground">{WEEK_LABELS[i]}</div>
-              <div className={cn("text-base font-bold", isT && "text-gradient-brand")}>{d.getDate()}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* All-day strip */}
-      {allDay.length > 0 && (
-        <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-card">
-          <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground">Cả ngày</div>
-          {days.map((d) => {
-            const dayItems = allDay.filter((o) => sameDay(o.instanceStart, d));
+      <div className="overflow-y-auto" style={{ maxHeight: "70vh" }}>
+        {/* Header row (sticky) */}
+        <div className="sticky top-0 z-30 grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-muted/30 backdrop-blur">
+          <div />
+          {days.map((d, i) => {
+            const isT = sameDay(d, today);
             return (
-              <DroppableDay key={d.toISOString()} dateKey={ymd(d)}>
-                <div className="min-h-[28px] space-y-0.5 border-l border-border px-1 py-1">
-                  {dayItems.map((o) => {
-                    const cal = calMap.get(o.calendarId);
-                    const color = (o.color || cal?.color || "pink") as CalendarColor;
-                    return (
-                      <DraggableEvent key={o.instanceKey} id={o.instanceKey}>
-                        <button
-                          onClick={() => onOpen(o)}
-                          className={cn("block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium", COLORS[color].soft)}
-                        >
-                          {o.title}
-                        </button>
-                      </DraggableEvent>
-                    );
-                  })}
-                </div>
-              </DroppableDay>
+              <div key={d.toISOString()} className="border-l border-border px-2 py-2 text-center">
+                <div className="text-[10px] font-semibold text-muted-foreground">{WEEK_LABELS[i]}</div>
+                <div className={cn("text-base font-bold", isT && "text-gradient-brand")}>{d.getDate()}</div>
+              </div>
             );
           })}
         </div>
-      )}
 
-      {/* Timed grid */}
-      <div className="relative grid grid-cols-[60px_repeat(7,1fr)] overflow-y-auto" style={{ maxHeight: "60vh" }}>
-        {/* Hour labels */}
-        <div className="bg-muted/20">
-          {HOURS.map((h) => (
-            <div key={h} style={{ height: HOUR_PX }} className="border-b border-border pr-2 text-right text-[10px] text-muted-foreground">
-              {pad(h)}:00
-            </div>
-          ))}
-        </div>
-        {days.map((d) => {
-          const isT = sameDay(d, today);
-          const dayItems = timed.filter((o) => sameDay(o.instanceStart, d));
-          return (
-            <div key={d.toISOString()} className="relative border-l border-border">
-              {/* Hour cells */}
-              {HOURS.map((h) => (
-                <DroppableDay key={h} dateKey={ymd(d)} hour={h}>
-                  <div
-                    onClick={() => onCreate(d, h)}
-                    style={{ height: HOUR_PX }}
-                    className="cursor-pointer border-b border-border hover:bg-accent/5"
-                  />
+        {/* All-day strip (sticky below header) */}
+        {allDay.length > 0 && (
+          <div className="sticky top-[52px] z-20 grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-card">
+            <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground">Cả ngày</div>
+            {days.map((d) => {
+              const dayItems = allDay.filter((o) => sameDay(o.instanceStart, d));
+              return (
+                <DroppableDay key={d.toISOString()} dateKey={ymd(d)}>
+                  <div className="min-h-[28px] space-y-0.5 border-l border-border px-1 py-1">
+                    {dayItems.map((o) => {
+                      const cal = calMap.get(o.calendarId);
+                      const color = (o.color || cal?.color || "pink") as CalendarColor;
+                      return (
+                        <DraggableEvent key={o.instanceKey} id={o.instanceKey}>
+                          <button
+                            onClick={() => onOpen(o)}
+                            className={cn("block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium", COLORS[color].soft)}
+                          >
+                            {o.title}
+                          </button>
+                        </DraggableEvent>
+                      );
+                    })}
+                  </div>
                 </DroppableDay>
-              ))}
-              {/* Now line */}
-              {isT && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 z-20 h-0.5 bg-gradient-brand"
-                  style={{ top: (nowMin / 60) * HOUR_PX }}
-                >
-                  <div className="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-pink-500" />
-                </div>
-              )}
-              {/* Events */}
-              {dayItems.map((o) => {
-                const cal = calMap.get(o.calendarId);
-                const color = (o.color || cal?.color || "pink") as CalendarColor;
-                const startMin = o.instanceStart.getHours() * 60 + o.instanceStart.getMinutes();
-                const endMin = o.instanceEnd.getHours() * 60 + o.instanceEnd.getMinutes();
-                const top = (startMin / 60) * HOUR_PX;
-                const height = Math.max(20, ((endMin - startMin) / 60) * HOUR_PX);
-                return (
-                  <ResizableTimedEvent
-                    key={o.instanceKey}
-                    id={o.instanceKey}
-                    top={top}
-                    height={height}
-                    onResize={(deltaPx) => {
-                      const deltaMin = Math.round((deltaPx / HOUR_PX) * 60 / 15) * 15;
-                      const newEnd = new Date(o.instanceEnd.getTime() + deltaMin * 60_000);
-                      if (newEnd <= o.instanceStart) return;
-                      onResize(o.id, newEnd);
-                    }}
+              );
+            })}
+          </div>
+        )}
+
+        {/* Timed grid */}
+        <div className="relative grid grid-cols-[60px_repeat(7,1fr)]">
+          {/* Hour labels */}
+          <div className="bg-muted/20">
+            {HOURS.map((h) => (
+              <div key={h} style={{ height: HOUR_PX }} className="border-b border-border pr-2 text-right text-[10px] text-muted-foreground">
+                {pad(h)}:00
+              </div>
+            ))}
+          </div>
+          {days.map((d) => {
+            const isT = sameDay(d, today);
+            const dayItems = timed.filter((o) => sameDay(o.instanceStart, d));
+            return (
+              <div key={d.toISOString()} className="relative border-l border-border">
+                {/* Hour cells */}
+                {HOURS.map((h) => (
+                  <DroppableDay key={h} dateKey={ymd(d)} hour={h}>
+                    <div
+                      onClick={() => onCreate(d, h)}
+                      style={{ height: HOUR_PX }}
+                      className="cursor-pointer border-b border-border hover:bg-accent/5"
+                    />
+                  </DroppableDay>
+                ))}
+                {/* Now line */}
+                {isT && (
+                  <div
+                    className="pointer-events-none absolute inset-x-0 z-20 h-0.5 bg-gradient-brand"
+                    style={{ top: (nowMin / 60) * HOUR_PX }}
                   >
-                    <button
-                      onClick={() => onOpen(o)}
-                      className={cn(
-                        "h-full w-full overflow-hidden rounded-lg border px-1.5 py-1 text-left text-[11px] shadow-sm",
-                        COLORS[color].soft,
-                      )}
+                    <div className="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-pink-500" />
+                  </div>
+                )}
+                {/* Events */}
+                {dayItems.map((o) => {
+                  const cal = calMap.get(o.calendarId);
+                  const color = (o.color || cal?.color || "pink") as CalendarColor;
+                  const startMin = o.instanceStart.getHours() * 60 + o.instanceStart.getMinutes();
+                  const endMin = o.instanceEnd.getHours() * 60 + o.instanceEnd.getMinutes();
+                  const top = (startMin / 60) * HOUR_PX;
+                  const height = Math.max(20, ((endMin - startMin) / 60) * HOUR_PX);
+                  return (
+                    <ResizableTimedEvent
+                      key={o.instanceKey}
+                      id={o.instanceKey}
+                      top={top}
+                      height={height}
+                      onResize={(deltaPx) => {
+                        const deltaMin = Math.round((deltaPx / HOUR_PX) * 60 / 15) * 15;
+                        const newEnd = new Date(o.instanceEnd.getTime() + deltaMin * 60_000);
+                        if (newEnd <= o.instanceStart) return;
+                        onResize(o.id, newEnd);
+                      }}
                     >
-                      <div className="font-semibold leading-tight">{o.title}</div>
-                      <div className="text-[10px] opacity-75">{fmtRange(o.instanceStart, o.instanceEnd)}</div>
-                    </button>
-                  </ResizableTimedEvent>
-                );
-              })}
-            </div>
-          );
-        })}
+                      <button
+                        onClick={() => onOpen(o)}
+                        className={cn(
+                          "h-full w-full overflow-hidden rounded-lg border px-1.5 py-1 text-left text-[11px] shadow-sm",
+                          COLORS[color].soft,
+                        )}
+                      >
+                        <div className="font-semibold leading-tight">{o.title}</div>
+                        <div className="text-[10px] opacity-75">{fmtRange(o.instanceStart, o.instanceEnd)}</div>
+                      </button>
+                    </ResizableTimedEvent>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
