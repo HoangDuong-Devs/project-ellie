@@ -1325,3 +1325,332 @@ function EventModal({
     </div>
   );
 }
+
+/* ----------------- Recurrence Editor ----------------- */
+type RecurrenceValue = {
+  recurrence: RecurrenceFreq;
+  recurrenceRule?: RecurrenceRule;
+  recurrenceUntil?: string;
+};
+
+function RecurrenceEditor({
+  value,
+  onChange,
+  anchorDate,
+}: {
+  value: RecurrenceValue;
+  onChange: (v: RecurrenceValue) => void;
+  anchorDate: Date;
+}) {
+  // "preset" controls top-level dropdown including "custom"
+  const preset = value.recurrence;
+  const rule = value.recurrenceRule;
+  const showCustom = preset === "custom";
+
+  function setPreset(p: RecurrenceFreq) {
+    if (p === "none") {
+      onChange({ recurrence: "none", recurrenceRule: undefined, recurrenceUntil: undefined });
+      return;
+    }
+    if (p === "custom") {
+      onChange({
+        recurrence: "custom",
+        recurrenceRule: rule || { freq: "weekly", interval: 1, byWeekDays: [((anchorDate.getDay() + 6) % 7) as WeekDay] },
+        recurrenceUntil: value.recurrenceUntil,
+      });
+      return;
+    }
+    onChange({ recurrence: p, recurrenceRule: undefined, recurrenceUntil: value.recurrenceUntil });
+  }
+
+  function patchRule(p: Partial<RecurrenceRule>) {
+    const next: RecurrenceRule = { freq: rule?.freq || "weekly", ...rule, ...p };
+    onChange({ recurrence: "custom", recurrenceRule: next, recurrenceUntil: undefined });
+  }
+
+  // End mode: never | until | count
+  const endMode: "never" | "until" | "count" = showCustom
+    ? rule?.count
+      ? "count"
+      : rule?.until
+        ? "until"
+        : "never"
+    : value.recurrenceUntil
+      ? "until"
+      : "never";
+
+  return (
+    <div className="rounded-xl border border-border bg-muted/20 p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <label className="text-xs font-semibold text-muted-foreground">Lặp lại</label>
+      </div>
+      <select
+        value={preset}
+        onChange={(e) => setPreset(e.target.value as RecurrenceFreq)}
+        className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
+      >
+        {(Object.keys(RECURRENCE_LABELS) as RecurrenceFreq[]).map((k) => (
+          <option key={k} value={k}>{RECURRENCE_LABELS[k]}</option>
+        ))}
+      </select>
+
+      {showCustom && rule && (
+        <div className="mt-3 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Lặp mỗi</span>
+            <input
+              type="number"
+              min={1}
+              max={99}
+              value={rule.interval ?? 1}
+              onChange={(e) => patchRule({ interval: Math.max(1, Number(e.target.value) || 1) })}
+              className="w-16 rounded-lg border border-input bg-background px-2 py-1 text-sm"
+            />
+            <select
+              value={rule.freq}
+              onChange={(e) => patchRule({ freq: e.target.value as RecurrenceRule["freq"] })}
+              className="rounded-lg border border-input bg-background px-2 py-1 text-sm"
+            >
+              <option value="daily">ngày</option>
+              <option value="weekly">tuần</option>
+              <option value="monthly">tháng</option>
+              <option value="yearly">năm</option>
+            </select>
+          </div>
+
+          {rule.freq === "weekly" && (
+            <div>
+              <div className="mb-1 text-xs text-muted-foreground">Vào các thứ</div>
+              <div className="flex flex-wrap gap-1.5">
+                {WEEKDAY_SHORT.map((label, i) => {
+                  const wd = i as WeekDay;
+                  const active = rule.byWeekDays?.includes(wd);
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => {
+                        const cur = new Set(rule.byWeekDays || []);
+                        if (active) cur.delete(wd); else cur.add(wd);
+                        patchRule({ byWeekDays: Array.from(cur).sort() as WeekDay[] });
+                      }}
+                      className={cn(
+                        "h-8 w-9 rounded-full border text-xs font-semibold transition-all",
+                        active
+                          ? "bg-gradient-brand text-white border-transparent shadow-soft"
+                          : "border-border bg-background text-muted-foreground hover:border-primary",
+                      )}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-1.5 flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => patchRule({ byWeekDays: [0, 1, 2, 3, 4] })}
+                  className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-accent/10"
+                >T2-T6</button>
+                <button
+                  type="button"
+                  onClick={() => patchRule({ byWeekDays: [5, 6] })}
+                  className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-accent/10"
+                >Cuối tuần</button>
+                <button
+                  type="button"
+                  onClick={() => patchRule({ byWeekDays: [0, 1, 2, 3, 4, 5, 6] })}
+                  className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-accent/10"
+                >Mỗi ngày</button>
+              </div>
+            </div>
+          )}
+
+          {rule.freq === "monthly" && (
+            <div>
+              <div className="mb-1 text-xs text-muted-foreground">Theo</div>
+              <div className="flex flex-col gap-1.5">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    checked={rule.monthlyMode !== "dayOfWeek"}
+                    onChange={() => patchRule({ monthlyMode: "dayOfMonth" })}
+                  />
+                  Ngày {anchorDate.getDate()} hằng tháng
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    checked={rule.monthlyMode === "dayOfWeek"}
+                    onChange={() => patchRule({ monthlyMode: "dayOfWeek" })}
+                  />
+                  {(() => {
+                    const nth = Math.ceil(anchorDate.getDate() / 7);
+                    const wd = (anchorDate.getDay() + 6) % 7;
+                    return `${nth === 5 ? "Cuối cùng" : `Lần ${nth}`} ${WEEKDAY_SHORT[wd]} của tháng`;
+                  })()}
+                </label>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">Kết thúc</div>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  checked={endMode === "never"}
+                  onChange={() => patchRule({ count: undefined, until: undefined })}
+                />
+                Không bao giờ
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  checked={endMode === "until"}
+                  onChange={() => patchRule({ count: undefined, until: ymd(anchorDate) })}
+                />
+                Đến ngày
+                {endMode === "until" && (
+                  <input
+                    type="date"
+                    value={rule.until || ""}
+                    onChange={(e) => patchRule({ until: e.target.value || undefined, count: undefined })}
+                    className="rounded-lg border border-input bg-background px-2 py-1 text-xs"
+                  />
+                )}
+              </label>
+              <label className="flex items-center gap-1.5">
+                <input
+                  type="radio"
+                  checked={endMode === "count"}
+                  onChange={() => patchRule({ count: 10, until: undefined })}
+                />
+                Sau
+                {endMode === "count" && (
+                  <>
+                    <input
+                      type="number"
+                      min={1}
+                      max={999}
+                      value={rule.count ?? 10}
+                      onChange={(e) => patchRule({ count: Math.max(1, Number(e.target.value) || 1), until: undefined })}
+                      className="w-16 rounded-lg border border-input bg-background px-2 py-1 text-xs"
+                    />
+                    <span>lần</span>
+                  </>
+                )}
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!showCustom && preset !== "none" && (
+        <div className="mt-2">
+          <label className="text-xs text-muted-foreground">Lặp đến ngày (tuỳ chọn)</label>
+          <input
+            type="date"
+            value={value.recurrenceUntil || ""}
+            onChange={(e) => onChange({ ...value, recurrenceUntil: e.target.value || undefined })}
+            className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
+          />
+        </div>
+      )}
+
+      <div className="mt-2 text-[11px] italic text-muted-foreground">
+        {describeRecurrence({
+          recurrence: preset,
+          recurrenceRule: rule,
+          recurrenceUntil: value.recurrenceUntil,
+        } as CalendarItem)}
+      </div>
+    </div>
+  );
+}
+
+/* ----------------- Reminders Editor (multi) ----------------- */
+function RemindersEditor({
+  value,
+  onChange,
+}: {
+  value: number[];
+  onChange: (v: number[]) => void;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  function fmt(min: number) {
+    if (min === 0) return "Đúng giờ";
+    if (min < 60) return `${min} phút trước`;
+    if (min < 1440) return `${Math.round(min / 60)} giờ trước`;
+    return `${Math.round(min / 1440)} ngày trước`;
+  }
+
+  function add(min: number) {
+    if (value.includes(min)) return;
+    onChange([...value, min].sort((a, b) => b - a));
+    setPickerOpen(false);
+  }
+
+  function remove(min: number) {
+    onChange(value.filter((v) => v !== min));
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-muted/20 p-3">
+      <label className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+        <Bell className="h-3 w-3" /> Nhắc nhở
+      </label>
+      {value.length === 0 ? (
+        <p className="mb-2 text-xs text-muted-foreground">Chưa có nhắc nhở</p>
+      ) : (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {value.map((m) => (
+            <span
+              key={m}
+              className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary"
+            >
+              {fmt(m)}
+              <button
+                type="button"
+                onClick={() => remove(m)}
+                className="rounded-full p-0.5 hover:bg-primary/20"
+                aria-label="Xoá nhắc nhở"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="relative inline-block">
+        <button
+          type="button"
+          onClick={() => setPickerOpen((v) => !v)}
+          className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs hover:bg-accent/10"
+        >
+          <Plus className="h-3 w-3" /> Thêm nhắc nhở
+        </button>
+        {pickerOpen && (
+          <div className="absolute left-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
+            {REMINDER_PRESETS.filter((p) => !value.includes(p.value)).map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => add(p.value)}
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-accent/10"
+              >
+                {p.label}
+              </button>
+            ))}
+            {REMINDER_PRESETS.every((p) => value.includes(p.value)) && (
+              <div className="px-3 py-2 text-xs text-muted-foreground">Đã thêm hết</div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
