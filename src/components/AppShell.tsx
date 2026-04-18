@@ -2,7 +2,6 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Wallet,
-  CalendarDays,
   CalendarRange,
   Timer,
   Target,
@@ -16,7 +15,7 @@ import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  to: "/app" | "/app/finance" | "/app/schedule" | "/app/calendar" | "/app/focus" | "/app/goals";
+  to: "/app" | "/app/finance" | "/app/calendar" | "/app/focus" | "/app/goals";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
@@ -25,8 +24,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { to: "/app", label: "Tổng quan", icon: LayoutDashboard, exact: true },
   { to: "/app/finance", label: "Tài chính", icon: Wallet },
-  { to: "/app/schedule", label: "Lịch trình", icon: CalendarDays },
-  { to: "/app/calendar", label: "Vạn niên", icon: CalendarRange },
+  { to: "/app/calendar", label: "Lịch", icon: CalendarRange },
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
 ];
@@ -141,7 +139,7 @@ export function AppShell() {
 
       {/* Bottom nav (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl lg:hidden">
-        <div className="grid grid-cols-6">
+        <div className="grid grid-cols-5">
           {NAV.map((n) => {
             const active = isActive(n.to, n.exact);
             return (
