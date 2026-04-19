@@ -43,7 +43,7 @@ function WorkPage() {
   useEffect(() => {
     if (activeWorkspace && (!search.ws || search.ws !== activeWorkspace.id)) {
       navigate({
-        search: (prev: WorkSearch) => ({ ...prev, ws: activeWorkspace.id }),
+        search: { ...search, ws: activeWorkspace.id },
         replace: true,
       });
     }
@@ -138,14 +138,14 @@ function WorkPage() {
           activeId={activeWorkspace.id}
           view={view}
           onSelectWorkspace={(id) =>
-            navigate({ search: (prev: WorkSearch) => ({ ...prev, ws: id, sprint: undefined }) })
+            navigate({ search: { ...search, ws: id, sprint: undefined } })
           }
           onSelectView={(v) =>
-            navigate({ search: (prev: WorkSearch) => ({ ...prev, view: v }) })
+            navigate({ search: { ...search, view: v } })
           }
           onCreate={(d) => {
             const newId = store.createWorkspace(d);
-            navigate({ search: (prev: WorkSearch) => ({ ...prev, ws: newId, view: "board" }) });
+            navigate({ search: { ...search, ws: newId, view: "board" } });
           }}
         />
 
@@ -166,7 +166,7 @@ function WorkPage() {
                 value={activeSprint?.id ?? ""}
                 onChange={(e) =>
                   navigate({
-                    search: (prev: WorkSearch) => ({ ...prev, sprint: e.target.value || undefined }),
+                    search: { ...search, sprint: e.target.value || undefined },
                   })
                 }
                 className="rounded-md border border-input bg-background px-2 py-1 text-xs outline-none focus:border-primary"
