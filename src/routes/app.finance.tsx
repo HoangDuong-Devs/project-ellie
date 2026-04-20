@@ -15,6 +15,7 @@ import {
   EXPENSE_CATEGORIES, INCOME_CATEGORIES, type Transaction, type TxType,
 } from "@/types/finance";
 import type { SavingsGoal } from "@/types/calendar";
+import { MonthlyBudgetCard, type MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
 
 export const Route = createFileRoute("/app/finance")({
   head: () => ({ meta: [{ title: "Tài chính — ProjectEllie" }] }),
