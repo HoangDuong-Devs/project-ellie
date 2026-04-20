@@ -141,6 +141,8 @@ function Finance() {
         <StatCard label="Số dư tháng" value={summary.balance} icon={Wallet} positive={summary.balance >= 0} />
       </div>
 
+      <MonthlyBudgetCard budget={budget} setBudget={setBudget} tx={tx} year={year} month={month} />
+
       {/* Add form (always visible) */}
       <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <h3 className="mb-4 font-semibold">Thêm giao dịch</h3>
@@ -200,7 +202,6 @@ function Finance() {
             </div>
           </div>
 
-          <MonthlyBudgetCard budget={budget} setBudget={setBudget} tx={tx} year={year} month={month} />
           <SavingsGoalsCard goals={goals} setGoals={setGoals} balance={totalBalance} />
         </>
       )}
