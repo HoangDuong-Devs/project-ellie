@@ -202,7 +202,6 @@ function Finance() {
             </div>
           </div>
 
-          <MonthlyBudgetCard budget={budget} setBudget={setBudget} tx={tx} year={year} month={month} />
           <SavingsGoalsCard goals={goals} setGoals={setGoals} balance={totalBalance} />
         </>
       )}
