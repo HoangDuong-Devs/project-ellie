@@ -32,6 +32,7 @@ function ymd(d: Date) {
 function Finance() {
   const [tx, setTx] = useLocalStorage<Transaction[]>("ellie:transactions", []);
   const [goals, setGoals] = useLocalStorage<SavingsGoal[]>("ellie:savings-goals", []);
+  const [budget, setBudget] = useLocalStorage<MonthlyBudget>("ellie:monthly-budget", { total: 0, categories: {} });
   const [view, setView] = useState<View>("overview");
 
   // Add form
