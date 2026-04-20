@@ -15,6 +15,7 @@ import {
   EXPENSE_CATEGORIES, INCOME_CATEGORIES, type Transaction, type TxType,
 } from "@/types/finance";
 import type { SavingsGoal } from "@/types/calendar";
+import { MonthlyBudgetCard, type MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
 
 export const Route = createFileRoute("/app/finance")({
   head: () => ({ meta: [{ title: "Tài chính — ProjectEllie" }] }),
@@ -31,6 +32,7 @@ function ymd(d: Date) {
 function Finance() {
   const [tx, setTx] = useLocalStorage<Transaction[]>("ellie:transactions", []);
   const [goals, setGoals] = useLocalStorage<SavingsGoal[]>("ellie:savings-goals", []);
+  const [budget, setBudget] = useLocalStorage<MonthlyBudget>("ellie:monthly-budget", { total: 0, categories: {} });
   const [view, setView] = useState<View>("overview");
 
   // Add form
@@ -198,6 +200,7 @@ function Finance() {
             </div>
           </div>
 
+          <MonthlyBudgetCard budget={budget} setBudget={setBudget} tx={tx} year={year} month={month} />
           <SavingsGoalsCard goals={goals} setGoals={setGoals} balance={totalBalance} />
         </>
       )}
