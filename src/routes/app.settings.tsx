@@ -1,8 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, BellOff, Download, Moon, Sun, Trash2, Upload } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  CalendarRange,
+  Download,
+  Moon,
+  Sun,
+  Sunrise,
+  Target,
+  Timer,
+  Trash2,
+  Upload,
+  Wallet,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { requestNotificationPermission } from "@/hooks/useNotifications";
+import { useNotificationPrefs, type NotificationPrefs } from "@/hooks/useNotificationPrefs";
+import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/PageHeader";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 
