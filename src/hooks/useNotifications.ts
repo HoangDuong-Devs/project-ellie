@@ -26,6 +26,8 @@ function notify(
   },
 ) {
   const kind = opts.kind ?? "info";
+  // Respect user preferences — completely skip if category is disabled.
+  if (!isCategoryEnabled(opts.category)) return;
   if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
     try {
       new Notification(title, { body, tag: opts.tag });
