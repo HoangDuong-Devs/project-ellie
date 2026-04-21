@@ -19,11 +19,18 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   useReminderScheduler,
   useBudgetWatcher,
+  useTransactionLogger,
+  useGoalCompletionWatcher,
+  useFocusLogger,
+  useDailyEventsDigest,
   requestNotificationPermission,
 } from "@/hooks/useNotifications";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import type { CalendarItem } from "@/types/calendar";
 import type { Transaction } from "@/types/finance";
 import type { MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
+import type { Goal } from "@/types/goals";
+import type { PomodoroSession } from "@/types/focus";
 
 type NavItem = {
   to: "/app" | "/app/finance" | "/app/calendar" | "/app/focus" | "/app/goals" | "/app/work";
@@ -59,8 +66,14 @@ export function AppShell() {
     total: 0,
     categories: {},
   });
+  const [goals] = useLocalStorage<Goal[]>("ellie:goals", []);
+  const [pomodoros] = useLocalStorage<PomodoroSession[]>("ellie:pomodoros", []);
   useReminderScheduler(calendarItems);
   useBudgetWatcher(tx, budget);
+  useTransactionLogger(tx);
+  useGoalCompletionWatcher(goals);
+  useFocusLogger(pomodoros);
+  useDailyEventsDigest(calendarItems);
 
   // Ask for notification permission once per session if not already decided.
   useEffect(() => {
@@ -145,6 +158,7 @@ export function AppShell() {
           <span className="font-bold text-gradient-brand">ProjectEllie</span>
         </Link>
         <div className="flex items-center gap-1">
+          <NotificationCenter />
           <button
             onClick={toggleDark}
             className="rounded-full p-2 text-muted-foreground hover:bg-accent/10"
@@ -163,6 +177,10 @@ export function AppShell() {
 
       {/* Main */}
       <main className="lg:pl-64">
+        {/* Desktop top bar with notification bell */}
+        <div className="sticky top-0 z-20 hidden h-14 items-center justify-end gap-1 border-b border-border bg-background/80 px-6 backdrop-blur-xl lg:flex">
+          <NotificationCenter />
+        </div>
         <div className="mx-auto max-w-6xl px-4 pb-24 pt-6 lg:px-8 lg:pb-10">
           <Outlet />
         </div>

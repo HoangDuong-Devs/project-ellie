@@ -3,22 +3,47 @@ import { toast } from "sonner";
 import type { CalendarItem } from "@/types/calendar";
 import type { Transaction } from "@/types/finance";
 import type { MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
-import { getReminderOffsets, parseLocal } from "@/lib/calendar";
+import type { Goal } from "@/types/goals";
+import type { PomodoroSession } from "@/types/focus";
+import { getReminderOffsets, parseLocal, expandOccurrences, fmtTime } from "@/lib/calendar";
 import { formatVND } from "@/lib/format";
+import {
+  pushNotification,
+  type NotificationCategory,
+  type NotificationKind,
+} from "./useNotificationCenter";
 
-/** Show notification: native push if permitted, otherwise in-app toast. */
-function notify(title: string, body: string, tag?: string, kind: "info" | "warn" | "danger" = "info") {
+/** Show notification: native push + in-app toast + persistent center entry. */
+function notify(
+  title: string,
+  body: string,
+  opts: {
+    category: NotificationCategory;
+    kind?: NotificationKind;
+    tag?: string;
+    dedupeKey?: string;
+  },
+) {
+  const kind = opts.kind ?? "info";
   if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
     try {
-      new Notification(title, { body, tag });
+      new Notification(title, { body, tag: opts.tag });
     } catch {
       /* fallback below */
     }
   }
-  // Always also show in-app toast so user sees it while using the app
-  if (kind === "danger") toast.error(title, { description: body, id: tag });
-  else if (kind === "warn") toast.warning(title, { description: body, id: tag });
-  else toast(title, { description: body, id: tag });
+  if (kind === "danger") toast.error(title, { description: body, id: opts.tag });
+  else if (kind === "warn") toast.warning(title, { description: body, id: opts.tag });
+  else if (kind === "success") toast.success(title, { description: body, id: opts.tag });
+  else toast(title, { description: body, id: opts.tag });
+
+  pushNotification({
+    title,
+    body,
+    category: opts.category,
+    kind,
+    dedupeKey: opts.dedupeKey ?? opts.tag,
+  });
 }
 
 /**
@@ -47,7 +72,7 @@ export function useReminderScheduler(items: CalendarItem[]) {
               off === 0
                 ? it.description || "Sự kiện bắt đầu ngay bây giờ"
                 : `Bắt đầu trong ${off < 60 ? `${off} phút` : off < 1440 ? `${Math.round(off / 60)} giờ` : `${Math.round(off / 1440)} ngày`}`;
-            notify(it.title, body, key, "info");
+            notify(it.title, body, { category: "calendar", kind: "info", tag: key, dedupeKey: key });
             firedRef.current.add(key);
           }
         }
@@ -98,15 +123,13 @@ export function useBudgetWatcher(tx: Transaction[], budget: MonthlyBudget | unde
       fn();
     }
 
-    // Total budget thresholds
     const pct = spent / budget.total;
     if (pct >= 1) {
       fireOnce(`budget:over:${monthKey}`, () =>
         notify(
           "Vượt ngân sách tháng",
           `Bạn đã chi ${formatVND(spent)} / ${formatVND(budget.total)} (vượt ${formatVND(spent - budget.total)}).`,
-          `budget-over-${monthKey}`,
-          "danger",
+          { category: "finance", kind: "danger", tag: `budget-over-${monthKey}` },
         ),
       );
     } else if (pct >= 0.8) {
@@ -114,13 +137,11 @@ export function useBudgetWatcher(tx: Transaction[], budget: MonthlyBudget | unde
         notify(
           "Sắp đạt giới hạn ngân sách",
           `Đã chi ${Math.round(pct * 100)}% ngân sách tháng (${formatVND(spent)} / ${formatVND(budget.total)}).`,
-          `budget-80-${monthKey}`,
-          "warn",
+          { category: "finance", kind: "warn", tag: `budget-80-${monthKey}` },
         ),
       );
     }
 
-    // Per-category thresholds
     Object.entries(budget.categories || {}).forEach(([cat, limit]) => {
       if (!limit) return;
       const used = spentByCat[cat] || 0;
@@ -130,8 +151,7 @@ export function useBudgetWatcher(tx: Transaction[], budget: MonthlyBudget | unde
           notify(
             `Vượt hạn mức danh mục: ${cat}`,
             `Đã chi ${formatVND(used)} / ${formatVND(limit)}.`,
-            `budget-cat-over-${monthKey}-${cat}`,
-            "danger",
+            { category: "finance", kind: "danger", tag: `budget-cat-over-${monthKey}-${cat}` },
           ),
         );
       } else if (cpct >= 0.8) {
@@ -139,14 +159,12 @@ export function useBudgetWatcher(tx: Transaction[], budget: MonthlyBudget | unde
           notify(
             `Sắp vượt danh mục: ${cat}`,
             `Đã dùng ${Math.round(cpct * 100)}% (${formatVND(used)} / ${formatVND(limit)}).`,
-            `budget-cat-80-${monthKey}-${cat}`,
-            "warn",
+            { category: "finance", kind: "warn", tag: `budget-cat-80-${monthKey}-${cat}` },
           ),
         );
       }
     });
 
-    // Daily suggested spend exceeded
     const remaining = Math.max(0, budget.total - spent);
     const suggestPerDay = remaining / daysLeftIncl;
     if (suggestPerDay > 0 && todaySpent > suggestPerDay) {
@@ -154,12 +172,118 @@ export function useBudgetWatcher(tx: Transaction[], budget: MonthlyBudget | unde
         notify(
           "Chi tiêu hôm nay vượt gợi ý",
           `Hôm nay đã chi ${formatVND(todaySpent)}, vượt mức gợi ý ${formatVND(suggestPerDay)}/ngày để giữ trong ngân sách.`,
-          `budget-day-${todayKey}`,
-          "warn",
+          { category: "finance", kind: "warn", tag: `budget-day-${todayKey}` },
         ),
       );
     }
   }, [tx, budget]);
+}
+
+/** Logs every newly-added transaction into the notification center. */
+export function useTransactionLogger(tx: Transaction[]) {
+  const seenRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (seenRef.current === null) {
+      seenRef.current = new Set(tx.map((t) => t.id));
+      return;
+    }
+    for (const t of tx) {
+      if (seenRef.current.has(t.id)) continue;
+      seenRef.current.add(t.id);
+      const isExpense = t.type === "expense";
+      const verb = isExpense ? "Đã chi" : "Đã thu";
+      const title = `${verb} ${formatVND(t.amount)} · ${t.category}`;
+      const body = t.note ? t.note : `Giao dịch ${isExpense ? "chi tiêu" : "thu nhập"} mới`;
+      notify(title, body, {
+        category: "finance",
+        kind: isExpense ? "info" : "success",
+        dedupeKey: `tx:${t.id}`,
+      });
+    }
+  }, [tx]);
+}
+
+/** Notifies when a goal becomes completed (all steps done or completed flag flips). */
+export function useGoalCompletionWatcher(goals: Goal[]) {
+  const prevRef = useRef<Map<string, boolean> | null>(null);
+  useEffect(() => {
+    const now = new Map(goals.map((g) => [g.id, g.completed]));
+    if (prevRef.current === null) {
+      prevRef.current = now;
+      return;
+    }
+    for (const g of goals) {
+      const before = prevRef.current.get(g.id);
+      if (before === false && g.completed) {
+        notify("🎯 Hoàn thành mục tiêu!", `"${g.title}" đã hoàn tất. Chúc mừng bạn!`, {
+          category: "goal",
+          kind: "success",
+          dedupeKey: `goal-done:${g.id}`,
+        });
+      }
+    }
+    prevRef.current = now;
+  }, [goals]);
+}
+
+/** Notifies when a new pomodoro session is logged. */
+export function useFocusLogger(sessions: PomodoroSession[]) {
+  const seenRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (seenRef.current === null) {
+      seenRef.current = new Set(sessions.map((s) => s.id));
+      return;
+    }
+    for (const s of sessions) {
+      if (seenRef.current.has(s.id)) continue;
+      seenRef.current.add(s.id);
+      notify("⏱ Hoàn thành phiên Focus", `Bạn vừa tập trung ${s.minutes} phút. Tốt lắm!`, {
+        category: "focus",
+        kind: "success",
+        dedupeKey: `focus:${s.id}`,
+      });
+    }
+  }, [sessions]);
+}
+
+/**
+ * Once per day (per browser), produces a digest of today's events at first
+ * load, and at 08:00 if the app is open. Avoids duplication via dedupeKey.
+ */
+export function useDailyEventsDigest(items: CalendarItem[]) {
+  const checkedRef = useRef(false);
+  useEffect(() => {
+    if (checkedRef.current) return;
+    checkedRef.current = true;
+    if (items.length === 0) return;
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    const todays = expandOccurrences(items, start, end).sort(
+      (a, b) => a.instanceStart.getTime() - b.instanceStart.getTime(),
+    );
+    const todayKey = now.toISOString().slice(0, 10);
+    if (todays.length === 0) {
+      notify("📅 Hôm nay không có sự kiện", "Một ngày thoải mái — hãy tận dụng nhé!", {
+        category: "calendar",
+        kind: "info",
+        dedupeKey: `digest:${todayKey}`,
+      });
+      return;
+    }
+    const lines = todays
+      .slice(0, 5)
+      .map((o) => `${o.allDay ? "Cả ngày" : fmtTime(o.instanceStart)} · ${o.title}`)
+      .join("\n");
+    const more = todays.length > 5 ? `\n…và ${todays.length - 5} sự kiện khác` : "";
+    notify(`📅 Hôm nay có ${todays.length} sự kiện`, lines + more, {
+      category: "calendar",
+      kind: "info",
+      dedupeKey: `digest:${todayKey}`,
+    });
+  }, [items]);
 }
 
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
