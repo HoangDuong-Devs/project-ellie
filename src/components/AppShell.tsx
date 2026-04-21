@@ -19,11 +19,18 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import {
   useReminderScheduler,
   useBudgetWatcher,
+  useTransactionLogger,
+  useGoalCompletionWatcher,
+  useFocusLogger,
+  useDailyEventsDigest,
   requestNotificationPermission,
 } from "@/hooks/useNotifications";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import type { CalendarItem } from "@/types/calendar";
 import type { Transaction } from "@/types/finance";
 import type { MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
+import type { Goal } from "@/types/goals";
+import type { PomodoroSession } from "@/types/focus";
 
 type NavItem = {
   to: "/app" | "/app/finance" | "/app/calendar" | "/app/focus" | "/app/goals" | "/app/work";
@@ -59,8 +66,14 @@ export function AppShell() {
     total: 0,
     categories: {},
   });
+  const [goals] = useLocalStorage<Goal[]>("ellie:goals", []);
+  const [pomodoros] = useLocalStorage<PomodoroSession[]>("ellie:pomodoros", []);
   useReminderScheduler(calendarItems);
   useBudgetWatcher(tx, budget);
+  useTransactionLogger(tx);
+  useGoalCompletionWatcher(goals);
+  useFocusLogger(pomodoros);
+  useDailyEventsDigest(calendarItems);
 
   // Ask for notification permission once per session if not already decided.
   useEffect(() => {
