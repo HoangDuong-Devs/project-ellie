@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Moon, Sun, Trash2, Upload } from "lucide-react";
+import { Bell, BellOff, Download, Moon, Sun, Trash2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { requestNotificationPermission } from "@/hooks/useNotifications";
 import { PageHeader } from "@/components/PageHeader";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 
@@ -20,9 +22,34 @@ const KEYS = [
 
 function Settings() {
   const [dark, setDark] = useState(false);
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>("default");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setDark(getInitialDark()), []);
+  useEffect(() => {
+    setDark(getInitialDark());
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPerm(Notification.permission);
+    }
+  }, []);
+
+  async function enableNotifications() {
+    const p = await requestNotificationPermission();
+    setNotifPerm(p);
+    if (p === "granted") {
+      toast.success("Đã bật thông báo", {
+        description: "Bạn sẽ nhận thông báo nhắc lịch & cảnh báo ngân sách.",
+      });
+      try {
+        new Notification("ProjectEllie", { body: "Thông báo đã được bật ✨" });
+      } catch {
+        /* ignore */
+      }
+    } else if (p === "denied") {
+      toast.error("Trình duyệt đã chặn thông báo", {
+        description: "Mở cài đặt trình duyệt để cho phép thông báo từ trang này.",
+      });
+    }
+  }
 
   function toggle() {
     const next = !dark;
