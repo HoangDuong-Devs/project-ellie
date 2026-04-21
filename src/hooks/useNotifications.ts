@@ -12,6 +12,7 @@ import {
   type NotificationCategory,
   type NotificationKind,
 } from "./useNotificationCenter";
+import { isCategoryEnabled, isDailyDigestEnabled } from "./useNotificationPrefs";
 
 /** Show notification: native push + in-app toast + persistent center entry. */
 function notify(
@@ -25,6 +26,8 @@ function notify(
   },
 ) {
   const kind = opts.kind ?? "info";
+  // Respect user preferences — completely skip if category is disabled.
+  if (!isCategoryEnabled(opts.category)) return;
   if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
     try {
       new Notification(title, { body, tag: opts.tag });
@@ -255,6 +258,7 @@ export function useDailyEventsDigest(items: CalendarItem[]) {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
+    if (!isDailyDigestEnabled()) return;
     if (items.length === 0) return;
     const now = new Date();
     const start = new Date(now);
