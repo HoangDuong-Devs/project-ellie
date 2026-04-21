@@ -1,11 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, Plus, Trash2, Trophy } from "lucide-react";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { uid } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
+import {
+  createGoal,
+  deleteGoal,
+  listGoals,
+  patchGoal,
+} from "@/services/goals-api-client";
 import type { Goal } from "@/types/goals";
 import { cn } from "@/lib/utils";
+import { useDataAutoRefresh } from "@/services/api-live-sync";
 
 export const Route = createFileRoute("/app/goals")({
   head: () => ({ meta: [{ title: "Mục tiêu — ProjectEllie" }] }),
@@ -13,62 +19,99 @@ export const Route = createFileRoute("/app/goals")({
 });
 
 function Goals() {
-  const [goals, setGoals] = useLocalStorage<Goal[]>("ellie:goals", []);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [deadline, setDeadline] = useState("");
 
-  function add() {
+  const refresh = useCallback(async () => {
+    const data = await listGoals();
+    setGoals(data.goals);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const data = await listGoals();
+        if (active) setGoals(data.goals);
+      } catch {
+        // keep empty state on error
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+  useDataAutoRefresh(refresh, "goals");
+
+  async function add() {
     if (!title.trim()) return;
-    setGoals([
-      {
-        id: uid(),
+    try {
+      const data = await createGoal({
         title: title.trim(),
         description: desc.trim() || undefined,
         deadline: deadline || undefined,
-        steps: [],
-        completed: false,
-        createdAt: new Date().toISOString(),
-      },
-      ...goals,
-    ]);
-    setTitle("");
-    setDesc("");
-    setDeadline("");
+      });
+      setGoals(data.goals);
+      setTitle("");
+      setDesc("");
+      setDeadline("");
+    } catch {
+      // ignore
+    }
   }
 
-  function remove(id: string) {
-    setGoals(goals.filter((g) => g.id !== id));
+  async function remove(id: string) {
+    try {
+      const data = await deleteGoal(id);
+      setGoals(data.goals);
+    } catch {
+      // ignore
+    }
   }
 
-  function addStep(goalId: string, stepTitle: string) {
+  async function addStep(goalId: string, stepTitle: string) {
     if (!stepTitle.trim()) return;
-    setGoals(
-      goals.map((g) =>
-        g.id === goalId
-          ? { ...g, steps: [...g.steps, { id: uid(), title: stepTitle.trim(), done: false }] }
-          : g,
-      ),
-    );
+    const goal = goals.find((g) => g.id === goalId);
+    if (!goal) return;
+    try {
+      const data = await patchGoal(goalId, {
+        steps: [...goal.steps, { id: uid(), title: stepTitle.trim(), done: false }],
+      });
+      setGoals(data.goals);
+    } catch {
+      // ignore
+    }
   }
 
-  function toggleStep(goalId: string, stepId: string) {
-    setGoals(
-      goals.map((g) => {
-        if (g.id !== goalId) return g;
-        const steps = g.steps.map((s) => (s.id === stepId ? { ...s, done: !s.done } : s));
-        const allDone = steps.length > 0 && steps.every((s) => s.done);
-        return { ...g, steps, completed: allDone };
-      }),
-    );
+  async function toggleStep(goalId: string, stepId: string) {
+    const goal = goals.find((g) => g.id === goalId);
+    if (!goal) return;
+    const steps = goal.steps.map((s) => (s.id === stepId ? { ...s, done: !s.done } : s));
+    const allDone = steps.length > 0 && steps.every((s) => s.done);
+    try {
+      const data = await patchGoal(goalId, { steps, completed: allDone });
+      setGoals(data.goals);
+    } catch {
+      // ignore
+    }
   }
 
-  function removeStep(goalId: string, stepId: string) {
-    setGoals(
-      goals.map((g) =>
-        g.id === goalId ? { ...g, steps: g.steps.filter((s) => s.id !== stepId) } : g,
-      ),
-    );
+  async function removeStep(goalId: string, stepId: string) {
+    const goal = goals.find((g) => g.id === goalId);
+    if (!goal) return;
+    const steps = goal.steps.filter((s) => s.id !== stepId);
+    const completed = steps.length > 0 && steps.every((s) => s.done);
+    try {
+      const data = await patchGoal(goalId, { steps, completed });
+      setGoals(data.goals);
+    } catch {
+      // ignore
+    }
   }
 
   return (
@@ -106,7 +149,7 @@ function Goals() {
       </section>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
-        {goals.length === 0 && (
+        {!loading && goals.length === 0 && (
           <div className="col-span-full rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
             Chưa có mục tiêu nào — hãy tạo cái đầu tiên 🎯
           </div>

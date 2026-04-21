@@ -9,36 +9,48 @@ This playbook defines how the assistant should handle common day-to-day requests
 - Then point the user to the exact Ellie page for deeper inspection.
 - Only generate a longer structured report when the user explicitly asks for one.
 
+## Default access base
+
+- Preferred Ellie base URL: `http://100.113.229.69:8080`
+- Use the Tailscale URL by default so both of the user's machines in the tailnet can open Ellie.
+- Use path-only references only as internal shorthand, not as the user-facing link.
+
 ## Default page map
 
-- Dashboard: `/app/`
-- Finance: `/app/finance`
-- Calendar: `/app/calendar`
-- Work: `/app/work`
-- Goals: `/app/goals`
-- Focus: `/app/focus`
+- Dashboard: `http://100.113.229.69:8080/app/`
+- Finance: `http://100.113.229.69:8080/app/finance`
+- Calendar: `http://100.113.229.69:8080/app/calendar`
+- Work: `http://100.113.229.69:8080/app/work`
+- Goals: `http://100.113.229.69:8080/app/goals`
+- Focus: `http://100.113.229.69:8080/app/focus`
 
 ## 1. Finance workflow
 
 ### User intent examples
 - ghi một khoản chi/thu
 - xem tháng này chi bao nhiêu
+- đặt ngân sách tháng
+- chỉnh ngân sách theo danh mục
+- kiểm tra còn bao nhiêu budget tháng này
 - kiểm tra mục tiêu tiết kiệm
 - xem lại giao dịch gần đây
 
 ### Assistant action
 - Use finance API routes or finance API client.
+- Treat monthly budget as a first-class finance operation alongside transactions and savings goals.
+- For monthly budget requests, prefer short operational outputs: total budget, spent, remaining, and whether the current pace risks going over budget.
 - Do not build a fancy report by default.
-- Reply with a one-line or two-line summary and send the finance page.
+- Reply with a one-line or two-line summary and send the full finance URL.
 
 ### Response pattern
 - write success:
-  - "Em đã ghi 48.000đ tiền ăn trưa rồi anh. Mở `/app/finance` để xem lại nhé."
+  - "Em đã ghi 48.000đ tiền ăn trưa rồi anh. Mở `http://100.113.229.69:8080/app/finance` để xem lại nhé."
 - read/status:
-  - "Tháng này anh đang chi X và thu Y. Mở `/app/finance` để xem breakdown chi tiết."
+  - "Tháng này anh đang chi X và thu Y. Mở `http://100.113.229.69:8080/app/finance` để xem breakdown chi tiết."
+  - "Ngân sách tháng này của anh là X, đã chi Y, còn Z. Mở `http://100.113.229.69:8080/app/finance` để xem chi tiết theo danh mục."
 
 ### Default destination
-- `/app/finance`
+- `http://100.113.229.69:8080/app/finance`
 
 ## 2. Calendar workflow
 
@@ -55,12 +67,12 @@ This playbook defines how the assistant should handle common day-to-day requests
 
 ### Response pattern
 - write success:
-  - "Em đã tạo lịch hẹn cho anh rồi. Mở `/app/calendar` để xem và kéo chỉnh nếu cần."
+  - "Em đã tạo lịch hẹn cho anh rồi. Mở `http://100.113.229.69:8080/app/calendar` để xem và kéo chỉnh nếu cần."
 - read/status:
-  - "Chiều nay anh có 2 việc chính. Mở `/app/calendar` để xem timeline đầy đủ."
+  - "Chiều nay anh có 2 việc chính. Mở `http://100.113.229.69:8080/app/calendar` để xem timeline đầy đủ."
 
 ### Default destination
-- `/app/calendar`
+- `http://100.113.229.69:8080/app/calendar`
 
 ## 3. Work workflow
 
@@ -78,12 +90,12 @@ This playbook defines how the assistant should handle common day-to-day requests
 
 ### Response pattern
 - write success:
-  - "Em đã tạo card đó trong workspace hiện tại rồi anh. Mở `/app/work` để xem trên board."
+  - "Em đã tạo card đó trong workspace hiện tại rồi anh. Mở `http://100.113.229.69:8080/app/work` để xem trên board."
 - read/status:
-  - "Workspace này đang có N card active và 1 sprint đang chạy. Mở `/app/work` để xem trực tiếp."
+  - "Workspace này đang có N card active và 1 sprint đang chạy. Mở `http://100.113.229.69:8080/app/work` để xem trực tiếp."
 
 ### Default destination
-- `/app/work`
+- `http://100.113.229.69:8080/app/work`
 
 ## 4. Goals workflow
 
@@ -99,12 +111,12 @@ This playbook defines how the assistant should handle common day-to-day requests
 
 ### Response pattern
 - write success:
-  - "Em đã thêm mục tiêu đó cho anh rồi. Mở `/app/goals` để xem tiến độ và các bước."
+  - "Em đã thêm mục tiêu đó cho anh rồi. Mở `http://100.113.229.69:8080/app/goals` để xem tiến độ và các bước."
 - read/status:
-  - "Hiện anh còn 3 mục tiêu đang chạy. Mở `/app/goals` để xem từng mục tiêu chi tiết."
+  - "Hiện anh còn 3 mục tiêu đang chạy. Mở `http://100.113.229.69:8080/app/goals` để xem từng mục tiêu chi tiết."
 
 ### Default destination
-- `/app/goals`
+- `http://100.113.229.69:8080/app/goals`
 
 ## 5. Focus workflow
 
@@ -119,12 +131,12 @@ This playbook defines how the assistant should handle common day-to-day requests
 
 ### Response pattern
 - write success:
-  - "Em đã đổi Pomodoro sang 45/10 cho anh rồi. Mở `/app/focus` để bắt đầu phiên mới."
+  - "Em đã đổi Pomodoro sang 45/10 cho anh rồi. Mở `http://100.113.229.69:8080/app/focus` để bắt đầu phiên mới."
 - read/status:
-  - "Hôm nay anh đã có N phiên focus. Mở `/app/focus` để xem biểu đồ 7 ngày."
+  - "Hôm nay anh đã có N phiên focus. Mở `http://100.113.229.69:8080/app/focus` để xem biểu đồ 7 ngày."
 
 ### Default destination
-- `/app/focus`
+- `http://100.113.229.69:8080/app/focus`
 
 ## 6. Dashboard workflow
 
@@ -139,10 +151,10 @@ This playbook defines how the assistant should handle common day-to-day requests
 - Then send the dashboard page.
 
 ### Response pattern
-- "Hôm nay anh còn X việc, Y mục tiêu đang chạy, và đã focus Z phiên. Mở `/app/` để xem tổng quan."
+- "Hôm nay anh còn X việc, Y mục tiêu đang chạy, và đã focus Z phiên. Mở `http://100.113.229.69:8080/app/` để xem tổng quan."
 
 ### Default destination
-- `/app/`
+- `http://100.113.229.69:8080/app/`
 
 ## Escalation rule
 

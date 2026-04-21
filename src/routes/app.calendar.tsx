@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,11 +21,28 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import {
+  createCalendar,
+  createTodo,
+  deleteCalendar as deleteCalendarApi,
+  deleteEvent as deleteEventApi,
+  deleteTodo as deleteTodoApi,
+  listCalendars,
+  listEvents,
+  listTodos,
+  patchCalendar,
+  patchTodo,
+  upsertEvent,
+} from "@/services/calendar-api-client";
 import { useReminderScheduler, requestNotificationPermission } from "@/hooks/useNotifications";
 import { uid } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_CALENDARS,
+  removeCalendarItem,
+  upsertCalendarItem,
+} from "@/services/calendar-service";
 import { solarToLunar, getHolidaysForDate, formatLunarShort, formatLunarFull } from "@/lib/lunar";
 import {
   COLORS,
@@ -57,6 +74,7 @@ import type {
   WeekDay,
 } from "@/types/calendar";
 import type { Todo } from "@/types/schedule";
+import { useDataAutoRefresh } from "@/services/api-live-sync";
 
 export const Route = createFileRoute("/app/calendar")({
   head: () => ({ meta: [{ title: "Lịch — ProjectEllie" }] }),
@@ -65,44 +83,51 @@ export const Route = createFileRoute("/app/calendar")({
 
 type ViewMode = "month" | "week" | "day";
 
-const DEFAULT_CALENDARS: CalendarType[] = [
-  { id: "personal", name: "Cá nhân", color: "pink", visible: true },
-  { id: "work", name: "Công việc", color: "cyan", visible: true },
-  { id: "study", name: "Học tập", color: "purple", visible: true },
-  { id: "birthday", name: "Sinh nhật & Lễ", color: "orange", visible: true },
-];
-
 const WEEK_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const HOUR_PX = 48; // height per hour in week/day grid
 
 function CalendarPage() {
-  const [calendars, setCalendars] = useLocalStorage<CalendarType[]>(
-    "ellie:calendars",
-    DEFAULT_CALENDARS,
-  );
-  const [items, setItems] = useLocalStorage<CalendarItem[]>("ellie:calendar-items", []);
-  const [todos, setTodos] = useLocalStorage<Todo[]>("ellie:todos", []);
+  const [calendars, setCalendars] = useState<CalendarType[]>(DEFAULT_CALENDARS);
+  const [items, setItems] = useState<CalendarItem[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // One-shot migration of legacy events
-  const [migrated, setMigrated] = useLocalStorage<boolean>("ellie:calendar-migrated", false);
-  useEffect(() => {
-    if (migrated) return;
-    try {
-      const raw = localStorage.getItem("ellie:events");
-      if (raw) {
-        const legacy = JSON.parse(raw) as { id: string; date: string; title: string; note?: string }[];
-        if (Array.isArray(legacy) && legacy.length) {
-          const converted = migrateLegacyEvents(legacy, "personal");
-          setItems((prev) => [...converted, ...prev]);
-        }
-      }
-    } catch {
-      /* ignore */
-    }
-    setMigrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const refresh = useCallback(async () => {
+    const [calRes, itemsRes, todosRes] = await Promise.all([
+      listCalendars(),
+      listEvents(),
+      listTodos(),
+    ]);
+    setCalendars(calRes.calendars);
+    setItems(itemsRes.items);
+    setTodos(todosRes.todos);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const [calRes, itemsRes, todosRes] = await Promise.all([
+          listCalendars(),
+          listEvents(),
+          listTodos(),
+        ]);
+        if (!active) return;
+        setCalendars(calRes.calendars);
+        setItems(itemsRes.items);
+        setTodos(todosRes.todos);
+      } catch {
+        // keep defaults
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+  useDataAutoRefresh(refresh, "calendar");
 
   useReminderScheduler(items);
 
@@ -142,10 +167,12 @@ function CalendarPage() {
   const [notifAsked, setNotifAsked] = useState(false);
 
   function upsertItem(it: CalendarItem) {
-    setItems((prev) => {
-      const exists = prev.some((p) => p.id === it.id);
-      return exists ? prev.map((p) => (p.id === it.id ? it : p)) : [it, ...prev];
-    });
+    setItems((prev) => upsertCalendarItem(prev, it));
+    void upsertEvent(it)
+      .then((res) => setItems(res.items))
+      .catch(() => {
+        /* ignore */
+      });
     const hasReminder =
       it.reminderMinutes != null || (it.reminders && it.reminders.length > 0);
     if (hasReminder && !notifAsked) {
@@ -154,7 +181,12 @@ function CalendarPage() {
     }
   }
   function removeItem(id: string) {
-    setItems((prev) => prev.filter((p) => p.id !== id));
+    setItems((prev) => removeCalendarItem(prev, id));
+    void deleteEventApi(id)
+      .then((res) => setItems(res.items))
+      .catch(() => {
+        /* ignore */
+      });
   }
 
   // Drag end: shift item by day delta (and hour delta in week/day view)
@@ -238,26 +270,63 @@ function CalendarPage() {
 
             <MiniMonth cursor={cursor} onPick={(d) => setCursor(d)} />
 
-            <CalendarsPanel calendars={calendars} setCalendars={setCalendars} />
+            <CalendarsPanel
+              calendars={calendars}
+              onToggleVisible={(id) => {
+                const current = calendars.find((c) => c.id === id);
+                if (!current) return;
+                setCalendars((prev) =>
+                  prev.map((c) => (c.id === id ? { ...c, visible: !c.visible } : c)),
+                );
+                void patchCalendar(id, { visible: !current.visible })
+                  .then((res) => setCalendars(res.calendars))
+                  .catch(() => {
+                    /* ignore */
+                  });
+              }}
+              onDelete={(id) => {
+                setCalendars((prev) => prev.filter((c) => c.id !== id));
+                void deleteCalendarApi(id)
+                  .then((res) => setCalendars(res.calendars))
+                  .catch(() => {
+                    /* ignore */
+                  });
+              }}
+              onCreate={(input) => {
+                void createCalendar(input)
+                  .then((res) => setCalendars(res.calendars))
+                  .catch(() => {
+                    /* ignore */
+                  });
+              }}
+            />
 
             <TodosPanel
               todos={todos}
-              onToggle={(id) =>
-                setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)))
-              }
-              onAdd={(title) =>
-                setTodos((prev) => [
-                  {
-                    id: uid(),
-                    title,
-                    priority: "medium",
-                    done: false,
-                    createdAt: new Date().toISOString(),
-                  },
-                  ...prev,
-                ])
-              }
-              onRemove={(id) => setTodos((prev) => prev.filter((t) => t.id !== id))}
+              onToggle={(id) => {
+                const current = todos.find((t) => t.id === id);
+                if (!current) return;
+                setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+                void patchTodo(id, { done: !current.done })
+                  .then((res) => setTodos(res.todos))
+                  .catch(() => {
+                    /* ignore */
+                  });
+              }}
+              onAdd={(title) => {
+                void createTodo({ title, priority: "medium", done: false })
+                  .then((res) => setTodos(res.todos))
+                  .catch(() => {
+                    /* ignore */
+                  });
+              }}
+              onRemove={(id) => {
+                void deleteTodoApi(id)
+                  .then((res) => setTodos(res.todos))
+                  .catch(() => {
+                    /* ignore */
+                  });
+              }}
             />
           </aside>
 
@@ -457,10 +526,14 @@ function MiniMonth({ cursor, onPick }: { cursor: Date; onPick: (d: Date) => void
 /* ----------------- Calendars Panel ----------------- */
 function CalendarsPanel({
   calendars,
-  setCalendars,
+  onToggleVisible,
+  onDelete,
+  onCreate,
 }: {
   calendars: CalendarType[];
-  setCalendars: (u: (prev: CalendarType[]) => CalendarType[]) => void;
+  onToggleVisible: (id: string) => void;
+  onDelete: (id: string) => void;
+  onCreate: (input: { name: string; color: CalendarColor; visible?: boolean }) => void;
 }) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
@@ -484,9 +557,7 @@ function CalendarsPanel({
         {calendars.map((c) => (
           <li key={c.id} className="flex items-center gap-2">
             <button
-              onClick={() =>
-                setCalendars((prev) => prev.map((p) => (p.id === c.id ? { ...p, visible: !p.visible } : p)))
-              }
+              onClick={() => onToggleVisible(c.id)}
               className={cn(
                 "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-all",
                 c.visible ? `${COLORS[c.color].bg} border-transparent` : "border-muted-foreground/40",
@@ -500,7 +571,7 @@ function CalendarsPanel({
             </span>
             {calendars.length > 1 && (
               <button
-                onClick={() => setCalendars((prev) => prev.filter((p) => p.id !== c.id))}
+                onClick={() => onDelete(c.id)}
                 className="rounded p-1 text-muted-foreground/60 opacity-0 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
                 title="Xoá lịch"
               >
@@ -536,7 +607,7 @@ function CalendarsPanel({
             <button
               onClick={() => {
                 if (!name.trim()) return;
-                setCalendars((prev) => [...prev, { id: uid(), name: name.trim(), color, visible: true }]);
+                onCreate({ name: name.trim(), color, visible: true });
                 setName("");
                 setAdding(false);
               }}
@@ -1653,4 +1724,3 @@ function RemindersEditor({
     </div>
   );
 }
-

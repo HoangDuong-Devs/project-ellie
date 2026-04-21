@@ -20,6 +20,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Local app data (file-backed store)
+data/*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

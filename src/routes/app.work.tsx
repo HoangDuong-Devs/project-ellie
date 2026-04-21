@@ -143,8 +143,9 @@ function WorkPage() {
           onSelectView={(v) =>
             navigate({ search: { ...search, view: v } })
           }
-          onCreate={(d) => {
-            const newId = store.createWorkspace(d);
+          onCreate={async (d) => {
+            const newId = await store.createWorkspace(d);
+            if (!newId) return;
             navigate({ search: { ...search, ws: newId, view: "board" } });
           }}
         />

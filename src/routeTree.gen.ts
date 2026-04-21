@@ -18,6 +18,26 @@ import { Route as AppGoalsRouteImport } from './routes/app.goals'
 import { Route as AppFocusRouteImport } from './routes/app.focus'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
+import { Route as ApiGoalsRouteImport } from './routes/api/goals'
+import { Route as ApiWorkWorkspacesRouteImport } from './routes/api/work/workspaces'
+import { Route as ApiWorkSprintsRouteImport } from './routes/api/work/sprints'
+import { Route as ApiWorkMoveCardRouteImport } from './routes/api/work/move-card'
+import { Route as ApiWorkLabelsRouteImport } from './routes/api/work/labels'
+import { Route as ApiWorkDataRouteImport } from './routes/api/work/data'
+import { Route as ApiWorkColumnsRouteImport } from './routes/api/work/columns'
+import { Route as ApiWorkCardsRouteImport } from './routes/api/work/cards'
+import { Route as ApiLiveChangesRouteImport } from './routes/api/live/changes'
+import { Route as ApiFocusSettingsRouteImport } from './routes/api/focus/settings'
+import { Route as ApiFocusSessionsRouteImport } from './routes/api/focus/sessions'
+import { Route as ApiFinanceTransactionsRouteImport } from './routes/api/finance/transactions'
+import { Route as ApiFinanceSummaryRouteImport } from './routes/api/finance/summary'
+import { Route as ApiFinanceSavingsGoalsRouteImport } from './routes/api/finance/savings-goals'
+import { Route as ApiFinanceMonthlyBudgetRouteImport } from './routes/api/finance/monthly-budget'
+import { Route as ApiCalendarTodosRouteImport } from './routes/api/calendar/todos'
+import { Route as ApiCalendarEventsRouteImport } from './routes/api/calendar/events'
+import { Route as ApiCalendarCalendarsRouteImport } from './routes/api/calendar/calendars'
+import { Route as ApiWorkSprintsStartRouteImport } from './routes/api/work/sprints.start'
+import { Route as ApiWorkSprintsCompleteRouteImport } from './routes/api/work/sprints.complete'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -64,10 +84,111 @@ const AppCalendarRoute = AppCalendarRouteImport.update({
   path: '/calendar',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiGoalsRoute = ApiGoalsRouteImport.update({
+  id: '/api/goals',
+  path: '/api/goals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkWorkspacesRoute = ApiWorkWorkspacesRouteImport.update({
+  id: '/api/work/workspaces',
+  path: '/api/work/workspaces',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkSprintsRoute = ApiWorkSprintsRouteImport.update({
+  id: '/api/work/sprints',
+  path: '/api/work/sprints',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkMoveCardRoute = ApiWorkMoveCardRouteImport.update({
+  id: '/api/work/move-card',
+  path: '/api/work/move-card',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkLabelsRoute = ApiWorkLabelsRouteImport.update({
+  id: '/api/work/labels',
+  path: '/api/work/labels',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkDataRoute = ApiWorkDataRouteImport.update({
+  id: '/api/work/data',
+  path: '/api/work/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkColumnsRoute = ApiWorkColumnsRouteImport.update({
+  id: '/api/work/columns',
+  path: '/api/work/columns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkCardsRoute = ApiWorkCardsRouteImport.update({
+  id: '/api/work/cards',
+  path: '/api/work/cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLiveChangesRoute = ApiLiveChangesRouteImport.update({
+  id: '/api/live/changes',
+  path: '/api/live/changes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFocusSettingsRoute = ApiFocusSettingsRouteImport.update({
+  id: '/api/focus/settings',
+  path: '/api/focus/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFocusSessionsRoute = ApiFocusSessionsRouteImport.update({
+  id: '/api/focus/sessions',
+  path: '/api/focus/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFinanceTransactionsRoute = ApiFinanceTransactionsRouteImport.update({
+  id: '/api/finance/transactions',
+  path: '/api/finance/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFinanceSummaryRoute = ApiFinanceSummaryRouteImport.update({
+  id: '/api/finance/summary',
+  path: '/api/finance/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFinanceSavingsGoalsRoute = ApiFinanceSavingsGoalsRouteImport.update({
+  id: '/api/finance/savings-goals',
+  path: '/api/finance/savings-goals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFinanceMonthlyBudgetRoute = ApiFinanceMonthlyBudgetRouteImport.update({
+  id: '/api/finance/monthly-budget',
+  path: '/api/finance/monthly-budget',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCalendarTodosRoute = ApiCalendarTodosRouteImport.update({
+  id: '/api/calendar/todos',
+  path: '/api/calendar/todos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCalendarEventsRoute = ApiCalendarEventsRouteImport.update({
+  id: '/api/calendar/events',
+  path: '/api/calendar/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCalendarCalendarsRoute = ApiCalendarCalendarsRouteImport.update({
+  id: '/api/calendar/calendars',
+  path: '/api/calendar/calendars',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkSprintsStartRoute = ApiWorkSprintsStartRouteImport.update({
+  id: '/start',
+  path: '/start',
+  getParentRoute: () => ApiWorkSprintsRoute,
+} as any)
+const ApiWorkSprintsCompleteRoute = ApiWorkSprintsCompleteRouteImport.update({
+  id: '/complete',
+  path: '/complete',
+  getParentRoute: () => ApiWorkSprintsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/api/goals': typeof ApiGoalsRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
@@ -75,9 +196,29 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app/': typeof AppIndexRoute
+  '/api/calendar/calendars': typeof ApiCalendarCalendarsRoute
+  '/api/calendar/events': typeof ApiCalendarEventsRoute
+  '/api/calendar/todos': typeof ApiCalendarTodosRoute
+  '/api/finance/monthly-budget': typeof ApiFinanceMonthlyBudgetRoute
+  '/api/finance/savings-goals': typeof ApiFinanceSavingsGoalsRoute
+  '/api/finance/summary': typeof ApiFinanceSummaryRoute
+  '/api/finance/transactions': typeof ApiFinanceTransactionsRoute
+  '/api/focus/sessions': typeof ApiFocusSessionsRoute
+  '/api/focus/settings': typeof ApiFocusSettingsRoute
+  '/api/live/changes': typeof ApiLiveChangesRoute
+  '/api/work/cards': typeof ApiWorkCardsRoute
+  '/api/work/columns': typeof ApiWorkColumnsRoute
+  '/api/work/data': typeof ApiWorkDataRoute
+  '/api/work/labels': typeof ApiWorkLabelsRoute
+  '/api/work/move-card': typeof ApiWorkMoveCardRoute
+  '/api/work/sprints': typeof ApiWorkSprintsRouteWithChildren
+  '/api/work/workspaces': typeof ApiWorkWorkspacesRoute
+  '/api/work/sprints/complete': typeof ApiWorkSprintsCompleteRoute
+  '/api/work/sprints/start': typeof ApiWorkSprintsStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/goals': typeof ApiGoalsRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
@@ -85,11 +226,31 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app': typeof AppIndexRoute
+  '/api/calendar/calendars': typeof ApiCalendarCalendarsRoute
+  '/api/calendar/events': typeof ApiCalendarEventsRoute
+  '/api/calendar/todos': typeof ApiCalendarTodosRoute
+  '/api/finance/monthly-budget': typeof ApiFinanceMonthlyBudgetRoute
+  '/api/finance/savings-goals': typeof ApiFinanceSavingsGoalsRoute
+  '/api/finance/summary': typeof ApiFinanceSummaryRoute
+  '/api/finance/transactions': typeof ApiFinanceTransactionsRoute
+  '/api/focus/sessions': typeof ApiFocusSessionsRoute
+  '/api/focus/settings': typeof ApiFocusSettingsRoute
+  '/api/live/changes': typeof ApiLiveChangesRoute
+  '/api/work/cards': typeof ApiWorkCardsRoute
+  '/api/work/columns': typeof ApiWorkColumnsRoute
+  '/api/work/data': typeof ApiWorkDataRoute
+  '/api/work/labels': typeof ApiWorkLabelsRoute
+  '/api/work/move-card': typeof ApiWorkMoveCardRoute
+  '/api/work/sprints': typeof ApiWorkSprintsRouteWithChildren
+  '/api/work/workspaces': typeof ApiWorkWorkspacesRoute
+  '/api/work/sprints/complete': typeof ApiWorkSprintsCompleteRoute
+  '/api/work/sprints/start': typeof ApiWorkSprintsStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/api/goals': typeof ApiGoalsRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
@@ -97,12 +258,32 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app/': typeof AppIndexRoute
+  '/api/calendar/calendars': typeof ApiCalendarCalendarsRoute
+  '/api/calendar/events': typeof ApiCalendarEventsRoute
+  '/api/calendar/todos': typeof ApiCalendarTodosRoute
+  '/api/finance/monthly-budget': typeof ApiFinanceMonthlyBudgetRoute
+  '/api/finance/savings-goals': typeof ApiFinanceSavingsGoalsRoute
+  '/api/finance/summary': typeof ApiFinanceSummaryRoute
+  '/api/finance/transactions': typeof ApiFinanceTransactionsRoute
+  '/api/focus/sessions': typeof ApiFocusSessionsRoute
+  '/api/focus/settings': typeof ApiFocusSettingsRoute
+  '/api/live/changes': typeof ApiLiveChangesRoute
+  '/api/work/cards': typeof ApiWorkCardsRoute
+  '/api/work/columns': typeof ApiWorkColumnsRoute
+  '/api/work/data': typeof ApiWorkDataRoute
+  '/api/work/labels': typeof ApiWorkLabelsRoute
+  '/api/work/move-card': typeof ApiWorkMoveCardRoute
+  '/api/work/sprints': typeof ApiWorkSprintsRouteWithChildren
+  '/api/work/workspaces': typeof ApiWorkWorkspacesRoute
+  '/api/work/sprints/complete': typeof ApiWorkSprintsCompleteRoute
+  '/api/work/sprints/start': typeof ApiWorkSprintsStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/app'
+    | '/api/goals'
     | '/app/calendar'
     | '/app/finance'
     | '/app/focus'
@@ -110,9 +291,29 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/work'
     | '/app/'
+    | '/api/calendar/calendars'
+    | '/api/calendar/events'
+    | '/api/calendar/todos'
+    | '/api/finance/monthly-budget'
+    | '/api/finance/savings-goals'
+    | '/api/finance/summary'
+    | '/api/finance/transactions'
+    | '/api/focus/sessions'
+    | '/api/focus/settings'
+    | '/api/live/changes'
+    | '/api/work/cards'
+    | '/api/work/columns'
+    | '/api/work/data'
+    | '/api/work/labels'
+    | '/api/work/move-card'
+    | '/api/work/sprints'
+    | '/api/work/workspaces'
+    | '/api/work/sprints/complete'
+    | '/api/work/sprints/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/goals'
     | '/app/calendar'
     | '/app/finance'
     | '/app/focus'
@@ -120,10 +321,30 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/work'
     | '/app'
+    | '/api/calendar/calendars'
+    | '/api/calendar/events'
+    | '/api/calendar/todos'
+    | '/api/finance/monthly-budget'
+    | '/api/finance/savings-goals'
+    | '/api/finance/summary'
+    | '/api/finance/transactions'
+    | '/api/focus/sessions'
+    | '/api/focus/settings'
+    | '/api/live/changes'
+    | '/api/work/cards'
+    | '/api/work/columns'
+    | '/api/work/data'
+    | '/api/work/labels'
+    | '/api/work/move-card'
+    | '/api/work/sprints'
+    | '/api/work/workspaces'
+    | '/api/work/sprints/complete'
+    | '/api/work/sprints/start'
   id:
     | '__root__'
     | '/'
     | '/app'
+    | '/api/goals'
     | '/app/calendar'
     | '/app/finance'
     | '/app/focus'
@@ -131,11 +352,48 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/work'
     | '/app/'
+    | '/api/calendar/calendars'
+    | '/api/calendar/events'
+    | '/api/calendar/todos'
+    | '/api/finance/monthly-budget'
+    | '/api/finance/savings-goals'
+    | '/api/finance/summary'
+    | '/api/finance/transactions'
+    | '/api/focus/sessions'
+    | '/api/focus/settings'
+    | '/api/live/changes'
+    | '/api/work/cards'
+    | '/api/work/columns'
+    | '/api/work/data'
+    | '/api/work/labels'
+    | '/api/work/move-card'
+    | '/api/work/sprints'
+    | '/api/work/workspaces'
+    | '/api/work/sprints/complete'
+    | '/api/work/sprints/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  ApiGoalsRoute: typeof ApiGoalsRoute
+  ApiCalendarCalendarsRoute: typeof ApiCalendarCalendarsRoute
+  ApiCalendarEventsRoute: typeof ApiCalendarEventsRoute
+  ApiCalendarTodosRoute: typeof ApiCalendarTodosRoute
+  ApiFinanceMonthlyBudgetRoute: typeof ApiFinanceMonthlyBudgetRoute
+  ApiFinanceSavingsGoalsRoute: typeof ApiFinanceSavingsGoalsRoute
+  ApiFinanceSummaryRoute: typeof ApiFinanceSummaryRoute
+  ApiFinanceTransactionsRoute: typeof ApiFinanceTransactionsRoute
+  ApiFocusSessionsRoute: typeof ApiFocusSessionsRoute
+  ApiFocusSettingsRoute: typeof ApiFocusSettingsRoute
+  ApiLiveChangesRoute: typeof ApiLiveChangesRoute
+  ApiWorkCardsRoute: typeof ApiWorkCardsRoute
+  ApiWorkColumnsRoute: typeof ApiWorkColumnsRoute
+  ApiWorkDataRoute: typeof ApiWorkDataRoute
+  ApiWorkLabelsRoute: typeof ApiWorkLabelsRoute
+  ApiWorkMoveCardRoute: typeof ApiWorkMoveCardRoute
+  ApiWorkSprintsRoute: typeof ApiWorkSprintsRouteWithChildren
+  ApiWorkWorkspacesRoute: typeof ApiWorkWorkspacesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -203,6 +461,146 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCalendarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/goals': {
+      id: '/api/goals'
+      path: '/api/goals'
+      fullPath: '/api/goals'
+      preLoaderRoute: typeof ApiGoalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/workspaces': {
+      id: '/api/work/workspaces'
+      path: '/api/work/workspaces'
+      fullPath: '/api/work/workspaces'
+      preLoaderRoute: typeof ApiWorkWorkspacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/sprints': {
+      id: '/api/work/sprints'
+      path: '/api/work/sprints'
+      fullPath: '/api/work/sprints'
+      preLoaderRoute: typeof ApiWorkSprintsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/move-card': {
+      id: '/api/work/move-card'
+      path: '/api/work/move-card'
+      fullPath: '/api/work/move-card'
+      preLoaderRoute: typeof ApiWorkMoveCardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/labels': {
+      id: '/api/work/labels'
+      path: '/api/work/labels'
+      fullPath: '/api/work/labels'
+      preLoaderRoute: typeof ApiWorkLabelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/data': {
+      id: '/api/work/data'
+      path: '/api/work/data'
+      fullPath: '/api/work/data'
+      preLoaderRoute: typeof ApiWorkDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/columns': {
+      id: '/api/work/columns'
+      path: '/api/work/columns'
+      fullPath: '/api/work/columns'
+      preLoaderRoute: typeof ApiWorkColumnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/cards': {
+      id: '/api/work/cards'
+      path: '/api/work/cards'
+      fullPath: '/api/work/cards'
+      preLoaderRoute: typeof ApiWorkCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/live/changes': {
+      id: '/api/live/changes'
+      path: '/api/live/changes'
+      fullPath: '/api/live/changes'
+      preLoaderRoute: typeof ApiLiveChangesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/focus/settings': {
+      id: '/api/focus/settings'
+      path: '/api/focus/settings'
+      fullPath: '/api/focus/settings'
+      preLoaderRoute: typeof ApiFocusSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/focus/sessions': {
+      id: '/api/focus/sessions'
+      path: '/api/focus/sessions'
+      fullPath: '/api/focus/sessions'
+      preLoaderRoute: typeof ApiFocusSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/finance/transactions': {
+      id: '/api/finance/transactions'
+      path: '/api/finance/transactions'
+      fullPath: '/api/finance/transactions'
+      preLoaderRoute: typeof ApiFinanceTransactionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/finance/summary': {
+      id: '/api/finance/summary'
+      path: '/api/finance/summary'
+      fullPath: '/api/finance/summary'
+      preLoaderRoute: typeof ApiFinanceSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/finance/savings-goals': {
+      id: '/api/finance/savings-goals'
+      path: '/api/finance/savings-goals'
+      fullPath: '/api/finance/savings-goals'
+      preLoaderRoute: typeof ApiFinanceSavingsGoalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/finance/monthly-budget': {
+      id: '/api/finance/monthly-budget'
+      path: '/api/finance/monthly-budget'
+      fullPath: '/api/finance/monthly-budget'
+      preLoaderRoute: typeof ApiFinanceMonthlyBudgetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/calendar/todos': {
+      id: '/api/calendar/todos'
+      path: '/api/calendar/todos'
+      fullPath: '/api/calendar/todos'
+      preLoaderRoute: typeof ApiCalendarTodosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/calendar/events': {
+      id: '/api/calendar/events'
+      path: '/api/calendar/events'
+      fullPath: '/api/calendar/events'
+      preLoaderRoute: typeof ApiCalendarEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/calendar/calendars': {
+      id: '/api/calendar/calendars'
+      path: '/api/calendar/calendars'
+      fullPath: '/api/calendar/calendars'
+      preLoaderRoute: typeof ApiCalendarCalendarsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/work/sprints/start': {
+      id: '/api/work/sprints/start'
+      path: '/start'
+      fullPath: '/api/work/sprints/start'
+      preLoaderRoute: typeof ApiWorkSprintsStartRouteImport
+      parentRoute: typeof ApiWorkSprintsRoute
+    }
+    '/api/work/sprints/complete': {
+      id: '/api/work/sprints/complete'
+      path: '/complete'
+      fullPath: '/api/work/sprints/complete'
+      preLoaderRoute: typeof ApiWorkSprintsCompleteRouteImport
+      parentRoute: typeof ApiWorkSprintsRoute
+    }
   }
 }
 
@@ -228,9 +626,41 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface ApiWorkSprintsRouteChildren {
+  ApiWorkSprintsCompleteRoute: typeof ApiWorkSprintsCompleteRoute
+  ApiWorkSprintsStartRoute: typeof ApiWorkSprintsStartRoute
+}
+
+const ApiWorkSprintsRouteChildren: ApiWorkSprintsRouteChildren = {
+  ApiWorkSprintsCompleteRoute: ApiWorkSprintsCompleteRoute,
+  ApiWorkSprintsStartRoute: ApiWorkSprintsStartRoute,
+}
+
+const ApiWorkSprintsRouteWithChildren = ApiWorkSprintsRoute._addFileChildren(
+  ApiWorkSprintsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  ApiGoalsRoute: ApiGoalsRoute,
+  ApiCalendarCalendarsRoute: ApiCalendarCalendarsRoute,
+  ApiCalendarEventsRoute: ApiCalendarEventsRoute,
+  ApiCalendarTodosRoute: ApiCalendarTodosRoute,
+  ApiFinanceMonthlyBudgetRoute: ApiFinanceMonthlyBudgetRoute,
+  ApiFinanceSavingsGoalsRoute: ApiFinanceSavingsGoalsRoute,
+  ApiFinanceSummaryRoute: ApiFinanceSummaryRoute,
+  ApiFinanceTransactionsRoute: ApiFinanceTransactionsRoute,
+  ApiFocusSessionsRoute: ApiFocusSessionsRoute,
+  ApiFocusSettingsRoute: ApiFocusSettingsRoute,
+  ApiLiveChangesRoute: ApiLiveChangesRoute,
+  ApiWorkCardsRoute: ApiWorkCardsRoute,
+  ApiWorkColumnsRoute: ApiWorkColumnsRoute,
+  ApiWorkDataRoute: ApiWorkDataRoute,
+  ApiWorkLabelsRoute: ApiWorkLabelsRoute,
+  ApiWorkMoveCardRoute: ApiWorkMoveCardRoute,
+  ApiWorkSprintsRoute: ApiWorkSprintsRouteWithChildren,
+  ApiWorkWorkspacesRoute: ApiWorkWorkspacesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
