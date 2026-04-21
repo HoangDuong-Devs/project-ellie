@@ -121,6 +121,31 @@ function Settings() {
         </section>
 
         <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
+          <h3 className="mb-2 font-semibold">Thông báo</h3>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Cho phép thông báo đẩy để nhận nhắc nhở sự kiện trong lịch và cảnh báo khi vượt ngân sách.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            {notifPerm === "granted" ? (
+              <span className="inline-flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-600 dark:text-cyan-400">
+                <Bell className="h-4 w-4" /> Đã bật thông báo
+              </span>
+            ) : notifPerm === "denied" ? (
+              <span className="inline-flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive">
+                <BellOff className="h-4 w-4" /> Trình duyệt đang chặn — mở cài đặt trình duyệt để cho phép
+              </span>
+            ) : (
+              <button
+                onClick={enableNotifications}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-soft hover:scale-[1.02]"
+              >
+                <Bell className="h-4 w-4" /> Bật thông báo
+              </button>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
           <h3 className="mb-3 font-semibold">Dữ liệu</h3>
           <p className="mb-4 text-sm text-muted-foreground">
             Toàn bộ dữ liệu lưu trên trình duyệt của bạn. Nên xuất backup định kỳ.
