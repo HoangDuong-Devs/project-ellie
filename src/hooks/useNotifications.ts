@@ -12,6 +12,7 @@ import {
   type NotificationCategory,
   type NotificationKind,
 } from "./useNotificationCenter";
+import { isCategoryEnabled, isDailyDigestEnabled } from "./useNotificationPrefs";
 
 /** Show notification: native push + in-app toast + persistent center entry. */
 function notify(
