@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, RotateCcw, Settings as SettingsIcon } from "lucide-react";
 import {
   Bar,
@@ -9,10 +9,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { uid } from "@/lib/format";
+import {
+  createFocusSession,
+  getFocusSettings,
+  listFocusSessions,
+  patchFocusSettings,
+} from "@/services/focus-api-client";
 import { PageHeader } from "@/components/PageHeader";
 import type { FocusSettings, PomodoroSession } from "@/types/focus";
+import { useDataAutoRefresh } from "@/services/api-live-sync";
 
 export const Route = createFileRoute("/app/focus")({
   head: () => ({ meta: [{ title: "Focus — ProjectEllie" }] }),
@@ -20,11 +25,12 @@ export const Route = createFileRoute("/app/focus")({
 });
 
 function Focus() {
-  const [settings, setSettings] = useLocalStorage<FocusSettings>("ellie:focus-settings", {
+  const [settings, setSettings] = useState<FocusSettings>({
     workMinutes: 25,
     breakMinutes: 5,
   });
-  const [sessions, setSessions] = useLocalStorage<PomodoroSession[]>("ellie:pomodoros", []);
+  const [sessions, setSessions] = useState<PomodoroSession[]>([]);
+  const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<"work" | "break">("work");
   const [secondsLeft, setSecondsLeft] = useState(settings.workMinutes * 60);
   const [running, setRunning] = useState(false);
@@ -32,16 +38,55 @@ function Focus() {
   const totalRef = useRef(settings.workMinutes * 60);
   const segmentStartRef = useRef<number | null>(null);
 
+  const refresh = useCallback(async () => {
+    const [settingsRes, sessionsRes] = await Promise.all([
+      getFocusSettings(),
+      listFocusSessions(),
+    ]);
+    setSettings(settingsRes.settings);
+    setSessions(sessionsRes.sessions);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const [settingsRes, sessionsRes] = await Promise.all([
+          getFocusSettings(),
+          listFocusSessions(),
+        ]);
+        if (!active) return;
+        setSettings(settingsRes.settings);
+        setSessions(sessionsRes.sessions);
+      } catch {
+        // keep defaults
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+  useDataAutoRefresh(refresh, "focus");
+
+  async function logSession(minutes: number) {
+    if (minutes <= 0) return;
+    try {
+      const data = await createFocusSession(minutes);
+      setSessions(data.sessions);
+    } catch {
+      // ignore
+    }
+  }
+
   function logElapsed() {
     if (segmentStartRef.current == null) return;
     const elapsedSec = Math.floor((Date.now() - segmentStartRef.current) / 1000);
     segmentStartRef.current = null;
     const minutes = Math.floor(elapsedSec / 60);
     if (mode === "work" && minutes > 0) {
-      setSessions((prev) => [
-        { id: uid(), date: new Date().toISOString(), minutes },
-        ...prev,
-      ]);
+      void logSession(minutes);
     }
   }
 
@@ -64,10 +109,9 @@ function Focus() {
           if (mode === "work" && segmentStartRef.current != null) {
             const elapsedSec = Math.floor((Date.now() - segmentStartRef.current) / 1000);
             const minutes = Math.max(1, Math.round(elapsedSec / 60));
-            setSessions((prev) => [
-              { id: uid(), date: new Date().toISOString(), minutes },
-              ...prev,
-            ]);
+            queueMicrotask(() => {
+              void logSession(minutes);
+            });
           }
           segmentStartRef.current = null;
           setRunning(false);
@@ -147,9 +191,19 @@ function Focus() {
                 min={1}
                 max={120}
                 value={settings.workMinutes}
-                onChange={(e) =>
-                  setSettings({ ...settings, workMinutes: Math.max(1, Number(e.target.value)) })
-                }
+                onChange={async (e) => {
+                  const next = {
+                    ...settings,
+                    workMinutes: Math.max(1, Number(e.target.value)),
+                  };
+                  setSettings(next);
+                  try {
+                    const data = await patchFocusSettings({ workMinutes: next.workMinutes });
+                    setSettings(data.settings);
+                  } catch {
+                    // ignore
+                  }
+                }}
                 className="w-full rounded-xl border border-input bg-background px-3 py-2"
               />
             </label>
@@ -160,9 +214,19 @@ function Focus() {
                 min={1}
                 max={60}
                 value={settings.breakMinutes}
-                onChange={(e) =>
-                  setSettings({ ...settings, breakMinutes: Math.max(1, Number(e.target.value)) })
-                }
+                onChange={async (e) => {
+                  const next = {
+                    ...settings,
+                    breakMinutes: Math.max(1, Number(e.target.value)),
+                  };
+                  setSettings(next);
+                  try {
+                    const data = await patchFocusSettings({ breakMinutes: next.breakMinutes });
+                    setSettings(data.settings);
+                  } catch {
+                    // ignore
+                  }
+                }}
                 className="w-full rounded-xl border border-input bg-background px-3 py-2"
               />
             </label>
@@ -237,7 +301,14 @@ function Focus() {
           </div>
 
           <div className="mt-6 text-sm text-muted-foreground">
-            Hôm nay đã hoàn thành <span className="font-bold text-foreground">{todayCount} 🍅</span>
+            {loading ? (
+              "Đang tải dữ liệu focus..."
+            ) : (
+              <>
+                Hôm nay đã hoàn thành{" "}
+                <span className="font-bold text-foreground">{todayCount} 🍅</span>
+              </>
+            )}
           </div>
         </section>
 

@@ -40,7 +40,7 @@ interface Props {
   showSprintFields: boolean;
   onSave: (patch: Partial<WorkCard>) => void;
   onDelete?: () => void;
-  onCreateLabel: (name: string, color: LabelColor) => string;
+  onCreateLabel: (name: string, color: LabelColor) => void | Promise<unknown>;
 }
 
 const TYPE_OPTIONS: { value: IssueType; label: string; icon: typeof CheckSquare; color: string }[] = [
@@ -357,7 +357,7 @@ function LabelsField({
   labels: WorkLabel[];
   selected: string[];
   onToggle: (id: string) => void;
-  onCreate: (name: string, color: LabelColor) => string;
+  onCreate: (name: string, color: LabelColor) => void | Promise<unknown>;
 }) {
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");

@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Wallet, Target, Timer, CheckCircle2 } from "lucide-react";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { listTodos } from "@/services/calendar-api-client";
+import { getFinanceSummary } from "@/services/finance-api-client";
+import { listGoals } from "@/services/goals-api-client";
+import { listFocusSessions } from "@/services/focus-api-client";
 import { formatVND } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
-import type { Transaction } from "@/types/finance";
+import { useDataAutoRefresh } from "@/services/api-live-sync";
 import type { Todo } from "@/types/schedule";
 import type { Goal } from "@/types/goals";
 import type { PomodoroSession } from "@/types/focus";
@@ -16,23 +19,54 @@ export const Route = createFileRoute("/app/")({
 });
 
 function Dashboard() {
-  const [tx] = useLocalStorage<Transaction[]>("ellie:transactions", []);
-  const [todos] = useLocalStorage<Todo[]>("ellie:todos", []);
-  const [goals] = useLocalStorage<Goal[]>("ellie:goals", []);
-  const [sessions] = useLocalStorage<PomodoroSession[]>("ellie:pomodoros", []);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [sessions, setSessions] = useState<PomodoroSession[]>([]);
+  const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const summary = useMemo(() => {
+  const refresh = useCallback(async () => {
     const now = new Date();
-    const m = now.getMonth();
-    const y = now.getFullYear();
-    const monthTx = tx.filter((t) => {
-      const d = new Date(t.date);
-      return d.getMonth() === m && d.getFullYear() === y;
-    });
-    const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-    return { income, expense, balance: income - expense };
-  }, [tx]);
+    const [finance, todosRes, goalsRes, sessionsRes] = await Promise.all([
+      getFinanceSummary(now.getFullYear(), now.getMonth()),
+      listTodos(),
+      listGoals(),
+      listFocusSessions(),
+    ]);
+    setSummary(finance.summary);
+    setTodos(todosRes.todos);
+    setGoals(goalsRes.goals);
+    setSessions(sessionsRes.sessions);
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const now = new Date();
+        const [finance, todosRes, goalsRes, sessionsRes] = await Promise.all([
+          getFinanceSummary(now.getFullYear(), now.getMonth()),
+          listTodos(),
+          listGoals(),
+          listFocusSessions(),
+        ]);
+        if (!active) return;
+        setSummary(finance.summary);
+        setTodos(todosRes.todos);
+        setGoals(goalsRes.goals);
+        setSessions(sessionsRes.sessions);
+      } catch {
+        // keep defaults
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+  useDataAutoRefresh(refresh, "all");
 
   const today = new Date().toDateString();
   const todayTodos = todos.filter((t) => !t.done).slice(0, 5);
@@ -112,7 +146,9 @@ function Dashboard() {
               Xem tất cả <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          {todayTodos.length === 0 ? (
+          {loading ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">Đang tải dữ liệu...</p>
+          ) : todayTodos.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
               Không có việc nào — đi nghỉ ngơi nhé! ☕
             </p>
@@ -149,7 +185,9 @@ function Dashboard() {
               Quản lý <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          {activeGoals.length === 0 ? (
+          {loading ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">Đang tải dữ liệu...</p>
+          ) : activeGoals.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
               Đặt mục tiêu đầu tiên của bạn 🎯
             </p>

@@ -1,16 +1,9 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, Plus, Trash2, Wallet } from "lucide-react";
+import { DEFAULT_MONTHLY_BUDGET, type MonthlyBudget } from "@/services/finance-service";
 import { cn } from "@/lib/utils";
 import { formatVND } from "@/lib/format";
 import { EXPENSE_CATEGORIES, type Transaction } from "@/types/finance";
-
-export interface MonthlyBudget {
-  total: number; // 0 = không đặt
-  categories: Record<string, number>;
-}
-
-const DEFAULT_BUDGET: MonthlyBudget = { total: 0, categories: {} };
-
 export function MonthlyBudgetCard({
   budget,
   setBudget,
@@ -19,12 +12,16 @@ export function MonthlyBudgetCard({
   month,
 }: {
   budget: MonthlyBudget | undefined;
-  setBudget: (b: MonthlyBudget) => void;
+  setBudget: (b: MonthlyBudget) => void | Promise<unknown>;
   tx: Transaction[];
   year: number;
   month: number;
 }) {
-  const b: MonthlyBudget = { ...DEFAULT_BUDGET, ...(budget ?? {}), categories: { ...(budget?.categories ?? {}) } };
+  const b: MonthlyBudget = {
+    ...DEFAULT_MONTHLY_BUDGET,
+    ...(budget ?? {}),
+    categories: { ...(budget?.categories ?? {}) },
+  };
   const [editing, setEditing] = useState(false);
   const [totalInput, setTotalInput] = useState(String(b.total || ""));
   const [catInputs, setCatInputs] = useState<Record<string, string>>(

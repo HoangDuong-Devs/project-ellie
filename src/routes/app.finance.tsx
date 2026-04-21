@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -7,15 +7,32 @@ import {
   ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, CalendarDays,
   Plus, Target, Trash2, TrendingDown, TrendingUp, Wallet, Filter, X,
 } from "lucide-react";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { formatVND, uid } from "@/lib/format";
+import { formatVND } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
+import {
+  createSavingsGoal,
+  createTransaction,
+  deleteSavingsGoal,
+  deleteTransaction,
+  getMonthlyBudget,
+  listSavingsGoals,
+  listTransactions,
+  setMonthlyBudget as saveMonthlyBudget,
+} from "@/services/finance-api-client";
+import {
+  DEFAULT_MONTHLY_BUDGET,
+  listTransactionsForMonth,
+  type MonthlyBudget,
+  monthlySummary,
+  totalBalance as calculateTotalBalance,
+} from "@/services/finance-service";
 import {
   EXPENSE_CATEGORIES, INCOME_CATEGORIES, type Transaction, type TxType,
 } from "@/types/finance";
 import type { SavingsGoal } from "@/types/calendar";
-import { MonthlyBudgetCard, type MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
+import { MonthlyBudgetCard } from "@/components/finance/MonthlyBudgetCard";
+import { useDataAutoRefresh } from "@/services/api-live-sync";
 
 export const Route = createFileRoute("/app/finance")({
   head: () => ({ meta: [{ title: "Tài chính — ProjectEllie" }] }),
@@ -30,9 +47,11 @@ function ymd(d: Date) {
 }
 
 function Finance() {
-  const [tx, setTx] = useLocalStorage<Transaction[]>("ellie:transactions", []);
-  const [goals, setGoals] = useLocalStorage<SavingsGoal[]>("ellie:savings-goals", []);
-  const [budget, setBudget] = useLocalStorage<MonthlyBudget>("ellie:monthly-budget", { total: 0, categories: {} });
+  const [tx, setTx] = useState<Transaction[]>([]);
+  const [goals, setGoals] = useState<SavingsGoal[]>([]);
+  const [budget, setBudget] = useState<MonthlyBudget>(DEFAULT_MONTHLY_BUDGET);
+  const [loading, setLoading] = useState(true);
+  const [budgetLoading, setBudgetLoading] = useState(true);
   const [view, setView] = useState<View>("overview");
 
   // Add form
@@ -47,32 +66,75 @@ function Finance() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
 
+  const refreshCore = useCallback(async () => {
+    const [txRes, goalsRes] = await Promise.all([listTransactions(), listSavingsGoals()]);
+    setTx(txRes.transactions);
+    setGoals(goalsRes.goals);
+  }, []);
+
+  const refreshBudget = useCallback(async () => {
+    const budgetRes = await getMonthlyBudget(year, month);
+    setBudget(budgetRes.budget ?? DEFAULT_MONTHLY_BUDGET);
+  }, [month, year]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const [txRes, goalsRes] = await Promise.all([listTransactions(), listSavingsGoals()]);
+        if (!active) return;
+        setTx(txRes.transactions);
+        setGoals(goalsRes.goals);
+      } catch {
+        // keep defaults
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    setBudgetLoading(true);
+    (async () => {
+      try {
+        const budgetRes = await getMonthlyBudget(year, month);
+        if (!active) return;
+        setBudget(budgetRes.budget ?? DEFAULT_MONTHLY_BUDGET);
+      } catch {
+        if (!active) return;
+        setBudget(DEFAULT_MONTHLY_BUDGET);
+      } finally {
+        if (active) setBudgetLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [year, month]);
+  useDataAutoRefresh(async () => {
+    await Promise.all([refreshCore(), refreshBudget()]);
+  }, "finance");
+
   const summary = useMemo(() => {
-    const monthTx = tx.filter((t) => {
-      const d = new Date(t.date);
-      return d.getMonth() === month && d.getFullYear() === year;
-    });
-    const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-    return { income, expense, balance: income - expense };
+    return monthlySummary(tx, year, month);
   }, [tx, year, month]);
 
   const totalBalance = useMemo(() => {
-    return tx.reduce((s, t) => s + (t.type === "income" ? t.amount : -t.amount), 0);
+    return calculateTotalBalance(tx);
   }, [tx]);
 
   const monthlyData = useMemo(() => {
     const months: { name: string; income: number; expense: number }[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(year, month - i, 1);
-      const inc = tx.filter((t) => {
-        const td = new Date(t.date);
-        return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear() && t.type === "income";
-      }).reduce((s, t) => s + t.amount, 0);
-      const exp = tx.filter((t) => {
-        const td = new Date(t.date);
-        return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear() && t.type === "expense";
-      }).reduce((s, t) => s + t.amount, 0);
+      const monthTx = listTransactionsForMonth(tx, d.getFullYear(), d.getMonth());
+      const inc = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+      const exp = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
       months.push({ name: `T${d.getMonth() + 1}`, income: inc, expense: exp });
     }
     return months;
@@ -87,18 +149,29 @@ function Finance() {
     return Array.from(map, ([name, value]) => ({ name, value }));
   }, [tx, year, month]);
 
-  function add() {
-    const a = Number(amount);
-    if (!a || a <= 0) return;
-    setTx([
-      { id: uid(), type, amount: a, category, note: note.trim() || undefined, date: new Date(date).toISOString() },
-      ...tx,
-    ]);
-    setAmount("");
-    setNote("");
+  async function add() {
+    try {
+      const res = await createTransaction({
+        type,
+        amount: Number(amount),
+        category,
+        note,
+        date,
+      });
+      setTx(res.transactions);
+      setAmount("");
+      setNote("");
+    } catch {
+      // ignore
+    }
   }
-  function remove(id: string) {
-    setTx(tx.filter((t) => t.id !== id));
+  async function remove(id: string) {
+    try {
+      const res = await deleteTransaction(id);
+      setTx(res.transactions);
+    } catch {
+      // ignore
+    }
   }
 
   const cats = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
@@ -140,8 +213,26 @@ function Finance() {
         <StatCard label="Chi trong tháng" value={summary.expense} icon={TrendingDown} />
         <StatCard label="Số dư tháng" value={summary.balance} icon={Wallet} positive={summary.balance >= 0} />
       </div>
-
-      <MonthlyBudgetCard budget={budget} setBudget={setBudget} tx={tx} year={year} month={month} />
+      <MonthlyBudgetCard
+        budget={budget}
+        setBudget={async (next) => {
+          try {
+            const res = await saveMonthlyBudget(year, month, next);
+            setBudget(res.budget);
+          } catch {
+            // ignore
+          }
+        }}
+        tx={tx}
+        year={year}
+        month={month}
+      />
+      {loading && (
+        <p className="mt-3 text-sm text-muted-foreground">Đang tải dữ liệu tài chính...</p>
+      )}
+      {budgetLoading && (
+        <p className="mt-2 text-sm text-muted-foreground">Đang tải ngân sách tháng...</p>
+      )}
 
       {/* Add form (always visible) */}
       <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
@@ -440,17 +531,36 @@ function CalendarView({ tx, year, month }: { tx: Transaction[]; year: number; mo
   );
 }
 
-function SavingsGoalsCard({ goals, setGoals, balance }: { goals: SavingsGoal[]; setGoals: (g: SavingsGoal[]) => void; balance: number }) {
+function SavingsGoalsCard({
+  goals,
+  setGoals,
+  balance,
+}: {
+  goals: SavingsGoal[];
+  setGoals: React.Dispatch<React.SetStateAction<SavingsGoal[]>>;
+  balance: number;
+}) {
   const [title, setTitle] = useState("");
   const [target, setTarget] = useState("");
 
-  function add() {
-    const t = Number(target);
-    if (!title.trim() || !t || t <= 0) return;
-    setGoals([{ id: uid(), title: title.trim(), target: t, createdAt: new Date().toISOString() }, ...goals]);
-    setTitle(""); setTarget("");
+  async function add() {
+    try {
+      const res = await createSavingsGoal({ title, target: Number(target) });
+      setGoals(res.goals);
+      setTitle("");
+      setTarget("");
+    } catch {
+      // ignore
+    }
   }
-  function remove(id: string) { setGoals(goals.filter((g) => g.id !== id)); }
+  async function remove(id: string) {
+    try {
+      const res = await deleteSavingsGoal(id);
+      setGoals(res.goals);
+    } catch {
+      // ignore
+    }
+  }
 
   return (
     <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
