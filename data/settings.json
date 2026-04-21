@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-04-20T10:14:05.877Z",
+  "values": {
+    "ellie:transactions": [
+      {
+        "id": "v0tnh333u3mo6nfqye",
+        "type": "expense",
+        "amount": 25000,
+        "category": "Ăn uống",
+        "note": "Ăn sáng",
+        "date": "2026-04-20T00:00:00.000Z"
+      }
+    ],
+    "ellie:pomodoros": [
+      {
+        "id": "f6f2d4d4-3514-48f4-8c5b-f443240db01d",
+        "date": "2026-04-20T04:53:31.479Z",
+        "minutes": 25
+      },
+      {
+        "id": "ws37jxiiwshmo6pts5i",
+        "date": "2026-04-20T04:49:23.142Z",
+        "minutes": 1
+      }
+    ],
+    "ellie:todos": [],
+    "ellie:goals": [
+      {
+        "id": "34ae9183-6046-4a30-a93e-00b73a6b3797",
+        "title": "Be The Strongest One",
+        "description": "Be The Strongest One",
+        "deadline": "2026-04-20",
+        "steps": [],
+        "completed": false,
+        "createdAt": "2026-04-20T10:14:05.875Z"
+      }
+    ],
+    "ellie:focus-settings": {
+      "workMinutes": 25,
+      "breakMinutes": 8
+    }
+  }
+}

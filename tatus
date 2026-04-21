@@ -1,0 +1,75 @@
+[33m069c91d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/local-dev[m[33m, [m[1;31morigin/feature/local-dev[m[33m)[m feature: local storage, api function
+[33m24e75c4[m docs: add ellie assistant playbook
+[33m407d664[m docs: add assistant contract map
+[33m8219a21[m[33m ([m[1;32mmain[m[33m)[m Fixed build error with object
+[33mf8760e1[m Changes
+[33m600f7c7[m Changes
+[33m84e7ba9[m Work in progress
+[33m8fbc0c7[m Added prev type annotation
+[33m3cad0d0[m Changes
+[33m4c26735[m Changes
+[33md230fd6[m Added Trello-style work app
+[33m330622d[m Changes
+[33m2bbc94c[m Changes
+[33ma973b48[m Changes
+[33mac5eb8d[m Changes
+[33med18acf[m Changes
+[33m24207eb[m Changes
+[33md5cd64d[m Changes
+[33m51694e1[m Changes
+[33m7d03bee[m Changes
+[33mcdf5790[m Changes
+[33me5e509c[m Changes
+[33mc950fa5[m Phân tích yêu cầu project management
+[33md71a7e9[m Work in progress
+[33mc715245[m Đã nâng cấp calendar & UI
+[33m62dc05f[m Changes
+[33m18f0144[m Changes
+[33m041291a[m Changes
+[33m9f07444[m Changes
+[33m21c75b0[m Changes
+[33mc8168ae[m Changes
+[33m8f2a61d[m Changes
+[33mcc3d940[m Changes
+[33m75b58df[m Changes
+[33m16424d7[m Changes
+[33m6d9a169[m Sửa UI Tài chính & nâng cấp Calendar
+[33m37bc211[m Work in progress
+[33m38f537d[m Đã thêm Âm lịch VN và ngày lễ
+[33m69b1ecd[m Changes
+[33m2f9277f[m Changes
+[33me9a0cd6[m Changes
+[33m57ffe2c[m Changes
+[33m06d0493[m Changes
+[33mc1b9cba[m Changes
+[33m7f3744b[m Work in progress
+[33mb4c414f[m Sửa lệch cột trong WeekView
+[33mac94b3d[m Changes
+[33md865348[m Changes
+[33m6900d98[m Triển khai trang Calendar
+[33m999bd08[m Changes
+[33m54767f1[m Changes
+[33m3898a47[m Changes
+[33mc4a4e5a[m Changes
+[33m8bd9a42[m Gộp Lịch & Task thành 1 UI
+[33m9c45b1b[m Changes
+[33m57b874b[m Đề xuất tích hợp Google Calendar
+[33ma870c21[m Work in progress
+[33m98a9230[m Đã triển khai 5 tính năng
+[33m111326b[m Changes
+[33ma888216[m Changes
+[33mb99da6a[m Changes
+[33m6b66765[m Changes
+[33mcdebd35[m Changes
+[33m295e34f[m Thêm tính năng lịch & tài chính
+[33mdde591c[m Work in progress
+[33mb7c3b50[m Xây dựng ProjectEllie app
+[33ma278c71[m Changes
+[33m457cb77[m Changes
+[33mc10f986[m Changes
+[33m49f5c1e[m Changes
+[33md41af2b[m Save plan in Lovable
+[33ma05fc3b[m Update plan
+[33me90baa9[m Update plan
+[33m90a9d52[m Work in progress
+[33m929a9a4[m template: tanstack_start_ts

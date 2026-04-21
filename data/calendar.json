@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-04-20T06:39:24.617Z",
+  "values": {
+    "ellie:transactions": [
+      {
+        "id": "v0tnh333u3mo6nfqye",
+        "type": "expense",
+        "amount": 25000,
+        "category": "Ăn uống",
+        "note": "Ăn sáng",
+        "date": "2026-04-20T00:00:00.000Z"
+      }
+    ],
+    "ellie:pomodoros": [],
+    "ellie:todos": [],
+    "ellie:goals": [],
+    "ellie:calendar-items": [
+      {
+        "id": "eykzu6l1rpmo6nosem",
+        "title": "test",
+        "description": "",
+        "startISO": "2026-04-25T09:00",
+        "endISO": "2026-04-25T10:00",
+        "allDay": true,
+        "calendarId": "personal",
+        "recurrence": "none",
+        "createdAt": "2026-04-20T03:49:30.958Z"
+      }
+    ],
+    "ellie:calendar-migrated": true,
+    "ellie:calendars": [
+      {
+        "id": "personal",
+        "name": "Cá nhân",
+        "color": "pink",
+        "visible": true
+      },
+      {
+        "id": "work",
+        "name": "Công việc",
+        "color": "cyan",
+        "visible": true
+      },
+      {
+        "id": "study",
+        "name": "Học tập",
+        "color": "purple",
+        "visible": true
+      },
+      {
+        "id": "birthday",
+        "name": "Sinh nhật & Lễ",
+        "color": "orange",
+        "visible": true
+      }
+    ]
+  }
+}
