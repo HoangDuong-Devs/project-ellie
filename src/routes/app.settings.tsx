@@ -159,6 +159,79 @@ function Settings() {
               </button>
             )}
           </div>
+
+          <div className="mt-5 border-t border-border pt-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h4 className="text-sm font-semibold">Loại thông báo</h4>
+              <button
+                onClick={() => {
+                  resetPrefs();
+                  toast.success("Đã đặt lại tất cả về bật");
+                }}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                Đặt lại
+              </button>
+            </div>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Tắt loại nào bạn không muốn nhận. Áp dụng cho cả thông báo đẩy, toast và bell trên thanh trên.
+            </p>
+            <div className="grid gap-2">
+              {(
+                [
+                  {
+                    key: "calendar",
+                    label: "Lịch & nhắc sự kiện",
+                    desc: "Nhắc trước khi sự kiện bắt đầu",
+                    Icon: CalendarRange,
+                  },
+                  {
+                    key: "finance",
+                    label: "Tài chính",
+                    desc: "Giao dịch mới & cảnh báo ngân sách",
+                    Icon: Wallet,
+                  },
+                  {
+                    key: "goal",
+                    label: "Mục tiêu",
+                    desc: "Khi hoàn thành mục tiêu đã đề ra",
+                    Icon: Target,
+                  },
+                  {
+                    key: "focus",
+                    label: "Focus / Pomodoro",
+                    desc: "Sau mỗi phiên tập trung hoàn tất",
+                    Icon: Timer,
+                  },
+                  {
+                    key: "dailyDigest",
+                    label: "Tổng hợp hằng ngày",
+                    desc: "Tóm tắt sự kiện trong ngày khi mở app",
+                    Icon: Sunrise,
+                  },
+                ] as { key: keyof NotificationPrefs; label: string; desc: string; Icon: typeof Bell }[]
+              ).map(({ key, label, desc, Icon }) => (
+                <label
+                  key={key}
+                  className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 transition-colors hover:bg-accent/10"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent-foreground">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">{label}</div>
+                      <div className="text-xs text-muted-foreground">{desc}</div>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={prefs[key]}
+                    onCheckedChange={(v) => setPref(key, v)}
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
