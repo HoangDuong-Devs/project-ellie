@@ -14,6 +14,16 @@ import {
 import { useEffect, useState } from "react";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import {
+  useReminderScheduler,
+  useBudgetWatcher,
+  requestNotificationPermission,
+} from "@/hooks/useNotifications";
+import type { CalendarItem } from "@/types/calendar";
+import type { Transaction } from "@/types/finance";
+import type { MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
 
 type NavItem = {
   to: "/app" | "/app/finance" | "/app/calendar" | "/app/focus" | "/app/goals" | "/app/work";
@@ -39,6 +49,25 @@ export function AppShell() {
     const d = getInitialDark();
     setDark(d);
     applyTheme(d);
+  }, []);
+
+  // Global notification watchers — run on every page so reminders & budget
+  // alerts fire regardless of which tab the user is currently on.
+  const [calendarItems] = useLocalStorage<CalendarItem[]>("ellie:calendar-items", []);
+  const [tx] = useLocalStorage<Transaction[]>("ellie:transactions", []);
+  const [budget] = useLocalStorage<MonthlyBudget>("ellie:monthly-budget", {
+    total: 0,
+    categories: {},
+  });
+  useReminderScheduler(calendarItems);
+  useBudgetWatcher(tx, budget);
+
+  // Ask for notification permission once per session if not already decided.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      requestNotificationPermission();
+    }
   }, []);
 
   const toggleDark = () => {
@@ -138,6 +167,8 @@ export function AppShell() {
           <Outlet />
         </div>
       </main>
+
+      <Toaster position="top-right" richColors closeButton />
 
       {/* Bottom nav (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl lg:hidden">
