@@ -258,6 +258,7 @@ export function useDailyEventsDigest(items: CalendarItem[]) {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
+    if (!isDailyDigestEnabled()) return;
     if (items.length === 0) return;
     const now = new Date();
     const start = new Date(now);
