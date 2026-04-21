@@ -38,6 +38,7 @@ const KEYS = [
 function Settings() {
   const [dark, setDark] = useState(false);
   const [notifPerm, setNotifPerm] = useState<NotificationPermission>("default");
+  const { prefs, setPref, reset: resetPrefs } = useNotificationPrefs();
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
