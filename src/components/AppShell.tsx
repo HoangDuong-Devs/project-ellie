@@ -16,6 +16,7 @@ import { AssistantBubble } from "@/components/assistant/AssistantBubble";
 import { useEffect, useState } from "react";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 type NavItem = {
   to:
@@ -149,9 +150,11 @@ export function AppShell() {
         </div>
       </main>
 
+      <Toaster position="top-right" richColors closeButton />
+      <AssistantBubble />
       {/* Bottom nav (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl lg:hidden">
-        <div className="grid grid-cols-6">
+        <div className="grid grid-cols-7">
           {NAV.map((n) => {
             const active = isActive(n.to, n.exact);
             return (
