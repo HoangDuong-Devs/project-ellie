@@ -123,13 +123,13 @@ function Dashboard() {
           <div className="mt-5 flex flex-wrap gap-2">
             <Link
               to="/app/assistant"
-              className="btn-pill bg-gradient-brand text-white shadow-soft hover:shadow-glow"
+              className="btn-pill btn-pill-primary"
             >
               <Sparkles className="h-4 w-4" /> Mở trợ lý Ellie
             </Link>
             <Link
               to="/app/finance"
-              className="btn-pill border border-border bg-card text-foreground hover:border-primary"
+              className="btn-pill btn-pill-soft"
             >
               <PlusCircle className="h-4 w-4" /> Thêm giao dịch
             </Link>
@@ -419,7 +419,7 @@ function Dashboard() {
           </div>
           <Link
             to="/app/focus"
-            className="btn-pill bg-white text-primary shadow-soft hover:scale-105"
+            className="btn-pill btn-pill-inverse hover:scale-105"
           >
             <CheckCircle2 className="h-4 w-4" /> Bắt đầu Focus
           </Link>
