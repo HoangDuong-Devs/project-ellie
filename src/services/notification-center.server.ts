@@ -27,7 +27,11 @@ export async function createStoredNotification(input: {
 }) {
   const items = await listStoredNotifications();
   if (input.dedupeKey && items.some((item) => item.dedupeKey === input.dedupeKey)) {
-    return { item: items.find((item) => item.dedupeKey === input.dedupeKey) ?? null, items };
+    return {
+      item: items.find((item) => item.dedupeKey === input.dedupeKey) ?? null,
+      items,
+      created: false,
+    };
   }
 
   const item: AppNotification = {
@@ -44,7 +48,7 @@ export async function createStoredNotification(input: {
 
   const next = trimItems([item, ...items]);
   await setValue(STORAGE_KEYS.NOTIFICATIONS, next);
-  return { item, items: next };
+  return { item, items: next, created: true };
 }
 
 export async function patchStoredNotification(id: string, patch: Partial<AppNotification>) {

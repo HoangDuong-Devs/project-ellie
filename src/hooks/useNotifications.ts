@@ -7,12 +7,8 @@ import type { Goal } from "@/types/goals";
 import type { PomodoroSession } from "@/types/focus";
 import { getReminderOffsets, parseLocal, expandOccurrences, fmtTime } from "@/lib/calendar";
 import { formatVND } from "@/lib/format";
-import { listNotifications } from "@/services/notification-api-client";
-import {
-  pushNotification,
-  type NotificationCategory,
-  type NotificationKind,
-} from "./useNotificationCenter";
+import { createNotification, listNotifications } from "@/services/notification-api-client";
+import { type NotificationCategory, type NotificationKind } from "./useNotificationCenter";
 import {
   getNotificationPrefs as getNotificationPrefsCache,
   isCategoryEnabled,
@@ -21,7 +17,7 @@ import {
 import type { AppNotification } from "@/types/notifications";
 
 /** Show notification: native push + in-app toast + persistent center entry. */
-function notify(
+async function notify(
   title: string,
   body: string,
   opts: {
@@ -34,6 +30,22 @@ function notify(
   const kind = opts.kind ?? "info";
   // Respect user preferences — completely skip if category is disabled.
   if (!isCategoryEnabled(opts.category)) return;
+
+  // Persist first so we can suppress duplicate popups across reloads/tabs.
+  // The server dedupes by `dedupeKey`; when deduped, `created=false`.
+  try {
+    const res = await createNotification({
+      title,
+      body,
+      category: opts.category,
+      kind,
+      dedupeKey: opts.dedupeKey ?? opts.tag,
+    });
+    if (res.created === false) return;
+  } catch {
+    // If persistence fails, keep current UX and still show a toast.
+  }
+
   if (
     typeof window !== "undefined" &&
     "Notification" in window &&
@@ -49,14 +61,6 @@ function notify(
   else if (kind === "warn") toast.warning(title, { description: body, id: opts.tag });
   else if (kind === "success") toast.success(title, { description: body, id: opts.tag });
   else toast(title, { description: body, id: opts.tag });
-
-  pushNotification({
-    title,
-    body,
-    category: opts.category,
-    kind,
-    dedupeKey: opts.dedupeKey ?? opts.tag,
-  });
 }
 
 /**

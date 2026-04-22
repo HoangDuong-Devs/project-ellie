@@ -9,6 +9,7 @@ import type {
 type NotificationsResponse = {
   items: AppNotification[];
   item?: AppNotification;
+  created?: boolean;
 };
 
 type NotificationPrefsResponse = {
