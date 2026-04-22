@@ -209,19 +209,19 @@ export function AppShell() {
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
+                  "flex min-w-0 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
                 <div
                   className={cn(
-                    "flex h-8 w-12 items-center justify-center rounded-full transition-all",
+                    "flex h-7 w-9 items-center justify-center rounded-full transition-all",
                     active && "bg-gradient-brand text-white shadow-soft",
                   )}
                 >
-                  <n.icon className="h-4 w-4" />
+                  <n.icon className="h-3.5 w-3.5" />
                 </div>
-                {n.label}
+                <span className="w-full truncate text-center">{n.label}</span>
               </Link>
             );
           })}
