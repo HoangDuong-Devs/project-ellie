@@ -58,9 +58,10 @@ This playbook defines how the assistant should handle common day-to-day requests
 - Confirmed source-backed entry points:
   - `POST /api/scheduler/run`
   - `npm run scheduler:run`
+  - `npm run scheduler:worker`
 - Calendar event create/update/delete already sync reminder jobs.
-- At the moment, the repo still does not show a built-in always-on worker loop, cron installer, or systemd service that continuously invokes the scheduler on its own.
-- So reminders are real and runnable, but still depend on an external invocation path until an always-on runner is added.
+- The repo now includes a simple always-on in-process worker loop for scheduler execution.
+- It still is not a system service by itself, so it must be started and kept alive by a host process manager, terminal session, cron wrapper, or similar runtime supervisor.
 
 ## 2. Calendar workflow
 

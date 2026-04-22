@@ -539,6 +539,14 @@ Body examples:
 ### `POST /api/scheduler/run`
 Runs due jobs immediately.
 
+## Scheduler worker
+
+### `npm run scheduler:worker`
+Starts an always-on in-process scheduler loop.
+- It repeatedly runs due jobs.
+- It sleeps until the next pending job time, capped by a safe max sleep window.
+- It stops cleanly on `SIGINT` or `SIGTERM`.
+
 ## Error shape
 
 Validation errors return:
