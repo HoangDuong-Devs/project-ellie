@@ -265,9 +265,10 @@
   font-weight: 600;
   font-size: 0.875rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-}
-@utility btn-pill:hover {
-  transform: translateY(-1px);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
 }
 
 /* Thin custom scrollbar */
