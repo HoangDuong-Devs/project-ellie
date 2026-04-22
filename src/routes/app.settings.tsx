@@ -19,6 +19,7 @@ import { requestNotificationPermission } from "@/hooks/useNotifications";
 import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
 import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/PageHeader";
+import { REMINDER_PRESETS } from "@/lib/calendar";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 
 export const Route = createFileRoute("/app/settings")({
@@ -120,6 +121,21 @@ function Settings() {
     if (!confirm("Xóa toàn bộ dữ liệu? Không thể hoàn tác.")) return;
     KEYS.forEach((k) => localStorage.removeItem(k));
     location.reload();
+  }
+
+  function fmtReminder(min: number) {
+    if (min === 0) return "Đúng giờ";
+    if (min < 60) return `${min} phút trước`;
+    if (min < 1440) return `${Math.round(min / 60)} giờ trước`;
+    return `${Math.round(min / 1440)} ngày trước`;
+  }
+
+  function toggleDefaultReminder(min: number) {
+    const exists = prefs.defaultCalendarReminders.includes(min);
+    const next = exists
+      ? prefs.defaultCalendarReminders.filter((v) => v !== min)
+      : [...prefs.defaultCalendarReminders, min].sort((a, b) => b - a);
+    setPref("defaultCalendarReminders", next);
   }
 
   return (
@@ -285,6 +301,47 @@ function Settings() {
                     className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
                   />
                 </label>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-border bg-background p-4">
+              <div className="mb-2 text-sm font-medium">Nhắc lịch mặc định khi tạo sự kiện mới</div>
+              <div className="mb-3 text-xs text-muted-foreground">
+                Đây là giá trị mặc định. Khi tạo từng lịch, bạn vẫn có thể chỉnh riêng trong popup
+                tạo sự kiện.
+              </div>
+              {prefs.defaultCalendarReminders.length === 0 ? (
+                <div className="mb-3 text-xs text-muted-foreground">Hiện đang để: Không nhắc mặc định</div>
+              ) : (
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {prefs.defaultCalendarReminders.map((min) => (
+                    <span
+                      key={min}
+                      className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary"
+                    >
+                      {fmtReminder(min)}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-1.5">
+                {REMINDER_PRESETS.map((preset) => {
+                  const active = prefs.defaultCalendarReminders.includes(preset.value);
+                  return (
+                    <button
+                      key={preset.value}
+                      type="button"
+                      onClick={() => toggleDefaultReminder(preset.value)}
+                      className={
+                        active
+                          ? "rounded-full border border-transparent bg-gradient-brand px-2.5 py-1 text-xs font-medium text-white shadow-soft"
+                          : "rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:border-primary"
+                      }
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -35,6 +35,7 @@ import {
   upsertEvent,
 } from "@/services/calendar-api-client";
 import { requestNotificationPermission } from "@/hooks/useNotifications";
+import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
 import { uid } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
@@ -134,6 +135,8 @@ function CalendarPage() {
   const [editing, setEditing] = useState<{ item?: CalendarItem; defaults?: Partial<CalendarItem> } | null>(
     null,
   );
+  const { prefs } = useNotificationPrefs();
+  const defaultEventReminders = prefs.defaultCalendarReminders ?? [];
 
   const visibleCalIds = useMemo(
     () => new Set(calendars.filter((c) => c.visible).map((c) => c.id)),
@@ -237,6 +240,19 @@ function CalendarPage() {
     else setCursor(addMonths(cursor, delta));
   }
 
+  function openCreateModal(start: Date, end: Date, allDay = false) {
+    setEditing({
+      defaults: {
+        startISO: ymdhm(start),
+        endISO: ymdhm(end),
+        allDay,
+        calendarId: calendars[0]?.id || "personal",
+        recurrence: "none",
+        reminders: [...defaultEventReminders],
+      },
+    });
+  }
+
   return (
     <div>
       <PageHeader title="Lịch" description="Quản lý sự kiện theo ngày, tuần, tháng — phong cách Google Calendar." />
@@ -251,15 +267,7 @@ function CalendarPage() {
                 now.setMinutes(0, 0, 0);
                 const end = new Date(now);
                 end.setHours(end.getHours() + 1);
-                setEditing({
-                  defaults: {
-                    startISO: ymdhm(now),
-                    endISO: ymdhm(end),
-                    allDay: false,
-                    calendarId: calendars[0]?.id || "personal",
-                    recurrence: "none",
-                  },
-                });
+                openCreateModal(now, end, false);
               }}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-brand px-4 py-3 text-sm font-semibold text-white shadow-soft hover:scale-[1.02]"
             >
@@ -378,15 +386,7 @@ function CalendarPage() {
                   s.setHours(9, 0, 0, 0);
                   const e = new Date(s);
                   e.setHours(10, 0, 0, 0);
-                  setEditing({
-                    defaults: {
-                      startISO: ymdhm(s),
-                      endISO: ymdhm(e),
-                      allDay: false,
-                      calendarId: calendars[0]?.id || "personal",
-                      recurrence: "none",
-                    },
-                  });
+                  openCreateModal(s, e, false);
                 }}
                 onOpen={(it) => setEditing({ item: it })}
               />
@@ -402,15 +402,7 @@ function CalendarPage() {
                   s.setHours(hour, 0, 0, 0);
                   const e = new Date(s);
                   e.setHours(hour + 1, 0, 0, 0);
-                  setEditing({
-                    defaults: {
-                      startISO: ymdhm(s),
-                      endISO: ymdhm(e),
-                      allDay: false,
-                      calendarId: calendars[0]?.id || "personal",
-                      recurrence: "none",
-                    },
-                  });
+                  openCreateModal(s, e, false);
                 }}
                 onOpen={(it) => setEditing({ item: it })}
                 onResize={(id, newEndDate) => {
@@ -431,15 +423,7 @@ function CalendarPage() {
                   s.setHours(hour, 0, 0, 0);
                   const e = new Date(s);
                   e.setHours(hour + 1, 0, 0, 0);
-                  setEditing({
-                    defaults: {
-                      startISO: ymdhm(s),
-                      endISO: ymdhm(e),
-                      allDay: false,
-                      calendarId: calendars[0]?.id || "personal",
-                      recurrence: "none",
-                    },
-                  });
+                  openCreateModal(s, e, false);
                 }}
                 onOpen={(it) => setEditing({ item: it })}
               />
@@ -453,6 +437,7 @@ function CalendarPage() {
           calendars={calendars}
           item={editing.item}
           defaults={editing.defaults}
+          defaultReminders={defaultEventReminders}
           onClose={() => setEditing(null)}
           onSave={(it) => {
             upsertItem(it);
@@ -1181,6 +1166,7 @@ function ResizableTimedEvent({
 function EventModal({
   item,
   defaults,
+  defaultReminders,
   calendars,
   onClose,
   onSave,
@@ -1188,6 +1174,7 @@ function EventModal({
 }: {
   item?: CalendarItem;
   defaults?: Partial<CalendarItem>;
+  defaultReminders: number[];
   calendars: CalendarType[];
   onClose: () => void;
   onSave: (it: CalendarItem) => void;
@@ -1205,6 +1192,9 @@ function EventModal({
     recurrence: defaults?.recurrence || "none",
     recurrenceUntil: defaults?.recurrenceUntil,
     reminderMinutes: defaults?.reminderMinutes,
+    reminders:
+      defaults?.reminders ??
+      (defaults?.reminderMinutes != null ? [defaults.reminderMinutes] : [...defaultReminders]),
     createdAt: new Date().toISOString(),
   };
 
@@ -1354,6 +1344,7 @@ function EventModal({
           <RemindersEditor
             value={form.reminders ?? (form.reminderMinutes != null ? [form.reminderMinutes] : [])}
             onChange={(arr) => setForm((f) => ({ ...f, reminders: arr, reminderMinutes: undefined }))}
+            defaultValue={defaultReminders}
           />
 
 
@@ -1643,11 +1634,14 @@ function RecurrenceEditor({
 function RemindersEditor({
   value,
   onChange,
+  defaultValue,
 }: {
   value: number[];
   onChange: (v: number[]) => void;
+  defaultValue?: number[];
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const defaults = defaultValue ?? [];
 
   function fmt(min: number) {
     if (min === 0) return "Đúng giờ";
@@ -1671,6 +1665,12 @@ function RemindersEditor({
       <label className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
         <Bell className="h-3 w-3" /> Nhắc nhở
       </label>
+      <p className="mb-2 text-[11px] text-muted-foreground">
+        Thiết lập cho sự kiện này. Mặc định từ cài đặt:{" "}
+        {defaults.length === 0
+          ? "Không nhắc"
+          : defaults.map((m) => fmt(m)).join(", ")}
+      </p>
       {value.length === 0 ? (
         <p className="mb-2 text-xs text-muted-foreground">Chưa có nhắc nhở</p>
       ) : (
@@ -1718,6 +1718,15 @@ function RemindersEditor({
             )}
           </div>
         )}
+      </div>
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={() => onChange([...defaults])}
+          className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:border-primary"
+        >
+          Dùng mặc định
+        </button>
       </div>
     </div>
   );

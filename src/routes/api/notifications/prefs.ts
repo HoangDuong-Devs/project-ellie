@@ -10,6 +10,18 @@ function asIntInRange(value: unknown, fallback: number, min: number, max: number
   return Math.max(min, Math.min(max, parsed));
 }
 
+function normalizeReminderOffsets(value: unknown, fallback: number[]): number[] {
+  if (!Array.isArray(value)) return fallback;
+  const uniq = new Set<number>();
+  for (const raw of value) {
+    if (typeof raw !== "number" || !Number.isFinite(raw)) continue;
+    const min = Math.trunc(raw);
+    if (min < 0 || min > 10080) continue; // 7 days max
+    uniq.add(min);
+  }
+  return Array.from(uniq).sort((a, b) => b - a);
+}
+
 function normalizePrefs(input: Partial<NotificationPrefs>): NotificationPrefs {
   return {
     calendar:
@@ -23,6 +35,10 @@ function normalizePrefs(input: Partial<NotificationPrefs>): NotificationPrefs {
       typeof input.dailyDigest === "boolean"
         ? input.dailyDigest
         : DEFAULT_NOTIFICATION_PREFS.dailyDigest,
+    defaultCalendarReminders: normalizeReminderOffsets(
+      input.defaultCalendarReminders,
+      DEFAULT_NOTIFICATION_PREFS.defaultCalendarReminders,
+    ),
     reminderRepeatEnabled:
       typeof input.reminderRepeatEnabled === "boolean"
         ? input.reminderRepeatEnabled
