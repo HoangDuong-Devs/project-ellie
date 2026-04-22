@@ -7,6 +7,7 @@ import type { CalendarItem } from "@/types/calendar";
 import type { Goal } from "@/types/goals";
 import type { PomodoroSession } from "@/types/focus";
 import type { MonthlyBudget } from "@/components/finance/MonthlyBudgetCard";
+import { DEFAULT_MONTHLY_BUDGET, getMonthBudgetKey } from "@/services/finance-service";
 
 export interface AssistantInsights {
   // Finance
@@ -48,16 +49,47 @@ function startOfDay(d: Date) {
   return x;
 }
 
+function resolveMonthlyBudget(raw: unknown, year: number, month: number): MonthlyBudget {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return DEFAULT_MONTHLY_BUDGET;
+
+  // Current format: { "YYYY-MM": { total, categories } }
+  const key = getMonthBudgetKey(year, month);
+  const storeValue = (raw as Record<string, unknown>)[key];
+  if (storeValue && typeof storeValue === "object" && !Array.isArray(storeValue)) {
+    const total = (storeValue as { total?: unknown }).total;
+    const categories = (storeValue as { categories?: unknown }).categories;
+    return {
+      total: typeof total === "number" && Number.isFinite(total) ? total : 0,
+      categories:
+        categories && typeof categories === "object" && !Array.isArray(categories)
+          ? (categories as Record<string, number>)
+          : {},
+    };
+  }
+
+  // Legacy format: { total, categories }
+  const total = (raw as { total?: unknown }).total;
+  const categories = (raw as { categories?: unknown }).categories;
+  if (typeof total === "number" || (categories && typeof categories === "object")) {
+    return {
+      total: typeof total === "number" && Number.isFinite(total) ? total : 0,
+      categories:
+        categories && typeof categories === "object" && !Array.isArray(categories)
+          ? (categories as Record<string, number>)
+          : {},
+    };
+  }
+
+  return DEFAULT_MONTHLY_BUDGET;
+}
+
 export function useAssistantInsights(): AssistantInsights {
   const [tx] = useLocalStorage<Transaction[]>("ellie:transactions", []);
   const [todos] = useLocalStorage<Todo[]>("ellie:todos", []);
   const [items] = useLocalStorage<CalendarItem[]>("ellie:calendar-items", []);
   const [goals] = useLocalStorage<Goal[]>("ellie:goals", []);
   const [sessions] = useLocalStorage<PomodoroSession[]>("ellie:pomodoros", []);
-  const [budget] = useLocalStorage<MonthlyBudget>("ellie:monthly-budget", {
-    total: 0,
-    categories: {},
-  });
+  const [budgetRaw] = useLocalStorage<unknown>("ellie:monthly-budget", DEFAULT_MONTHLY_BUDGET);
 
   return useMemo(() => {
     const now = new Date();
@@ -66,6 +98,7 @@ export function useAssistantInsights(): AssistantInsights {
     const dim = new Date(y, m + 1, 0).getDate();
     const today = startOfDay(now).getTime();
     const yesterday = today - 24 * 3600 * 1000;
+    const budget = resolveMonthlyBudget(budgetRaw, y, m);
 
     const monthTx = tx.filter((t) => {
       const d = new Date(t.date);
@@ -183,7 +216,7 @@ export function useAssistantInsights(): AssistantInsights {
       focusStreak,
       todayFocusMinutes,
     };
-  }, [tx, todos, items, goals, sessions, budget]);
+  }, [tx, todos, items, goals, sessions, budgetRaw]);
 }
 
 export interface AssistantCommand {
