@@ -10,7 +10,9 @@ import {
   Moon,
   Sun,
   Kanban,
+  MessageCircle,
 } from "lucide-react";
+import { AssistantBubble } from "@/components/assistant/AssistantBubble";
 import { useEffect, useState } from "react";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -33,7 +35,14 @@ import type { Goal } from "@/types/goals";
 import type { PomodoroSession } from "@/types/focus";
 
 type NavItem = {
-  to: "/app" | "/app/finance" | "/app/calendar" | "/app/focus" | "/app/goals" | "/app/work";
+  to:
+    | "/app"
+    | "/app/finance"
+    | "/app/calendar"
+    | "/app/focus"
+    | "/app/goals"
+    | "/app/work"
+    | "/app/assistant";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
@@ -46,6 +55,7 @@ const NAV: NavItem[] = [
   { to: "/app/work", label: "Công việc", icon: Kanban },
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
+  { to: "/app/assistant", label: "Trợ lý", icon: MessageCircle },
 ];
 
 export function AppShell() {
@@ -187,10 +197,11 @@ export function AppShell() {
       </main>
 
       <Toaster position="top-right" richColors closeButton />
+      <AssistantBubble />
 
       {/* Bottom nav (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl lg:hidden">
-        <div className="grid grid-cols-6">
+        <div className="grid grid-cols-7">
           {NAV.map((n) => {
             const active = isActive(n.to, n.exact);
             return (
@@ -198,19 +209,19 @@ export function AppShell() {
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
+                  "flex min-w-0 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors",
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
                 <div
                   className={cn(
-                    "flex h-8 w-12 items-center justify-center rounded-full transition-all",
+                    "flex h-7 w-9 items-center justify-center rounded-full transition-all",
                     active && "bg-gradient-brand text-white shadow-soft",
                   )}
                 >
-                  <n.icon className="h-4 w-4" />
+                  <n.icon className="h-3.5 w-3.5" />
                 </div>
-                {n.label}
+                <span className="w-full truncate text-center">{n.label}</span>
               </Link>
             );
           })}
