@@ -193,13 +193,13 @@ function Dashboard() {
               Chi tiết <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="flex h-44 items-end gap-2">
+          <div className="flex h-44 items-stretch gap-2">
             {i.last7DaysExpense.map((d, idx) => {
               const h = (d.amount / max7) * 100;
               const isToday = idx === i.last7DaysExpense.length - 1;
               return (
-                <div key={d.date} className="flex flex-1 flex-col items-center gap-1.5">
-                  <div className="relative flex h-full w-full items-end">
+                <div key={d.date} className="flex h-full flex-1 flex-col items-center gap-1.5">
+                  <div className="relative flex w-full flex-1 items-end">
                     <motion.div
                       initial={{ height: 0 }}
                       animate={{ height: `${Math.max(4, h)}%` }}
