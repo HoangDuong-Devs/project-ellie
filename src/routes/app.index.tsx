@@ -15,6 +15,7 @@ import {
   Kanban,
   MessageCircle,
 } from "lucide-react";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useAssistantInsights } from "@/hooks/useAssistantInsights";
 import { formatVND } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,6 @@ function Dashboard() {
     month: "long",
   });
 
-  const max7 = Math.max(1, ...i.last7DaysExpense.map((d) => d.amount));
   const total7DaysExpense = i.last7DaysExpense.reduce((sum, d) => sum + d.amount, 0);
   const avg7DaysExpense = total7DaysExpense / Math.max(1, i.last7DaysExpense.length);
   const topDayExpense = i.last7DaysExpense.reduce<{ label: string; amount: number } | null>(
@@ -193,37 +193,23 @@ function Dashboard() {
               Chi tiết <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="flex h-44 items-stretch gap-2">
-            {i.last7DaysExpense.map((d, idx) => {
-              const h = (d.amount / max7) * 100;
-              const isToday = idx === i.last7DaysExpense.length - 1;
-              return (
-                <div key={d.date} className="flex h-full flex-1 flex-col items-center gap-1.5">
-                  <div className="relative flex w-full flex-1 items-end">
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${Math.max(4, h)}%` }}
-                      transition={{ duration: 0.5, delay: idx * 0.04 }}
-                      className={cn(
-                        "w-full rounded-t-xl transition-colors",
-                        isToday
-                          ? "bg-gradient-brand shadow-soft"
-                          : "bg-muted-foreground/35",
-                      )}
-                      title={formatVND(d.amount)}
-                    />
-                  </div>
-                  <span
-                    className={cn(
-                      "text-[10px]",
-                      isToday ? "font-semibold text-primary" : "text-muted-foreground",
-                    )}
-                  >
-                    {d.label}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="h-44">
+            <ResponsiveContainer>
+              <BarChart data={i.last7DaysExpense}>
+                <XAxis dataKey="label" stroke="currentColor" fontSize={11} />
+                <YAxis stroke="currentColor" fontSize={11} tickFormatter={(v) => `${Number(v) / 1_000}k`} />
+                <Tooltip
+                  formatter={(v) => formatVND(Number(v))}
+                  labelFormatter={(label) => `Ngày: ${String(label)}`}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
+                  }}
+                />
+                <Bar dataKey="amount" name="Chi tiêu" fill="#ec4899" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
           <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
             <div className="rounded-2xl bg-muted/40 px-3 py-2">
