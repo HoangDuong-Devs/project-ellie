@@ -44,3 +44,26 @@ export const pomodoroSessionSchema = z.object({
   date: z.string().optional(),
   minutes: z.number().int().positive(),
 });
+
+export const pomodoroSessionPatchSchema = z.object({
+  id: z.string().min(1),
+  patch: z
+    .object({
+      date: z.string().optional(),
+      minutes: z.number().int().positive().optional(),
+    })
+    .refine((v) => Object.keys(v).length > 0, "patch cannot be empty"),
+});
+
+export const goalStepActionSchema = z.object({
+  id: z.string().min(1),
+  action: z.enum(["add-step", "update-step", "remove-step"]),
+  step: z
+    .object({
+      id: z.string().min(1).optional(),
+      title: z.string().min(1).optional(),
+      done: z.boolean().optional(),
+    })
+    .optional(),
+  stepId: z.string().min(1).optional(),
+});

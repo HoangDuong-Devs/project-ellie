@@ -43,6 +43,8 @@ import { Route as ApiCalendarEventsRouteImport } from './routes/api/calendar/eve
 import { Route as ApiCalendarCalendarsRouteImport } from './routes/api/calendar/calendars'
 import { Route as ApiWorkSprintsStartRouteImport } from './routes/api/work/sprints.start'
 import { Route as ApiWorkSprintsCompleteRouteImport } from './routes/api/work/sprints.complete'
+import { Route as ApiWorkSprintsActionsRouteImport } from './routes/api/work/sprints/actions'
+import { Route as ApiWorkCardsActionsRouteImport } from './routes/api/work/cards/actions'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -214,6 +216,16 @@ const ApiWorkSprintsCompleteRoute = ApiWorkSprintsCompleteRouteImport.update({
   path: '/complete',
   getParentRoute: () => ApiWorkSprintsRoute,
 } as any)
+const ApiWorkSprintsActionsRoute = ApiWorkSprintsActionsRouteImport.update({
+  id: '/actions',
+  path: '/actions',
+  getParentRoute: () => ApiWorkSprintsRoute,
+} as any)
+const ApiWorkCardsActionsRoute = ApiWorkCardsActionsRouteImport.update({
+  id: '/actions',
+  path: '/actions',
+  getParentRoute: () => ApiWorkCardsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -241,13 +253,15 @@ export interface FileRoutesByFullPath {
   '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
   '/api/scheduler/jobs': typeof ApiSchedulerJobsRoute
   '/api/scheduler/run': typeof ApiSchedulerRunRoute
-  '/api/work/cards': typeof ApiWorkCardsRoute
+  '/api/work/cards': typeof ApiWorkCardsRouteWithChildren
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
   '/api/work/labels': typeof ApiWorkLabelsRoute
   '/api/work/move-card': typeof ApiWorkMoveCardRoute
   '/api/work/sprints': typeof ApiWorkSprintsRouteWithChildren
   '/api/work/workspaces': typeof ApiWorkWorkspacesRoute
+  '/api/work/cards/actions': typeof ApiWorkCardsActionsRoute
+  '/api/work/sprints/actions': typeof ApiWorkSprintsActionsRoute
   '/api/work/sprints/complete': typeof ApiWorkSprintsCompleteRoute
   '/api/work/sprints/start': typeof ApiWorkSprintsStartRoute
 }
@@ -276,13 +290,15 @@ export interface FileRoutesByTo {
   '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
   '/api/scheduler/jobs': typeof ApiSchedulerJobsRoute
   '/api/scheduler/run': typeof ApiSchedulerRunRoute
-  '/api/work/cards': typeof ApiWorkCardsRoute
+  '/api/work/cards': typeof ApiWorkCardsRouteWithChildren
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
   '/api/work/labels': typeof ApiWorkLabelsRoute
   '/api/work/move-card': typeof ApiWorkMoveCardRoute
   '/api/work/sprints': typeof ApiWorkSprintsRouteWithChildren
   '/api/work/workspaces': typeof ApiWorkWorkspacesRoute
+  '/api/work/cards/actions': typeof ApiWorkCardsActionsRoute
+  '/api/work/sprints/actions': typeof ApiWorkSprintsActionsRoute
   '/api/work/sprints/complete': typeof ApiWorkSprintsCompleteRoute
   '/api/work/sprints/start': typeof ApiWorkSprintsStartRoute
 }
@@ -313,13 +329,15 @@ export interface FileRoutesById {
   '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
   '/api/scheduler/jobs': typeof ApiSchedulerJobsRoute
   '/api/scheduler/run': typeof ApiSchedulerRunRoute
-  '/api/work/cards': typeof ApiWorkCardsRoute
+  '/api/work/cards': typeof ApiWorkCardsRouteWithChildren
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
   '/api/work/labels': typeof ApiWorkLabelsRoute
   '/api/work/move-card': typeof ApiWorkMoveCardRoute
   '/api/work/sprints': typeof ApiWorkSprintsRouteWithChildren
   '/api/work/workspaces': typeof ApiWorkWorkspacesRoute
+  '/api/work/cards/actions': typeof ApiWorkCardsActionsRoute
+  '/api/work/sprints/actions': typeof ApiWorkSprintsActionsRoute
   '/api/work/sprints/complete': typeof ApiWorkSprintsCompleteRoute
   '/api/work/sprints/start': typeof ApiWorkSprintsStartRoute
 }
@@ -358,6 +376,8 @@ export interface FileRouteTypes {
     | '/api/work/move-card'
     | '/api/work/sprints'
     | '/api/work/workspaces'
+    | '/api/work/cards/actions'
+    | '/api/work/sprints/actions'
     | '/api/work/sprints/complete'
     | '/api/work/sprints/start'
   fileRoutesByTo: FileRoutesByTo
@@ -393,6 +413,8 @@ export interface FileRouteTypes {
     | '/api/work/move-card'
     | '/api/work/sprints'
     | '/api/work/workspaces'
+    | '/api/work/cards/actions'
+    | '/api/work/sprints/actions'
     | '/api/work/sprints/complete'
     | '/api/work/sprints/start'
   id:
@@ -429,6 +451,8 @@ export interface FileRouteTypes {
     | '/api/work/move-card'
     | '/api/work/sprints'
     | '/api/work/workspaces'
+    | '/api/work/cards/actions'
+    | '/api/work/sprints/actions'
     | '/api/work/sprints/complete'
     | '/api/work/sprints/start'
   fileRoutesById: FileRoutesById
@@ -451,7 +475,7 @@ export interface RootRouteChildren {
   ApiNotificationsPrefsRoute: typeof ApiNotificationsPrefsRoute
   ApiSchedulerJobsRoute: typeof ApiSchedulerJobsRoute
   ApiSchedulerRunRoute: typeof ApiSchedulerRunRoute
-  ApiWorkCardsRoute: typeof ApiWorkCardsRoute
+  ApiWorkCardsRoute: typeof ApiWorkCardsRouteWithChildren
   ApiWorkColumnsRoute: typeof ApiWorkColumnsRoute
   ApiWorkDataRoute: typeof ApiWorkDataRoute
   ApiWorkLabelsRoute: typeof ApiWorkLabelsRoute
@@ -700,6 +724,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWorkSprintsCompleteRouteImport
       parentRoute: typeof ApiWorkSprintsRoute
     }
+    '/api/work/sprints/actions': {
+      id: '/api/work/sprints/actions'
+      path: '/actions'
+      fullPath: '/api/work/sprints/actions'
+      preLoaderRoute: typeof ApiWorkSprintsActionsRouteImport
+      parentRoute: typeof ApiWorkSprintsRoute
+    }
+    '/api/work/cards/actions': {
+      id: '/api/work/cards/actions'
+      path: '/actions'
+      fullPath: '/api/work/cards/actions'
+      preLoaderRoute: typeof ApiWorkCardsActionsRouteImport
+      parentRoute: typeof ApiWorkCardsRoute
+    }
   }
 }
 
@@ -727,12 +765,26 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface ApiWorkCardsRouteChildren {
+  ApiWorkCardsActionsRoute: typeof ApiWorkCardsActionsRoute
+}
+
+const ApiWorkCardsRouteChildren: ApiWorkCardsRouteChildren = {
+  ApiWorkCardsActionsRoute: ApiWorkCardsActionsRoute,
+}
+
+const ApiWorkCardsRouteWithChildren = ApiWorkCardsRoute._addFileChildren(
+  ApiWorkCardsRouteChildren,
+)
+
 interface ApiWorkSprintsRouteChildren {
+  ApiWorkSprintsActionsRoute: typeof ApiWorkSprintsActionsRoute
   ApiWorkSprintsCompleteRoute: typeof ApiWorkSprintsCompleteRoute
   ApiWorkSprintsStartRoute: typeof ApiWorkSprintsStartRoute
 }
 
 const ApiWorkSprintsRouteChildren: ApiWorkSprintsRouteChildren = {
+  ApiWorkSprintsActionsRoute: ApiWorkSprintsActionsRoute,
   ApiWorkSprintsCompleteRoute: ApiWorkSprintsCompleteRoute,
   ApiWorkSprintsStartRoute: ApiWorkSprintsStartRoute,
 }
@@ -759,7 +811,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiNotificationsPrefsRoute: ApiNotificationsPrefsRoute,
   ApiSchedulerJobsRoute: ApiSchedulerJobsRoute,
   ApiSchedulerRunRoute: ApiSchedulerRunRoute,
-  ApiWorkCardsRoute: ApiWorkCardsRoute,
+  ApiWorkCardsRoute: ApiWorkCardsRouteWithChildren,
   ApiWorkColumnsRoute: ApiWorkColumnsRoute,
   ApiWorkDataRoute: ApiWorkDataRoute,
   ApiWorkLabelsRoute: ApiWorkLabelsRoute,

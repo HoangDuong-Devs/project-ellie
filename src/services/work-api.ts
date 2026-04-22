@@ -187,3 +187,51 @@ export function moveCard(data: WorkData, cardId: string, targetColumnId: string,
     cards: data.cards.map((c) => updated.get(c.id) ?? c),
   };
 }
+
+export function applyCardAction(
+  data: WorkData,
+  cardId: string,
+  action: "assign" | "unassign" | "archive" | "unarchive" | "duplicate" | "set-sprint",
+  options?: { assignee?: string; sprintId?: string | null },
+): { data: WorkData; card?: WorkCard } {
+  const card = data.cards.find((item) => item.id === cardId);
+  if (!card) return { data };
+  const now = new Date().toISOString();
+
+  if (action === "duplicate") {
+    const duplicate: WorkCard = {
+      ...card,
+      id: uid(),
+      title: `${card.title} (copy)`,
+      createdAt: now,
+      updatedAt: now,
+      order: data.cards.filter((c) => c.workspaceId === card.workspaceId && c.columnId === card.columnId).length,
+    };
+    return {
+      data: {
+        ...data,
+        cards: [...data.cards, duplicate],
+      },
+      card: duplicate,
+    };
+  }
+
+  const nextCard: WorkCard =
+    action === "assign"
+      ? { ...card, assignee: options?.assignee, updatedAt: now }
+      : action === "unassign"
+        ? { ...card, assignee: undefined, updatedAt: now }
+        : action === "archive"
+          ? { ...card, status: "backlog", sprintId: null, updatedAt: now }
+          : action === "unarchive"
+            ? { ...card, status: "active", updatedAt: now }
+            : { ...card, sprintId: options?.sprintId ?? null, updatedAt: now };
+
+  return {
+    data: {
+      ...data,
+      cards: data.cards.map((item) => (item.id === cardId ? nextCard : item)),
+    },
+    card: nextCard,
+  };
+}

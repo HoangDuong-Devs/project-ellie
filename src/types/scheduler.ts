@@ -79,6 +79,7 @@ export interface SchedulerRunResult {
   processed: number;
   completed: number;
   failed: number;
+  wakeEvents: number;
   now: string;
   jobs: SchedulerJob[];
 }

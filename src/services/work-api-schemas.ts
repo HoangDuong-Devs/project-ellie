@@ -56,3 +56,10 @@ export const moveCardSchema = z.object({
   targetColumnId: z.string().min(1),
   targetIndex: z.number().int().nonnegative(),
 });
+
+export const cardActionSchema = z.object({
+  cardId: z.string().min(1),
+  action: z.enum(["assign", "unassign", "archive", "unarchive", "duplicate", "set-sprint"]),
+  assignee: z.string().optional(),
+  sprintId: z.string().nullable().optional(),
+});

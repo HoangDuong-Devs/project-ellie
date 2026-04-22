@@ -113,6 +113,25 @@ Body:
 }
 ```
 
+### `PATCH /api/finance/monthly-budget`
+Body:
+```json
+{
+  "year": 2026,
+  "month": 3,
+  "budget": {
+    "total": 13000000,
+    "categories": { "Ăn uống": 4000000 }
+  }
+}
+```
+
+### `DELETE /api/finance/monthly-budget`
+Body:
+```json
+{ "id": "2026-04" }
+```
+
 ## Calendar
 
 ### `GET /api/calendar/events`
@@ -243,6 +262,18 @@ Body:
 { "id": "card-id" }
 ```
 
+### `POST /api/work/cards/actions`
+Body examples:
+```json
+{ "cardId": "card-id", "action": "assign", "assignee": "Dương" }
+```
+```json
+{ "cardId": "card-id", "action": "duplicate" }
+```
+```json
+{ "cardId": "card-id", "action": "set-sprint", "sprintId": "sprint-id" }
+```
+
 ### `GET /api/work/columns?workspaceId=...`
 ### `POST /api/work/columns`
 Body:
@@ -312,6 +343,15 @@ Body:
 { "id": "sprint-id", "moveUnfinishedToBacklog": true }
 ```
 
+### `POST /api/work/sprints/actions`
+Body examples:
+```json
+{ "id": "sprint-id", "action": "reopen" }
+```
+```json
+{ "id": "sprint-id", "action": "complete", "moveUnfinishedToBacklog": false }
+```
+
 ### `POST /api/work/move-card`
 Body:
 ```json
@@ -348,6 +388,16 @@ Body:
     "steps": [{ "id": "step-id", "title": "step", "done": true }]
   }
 }
+```
+Or step actions:
+```json
+{ "id": "goal-id", "action": "add-step", "step": { "title": "Bước mới" } }
+```
+```json
+{ "id": "goal-id", "action": "update-step", "stepId": "step-id", "step": { "done": true } }
+```
+```json
+{ "id": "goal-id", "action": "remove-step", "stepId": "step-id" }
 ```
 
 ### `DELETE /api/goals`
@@ -386,6 +436,18 @@ Response:
 Body:
 ```json
 { "minutes": 25, "date": "optional ISO string" }
+```
+
+### `PATCH /api/focus/sessions`
+Body:
+```json
+{ "id": "session-id", "patch": { "minutes": 45 } }
+```
+
+### `DELETE /api/focus/sessions`
+Body:
+```json
+{ "id": "session-id" }
 ```
 
 ## Error shape

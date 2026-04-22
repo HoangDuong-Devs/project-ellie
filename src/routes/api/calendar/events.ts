@@ -3,6 +3,10 @@ import {
   removeCalendarItem,
   upsertCalendarItem,
 } from "@/services/calendar-service";
+import {
+  cancelCalendarReminderJobs,
+  syncCalendarReminderJobs,
+} from "@/services/calendar-reminder-jobs.server";
 import { badRequest, isObject, json, safeJson } from "@/services/api-utils";
 import {
   calendarItemPatchSchema,
@@ -50,6 +54,7 @@ export const Route = createFileRoute("/api/calendar/events")({
           const items = await getOrInitValue<CalendarItem[]>(STORAGE_KEYS.CALENDAR_ITEMS, []);
           const next = upsertCalendarItem(items, item);
           await setValue(STORAGE_KEYS.CALENDAR_ITEMS, next);
+          await syncCalendarReminderJobs(item);
           return json({ item, items: next });
         } catch (error) {
           if (error instanceof ZodError) return badRequest(zodMessage(error));
@@ -69,6 +74,7 @@ export const Route = createFileRoute("/api/calendar/events")({
 
           const next = upsertCalendarItem(items, merged);
           await setValue(STORAGE_KEYS.CALENDAR_ITEMS, next);
+          await syncCalendarReminderJobs(merged);
           return json({ item: merged, items: next });
         } catch (error) {
           if (error instanceof ZodError) return badRequest(zodMessage(error));
@@ -82,6 +88,7 @@ export const Route = createFileRoute("/api/calendar/events")({
           const items = await getOrInitValue<CalendarItem[]>(STORAGE_KEYS.CALENDAR_ITEMS, []);
           const next = removeCalendarItem(items, id);
           await setValue(STORAGE_KEYS.CALENDAR_ITEMS, next);
+          await cancelCalendarReminderJobs(id);
           return json({ items: next });
         } catch (error) {
           if (error instanceof ZodError) return badRequest(zodMessage(error));

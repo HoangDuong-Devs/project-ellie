@@ -1,5 +1,6 @@
 import "@tanstack/react-start/server-only";
 import { getOrInitValue, setValue } from "@/services/domain-store.server";
+import { emitRuntimeWakeEvent } from "@/services/openclaw-runtime-event.server";
 import { STORAGE_KEYS } from "@/services/storage-keys";
 import type { AppNotification } from "@/types/notifications";
 import type {
@@ -107,6 +108,22 @@ export async function cancelSchedulerJob(id: string) {
   return next.find((job) => job.id === id) ?? null;
 }
 
+function buildWakeEventText(job: SchedulerJob) {
+  const payload = job.payload as SchedulerJobPayload & {
+    title?: string;
+    body?: string;
+  };
+  return [
+    `Scheduler due: ${job.type}`,
+    `jobId=${job.id}`,
+    payload.title ? `title=${payload.title}` : null,
+    payload.body ? `body=${payload.body}` : null,
+    job.dedupeKey ? `dedupeKey=${job.dedupeKey}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+}
+
 export async function runDueSchedulerJobs(now = new Date()): Promise<SchedulerRunResult> {
   const jobs = await readJobs();
   const notifications = await readNotifications();
@@ -116,6 +133,7 @@ export async function runDueSchedulerJobs(now = new Date()): Promise<SchedulerRu
   const notificationItems = [...notifications];
   let completed = 0;
   let failed = 0;
+  let wakeEvents = 0;
 
   for (let i = 0; i < updatedJobs.length; i += 1) {
     const job = updatedJobs[i];
@@ -148,6 +166,9 @@ export async function runDueSchedulerJobs(now = new Date()): Promise<SchedulerRu
 
       const notification = notificationFromJob(runningJob);
       notificationItems.unshift(notification);
+
+      const wakeResult = await emitRuntimeWakeEvent(buildWakeEventText(runningJob));
+      if (wakeResult.ok) wakeEvents += 1;
 
       const done: SchedulerJob = {
         ...runningJob,
@@ -184,6 +205,7 @@ export async function runDueSchedulerJobs(now = new Date()): Promise<SchedulerRu
     processed: touched.length,
     completed,
     failed,
+    wakeEvents,
     now: nowAt,
     jobs: touched,
   };

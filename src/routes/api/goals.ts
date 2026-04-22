@@ -3,6 +3,7 @@ import { badRequest, json, safeJson } from "@/services/api-utils";
 import {
   goalPatchSchema,
   goalSchema,
+  goalStepActionSchema,
   idPayloadSchema,
 } from "@/services/goals-focus-api-schemas";
 import { getOrInitValue, setValue } from "@/services/domain-store.server";
@@ -53,9 +54,10 @@ export const Route = createFileRoute("/api/goals")({
       },
       PATCH: async ({ request }) => {
         const body = await safeJson(request);
+        const goals = await getOrInitValue<Goal[]>(STORAGE_KEYS.GOALS, []);
+
         try {
           const parsed = goalPatchSchema.parse(body);
-          const goals = await getOrInitValue<Goal[]>(STORAGE_KEYS.GOALS, []);
           const current = goals.find((goal) => goal.id === parsed.id);
           if (!current) return json({ error: "Goal not found" }, { status: 404 });
 
@@ -64,8 +66,61 @@ export const Route = createFileRoute("/api/goals")({
           await setValue(STORAGE_KEYS.GOALS, next);
           return json({ goal: merged, goals: next });
         } catch (error) {
+          if (!(error instanceof ZodError)) {
+            return badRequest("Expected { id, patch }");
+          }
+        }
+
+        try {
+          const parsed = goalStepActionSchema.parse(body);
+          const current = goals.find((goal) => goal.id === parsed.id);
+          if (!current) return json({ error: "Goal not found" }, { status: 404 });
+
+          let nextGoal: Goal = current;
+
+          if (parsed.action === "add-step") {
+            if (!parsed.step?.title) return badRequest("step.title is required for add-step");
+            nextGoal = normalizeGoal({
+              ...current,
+              steps: [
+                ...current.steps,
+                {
+                  id: parsed.step.id ?? crypto.randomUUID(),
+                  title: parsed.step.title,
+                  done: parsed.step.done ?? false,
+                },
+              ],
+            });
+          } else if (parsed.action === "update-step") {
+            const targetId = parsed.step?.id ?? parsed.stepId;
+            if (!targetId) return badRequest("step.id or stepId is required for update-step");
+            nextGoal = normalizeGoal({
+              ...current,
+              steps: current.steps.map((step) =>
+                step.id === targetId
+                  ? {
+                      ...step,
+                      ...(parsed.step?.title != null ? { title: parsed.step.title } : {}),
+                      ...(parsed.step?.done != null ? { done: parsed.step.done } : {}),
+                    }
+                  : step,
+              ),
+            });
+          } else {
+            const targetId = parsed.stepId ?? parsed.step?.id;
+            if (!targetId) return badRequest("stepId is required for remove-step");
+            nextGoal = normalizeGoal({
+              ...current,
+              steps: current.steps.filter((step) => step.id !== targetId),
+            });
+          }
+
+          const next = goals.map((goal) => (goal.id === parsed.id ? nextGoal : goal));
+          await setValue(STORAGE_KEYS.GOALS, next);
+          return json({ goal: nextGoal, goals: next });
+        } catch (error) {
           if (error instanceof ZodError) return badRequest(zodMessage(error));
-          return badRequest("Expected { id, patch }");
+          return badRequest("Invalid goal step action payload");
         }
       },
       DELETE: async ({ request }) => {

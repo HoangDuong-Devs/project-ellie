@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { badRequest, json, safeJson } from "@/services/api-utils";
 import { getOrInitValue, setValue } from "@/services/domain-store.server";
 import {
+  idPayloadSchema,
   monthlyBudgetPayloadSchema,
   monthlyBudgetQuerySchema,
   monthlyBudgetSchema,
@@ -80,6 +81,54 @@ export const Route = createFileRoute("/api/finance/monthly-budget")({
         } catch (error) {
           if (error instanceof ZodError) return badRequest(zodMessage(error));
           return badRequest("Invalid monthly budget payload");
+        }
+      },
+      PATCH: async ({ request }) => {
+        const body = await safeJson(request);
+        try {
+          const parsed = monthlyBudgetPayloadSchema.parse(body);
+          const raw = await getOrInitValue<unknown>(STORAGE_KEYS.MONTHLY_BUDGET, {});
+          const store = normalizeStore(raw);
+          const key = getMonthBudgetKey(parsed.year, parsed.month);
+          const current = store[key] ?? DEFAULT_MONTHLY_BUDGET;
+          const nextBudget: MonthlyBudget = {
+            total: parsed.budget.total ?? current.total,
+            categories: {
+              ...current.categories,
+              ...parsed.budget.categories,
+            },
+          };
+          const next = {
+            ...store,
+            [key]: nextBudget,
+          };
+          await setValue(STORAGE_KEYS.MONTHLY_BUDGET, next);
+          return json({ year: parsed.year, month: parsed.month, key, budget: nextBudget });
+        } catch (error) {
+          if (error instanceof ZodError) return badRequest(zodMessage(error));
+          return badRequest("Invalid monthly budget patch payload");
+        }
+      },
+      DELETE: async ({ request }) => {
+        const body = await safeJson(request);
+        try {
+          const payload = idPayloadSchema.parse(body);
+          const [yearRaw, monthRaw] = payload.id.split("-");
+          const year = Number(yearRaw);
+          const month = Number(monthRaw) - 1;
+          if (!Number.isFinite(year) || !Number.isFinite(month)) {
+            return badRequest("Expected id like YYYY-MM");
+          }
+          const raw = await getOrInitValue<unknown>(STORAGE_KEYS.MONTHLY_BUDGET, {});
+          const store = normalizeStore(raw);
+          const key = getMonthBudgetKey(year, month);
+          const next = { ...store };
+          delete next[key];
+          await setValue(STORAGE_KEYS.MONTHLY_BUDGET, next);
+          return json({ year, month, key, budget: DEFAULT_MONTHLY_BUDGET });
+        } catch (error) {
+          if (error instanceof ZodError) return badRequest(zodMessage(error));
+          return badRequest("Invalid monthly budget delete payload");
         }
       },
     },
