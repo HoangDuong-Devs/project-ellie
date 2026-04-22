@@ -1199,6 +1199,7 @@ function EventModal({
   };
 
   const [form, setForm] = useState<CalendarItem>(initial);
+  const selectedReminder = form.reminders?.[0] ?? form.reminderMinutes ?? null;
 
   function update<K extends keyof CalendarItem>(k: K, v: CalendarItem[K]) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -1342,9 +1343,15 @@ function EventModal({
           />
 
           <RemindersEditor
-            value={form.reminders ?? (form.reminderMinutes != null ? [form.reminderMinutes] : [])}
-            onChange={(arr) => setForm((f) => ({ ...f, reminders: arr, reminderMinutes: undefined }))}
-            defaultValue={defaultReminders}
+            value={selectedReminder}
+            onChange={(min) =>
+              setForm((f) => ({
+                ...f,
+                reminders: min == null ? [] : [min],
+                reminderMinutes: undefined,
+              }))
+            }
+            defaultValue={defaultReminders[0] ?? null}
           />
 
 
@@ -1636,12 +1643,41 @@ function RemindersEditor({
   onChange,
   defaultValue,
 }: {
-  value: number[];
-  onChange: (v: number[]) => void;
-  defaultValue?: number[];
+  value: number | null;
+  onChange: (v: number | null) => void;
+  defaultValue?: number | null;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const defaults = defaultValue ?? [];
+  const [openUpward, setOpenUpward] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+
+    function handleOutside(event: MouseEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setPickerOpen(false);
+      }
+    }
+
+    function updateDirection() {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const viewportH = window.innerHeight;
+      const estimatedMenuHeight = 240;
+      const spaceBelow = viewportH - rect.bottom;
+      setOpenUpward(spaceBelow < estimatedMenuHeight);
+    }
+
+    updateDirection();
+    window.addEventListener("resize", updateDirection);
+    document.addEventListener("mousedown", handleOutside);
+    return () => {
+      window.removeEventListener("resize", updateDirection);
+      document.removeEventListener("mousedown", handleOutside);
+    };
+  }, [pickerOpen]);
 
   function fmt(min: number) {
     if (min === 0) return "Đúng giờ";
@@ -1650,79 +1686,85 @@ function RemindersEditor({
     return `${Math.round(min / 1440)} ngày trước`;
   }
 
-  function add(min: number) {
-    if (value.includes(min)) return;
-    onChange([...value, min].sort((a, b) => b - a));
+  function select(min: number | null) {
+    onChange(min);
     setPickerOpen(false);
   }
 
-  function remove(min: number) {
-    onChange(value.filter((v) => v !== min));
-  }
-
   return (
-    <div className="rounded-xl border border-border bg-muted/20 p-3">
+    <div ref={containerRef} className="rounded-xl border border-border bg-muted/20 p-3">
       <label className="mb-2 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
         <Bell className="h-3 w-3" /> Nhắc nhở
       </label>
       <p className="mb-2 text-[11px] text-muted-foreground">
         Thiết lập cho sự kiện này. Mặc định từ cài đặt:{" "}
-        {defaults.length === 0
+        {defaultValue == null
           ? "Không nhắc"
-          : defaults.map((m) => fmt(m)).join(", ")}
+          : fmt(defaultValue)}
       </p>
-      {value.length === 0 ? (
+      {value == null ? (
         <p className="mb-2 text-xs text-muted-foreground">Chưa có nhắc nhở</p>
       ) : (
-        <div className="mb-2 flex flex-wrap gap-1.5">
-          {value.map((m) => (
-            <span
-              key={m}
-              className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary"
-            >
-              {fmt(m)}
-              <button
-                type="button"
-                onClick={() => remove(m)}
-                className="rounded-full p-0.5 hover:bg-primary/20"
-                aria-label="Xoá nhắc nhở"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </span>
-          ))}
+        <div className="mb-2 inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-xs text-primary">
+          {fmt(value)}
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="rounded-full p-0.5 hover:bg-primary/20"
+            aria-label="Xoá nhắc nhở"
+          >
+            <X className="h-3 w-3" />
+          </button>
         </div>
       )}
       <div className="relative inline-block">
         <button
+          ref={triggerRef}
           type="button"
           onClick={() => setPickerOpen((v) => !v)}
           className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs hover:bg-accent/10"
         >
-          <Plus className="h-3 w-3" /> Thêm nhắc nhở
+          <Plus className="h-3 w-3" /> Chọn nhắc nhở
         </button>
         {pickerOpen && (
-          <div className="absolute left-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
-            {REMINDER_PRESETS.filter((p) => !value.includes(p.value)).map((p) => (
+          <div
+            className={cn(
+              "absolute left-0 z-50 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-lg",
+              openUpward ? "bottom-full mb-1" : "top-full mt-1",
+            )}
+          >
+            <div className="max-h-56 overflow-y-auto">
+              <button
+                type="button"
+                onClick={() => select(null)}
+                className={cn(
+                  "block w-full px-3 py-2 text-left text-sm hover:bg-accent/10",
+                  value == null && "bg-accent/10 font-medium",
+                )}
+              >
+                Không nhắc
+              </button>
+              {REMINDER_PRESETS.map((p) => (
               <button
                 key={p.value}
                 type="button"
-                onClick={() => add(p.value)}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-accent/10"
+                onClick={() => select(p.value)}
+                className={cn(
+                  "block w-full px-3 py-2 text-left text-sm hover:bg-accent/10",
+                  value === p.value && "bg-accent/10 font-medium",
+                )}
               >
                 {p.label}
               </button>
-            ))}
-            {REMINDER_PRESETS.every((p) => value.includes(p.value)) && (
-              <div className="px-3 py-2 text-xs text-muted-foreground">Đã thêm hết</div>
-            )}
+              ))}
+            </div>
           </div>
         )}
       </div>
       <div className="mt-2">
         <button
           type="button"
-          onClick={() => onChange([...defaults])}
+          onClick={() => onChange(defaultValue ?? null)}
           className="rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:border-primary"
         >
           Dùng mặc định
