@@ -11,6 +11,7 @@ export interface AppNotification {
   createdAt: string; // ISO
   read: boolean;
   dedupeKey?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NotificationPrefs {

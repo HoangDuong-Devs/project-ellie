@@ -1,5 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  duplicateCalendarItem,
+  markCalendarOccurrence,
+  moveCalendarItem,
+  replaceCalendarItem,
+  resolveOccurrenceDate,
+} from "@/services/calendar-actions.server";
+import {
   removeCalendarItem,
   upsertCalendarItem,
 } from "@/services/calendar-service";
@@ -9,6 +16,7 @@ import {
 } from "@/services/calendar-reminder-jobs.server";
 import { badRequest, isObject, json, safeJson } from "@/services/api-utils";
 import {
+  calendarEventActionSchema,
   calendarItemPatchSchema,
   calendarItemSchema,
   idPayloadSchema,
@@ -63,9 +71,10 @@ export const Route = createFileRoute("/api/calendar/events")({
       },
       PATCH: async ({ request }) => {
         const body = await safeJson(request);
+        const items = await getOrInitValue<CalendarItem[]>(STORAGE_KEYS.CALENDAR_ITEMS, []);
+
         try {
           const parsed = calendarItemPatchSchema.parse(body);
-          const items = await getOrInitValue<CalendarItem[]>(STORAGE_KEYS.CALENDAR_ITEMS, []);
           const current = items.find((it) => it.id === parsed.id);
           if (!current) return json({ error: "Event not found" }, { status: 404 });
 
@@ -77,8 +86,45 @@ export const Route = createFileRoute("/api/calendar/events")({
           await syncCalendarReminderJobs(merged);
           return json({ item: merged, items: next });
         } catch (error) {
+          if (!(error instanceof ZodError)) {
+            return badRequest("Expected { id, patch }");
+          }
+        }
+
+        try {
+          const parsed = calendarEventActionSchema.parse(body);
+          const current = items.find((it) => it.id === parsed.id);
+          if (!current) return json({ error: "Event not found" }, { status: 404 });
+
+          if (parsed.action === "move") {
+            if (!parsed.targetStartISO) return badRequest("targetStartISO is required for move");
+            const moved = moveCalendarItem(current, parsed.targetStartISO, parsed.targetEndISO);
+            const next = replaceCalendarItem(items, moved);
+            await setValue(STORAGE_KEYS.CALENDAR_ITEMS, next);
+            await syncCalendarReminderJobs(moved);
+            return json({ item: moved, items: next });
+          }
+
+          if (parsed.action === "duplicate") {
+            const duplicate = duplicateCalendarItem(current);
+            const next = replaceCalendarItem(items, duplicate);
+            await setValue(STORAGE_KEYS.CALENDAR_ITEMS, next);
+            await syncCalendarReminderJobs(duplicate);
+            return json({ item: duplicate, items: next });
+          }
+
+          const targetDate = resolveOccurrenceDate(current, parsed.targetDateISO);
+          const field = parsed.action === "cancel-occurrence" ? "cancelledDates" : "completedDates";
+          const updated = markCalendarOccurrence(current, targetDate, field);
+          const next = replaceCalendarItem(items, updated);
+          await setValue(STORAGE_KEYS.CALENDAR_ITEMS, next);
+          if (parsed.action === "cancel-occurrence") {
+            await syncCalendarReminderJobs(updated);
+          }
+          return json({ item: updated, items: next });
+        } catch (error) {
           if (error instanceof ZodError) return badRequest(zodMessage(error));
-          return badRequest("Expected { id, patch }");
+          return badRequest("Invalid calendar action payload");
         }
       },
       DELETE: async ({ request }) => {

@@ -46,6 +46,8 @@ export const calendarItemSchema = z.object({
   recurrenceUntil: z.string().optional(),
   reminderMinutes: z.number().int().nonnegative().optional(),
   reminders: z.array(z.number().int().nonnegative()).optional(),
+  cancelledDates: z.array(z.string().min(1)).optional(),
+  completedDates: z.array(z.string().min(1)).optional(),
   createdAt: z.string().optional(),
 });
 
@@ -84,4 +86,12 @@ export const todoPatchSchema = z.object({
 
 export const idPayloadSchema = z.object({
   id: z.string().min(1),
+});
+
+export const calendarEventActionSchema = z.object({
+  id: z.string().min(1),
+  action: z.enum(["move", "duplicate", "complete-occurrence", "cancel-occurrence"]),
+  targetStartISO: z.string().optional(),
+  targetEndISO: z.string().optional(),
+  targetDateISO: z.string().optional(),
 });

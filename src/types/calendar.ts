@@ -36,6 +36,8 @@ export interface CalendarItem {
   recurrenceUntil?: string; // legacy quick-until
   reminderMinutes?: number; // legacy single reminder
   reminders?: number[]; // multiple reminder offsets in minutes
+  cancelledDates?: string[];
+  completedDates?: string[];
   createdAt: string;
 }
 

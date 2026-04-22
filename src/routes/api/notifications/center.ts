@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { badRequest, isObject, json, safeJson } from "@/services/api-utils";
-import { getOrInitValue, setValue } from "@/services/domain-store.server";
-import { STORAGE_KEYS } from "@/services/storage-keys";
-import type { AppNotification, NotificationCategory, NotificationKind } from "@/types/notifications";
-
-const MAX_KEEP = 200;
+import {
+  clearStoredNotifications,
+  createStoredNotification,
+  deleteStoredNotification,
+  listStoredNotifications,
+  patchStoredNotification,
+} from "@/services/notification-center.server";
+import {
+  cancelSchedulerJob,
+  createSchedulerJob,
+} from "@/services/scheduler-service.server";
+import type { NotificationCategory, NotificationKind } from "@/types/notifications";
 
 function isCategory(value: unknown): value is NotificationCategory {
   return ["calendar", "finance", "goal", "focus", "system"].includes(String(value));
@@ -14,15 +21,11 @@ function isKind(value: unknown): value is NotificationKind {
   return ["info", "warn", "danger", "success"].includes(String(value));
 }
 
-function trimItems(items: AppNotification[]) {
-  return items.slice(0, MAX_KEEP);
-}
-
 export const Route = createFileRoute("/api/notifications/center")({
   server: {
     handlers: {
       GET: async () => {
-        const items = await getOrInitValue<AppNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+        const items = await listStoredNotifications();
         return json({ items });
       },
       POST: async ({ request }) => {
@@ -39,61 +42,84 @@ export const Route = createFileRoute("/api/notifications/center")({
         if (!isCategory(category)) return badRequest("Invalid notification category");
         if (!isKind(kind)) return badRequest("Invalid notification kind");
 
-        const items = await getOrInitValue<AppNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
-        if (dedupeKey && items.some((x) => x.dedupeKey === dedupeKey)) {
-          return json({ items });
-        }
-
-        const item: AppNotification = {
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          title,
-          body: textBody,
-          category,
-          kind,
-          dedupeKey,
-          createdAt: new Date().toISOString(),
-          read: false,
-        };
-
-        const next = trimItems([item, ...items]);
-        await setValue(STORAGE_KEYS.NOTIFICATIONS, next);
-        return json({ item, items: next });
+        return json(
+          await createStoredNotification({
+            title,
+            body: textBody,
+            category,
+            kind,
+            dedupeKey,
+          }),
+        );
       },
       PATCH: async ({ request }) => {
         const body = await safeJson(request);
         if (!isObject(body)) return badRequest("Body must be a JSON object");
 
-        const items = await getOrInitValue<AppNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+        const items = await listStoredNotifications();
 
         if (body.markAllRead === true) {
-          const next = items.map((i) => ({ ...i, read: true }));
-          await setValue(STORAGE_KEYS.NOTIFICATIONS, next);
+          for (const item of items) {
+            await patchStoredNotification(item.id, { read: true });
+          }
+          const next = await listStoredNotifications();
           return json({ items: next });
         }
 
         const id = typeof body.id === "string" ? body.id : null;
+        const action = typeof body.action === "string" ? body.action : undefined;
         if (!id) return badRequest("Expected { id } or { markAllRead: true }");
 
-        const next = items.map((i) => (i.id === id ? { ...i, read: true } : i));
-        await setValue(STORAGE_KEYS.NOTIFICATIONS, next);
-        return json({ items: next });
+        const notification = items.find((item) => item.id === id);
+        if (!notification) return json({ error: "Notification not found" }, { status: 404 });
+
+        if (action === "snooze") {
+          const minutes = typeof body.minutes === "number" && body.minutes > 0 ? body.minutes : 10;
+          const schedulerJobId =
+            typeof notification.metadata?.schedulerJobId === "string"
+              ? notification.metadata.schedulerJobId
+              : undefined;
+          if (schedulerJobId) await cancelSchedulerJob(schedulerJobId);
+          await createSchedulerJob({
+            type: "notification_test",
+            scheduledFor: new Date(Date.now() + minutes * 60_000).toISOString(),
+            dedupeKey: notification.dedupeKey ? `${notification.dedupeKey}:snooze:${minutes}` : undefined,
+            payload: {
+              title: notification.title,
+              body: notification.body,
+              category: notification.category === "calendar" ? "system" : notification.category,
+              kind: notification.kind,
+            },
+          });
+        }
+
+        return json(await patchStoredNotification(id, { read: true }));
       },
       DELETE: async ({ request }) => {
         const body = await safeJson(request);
         if (!isObject(body)) return badRequest("Body must be a JSON object");
 
         if (body.clearAll === true) {
-          await setValue(STORAGE_KEYS.NOTIFICATIONS, []);
-          return json({ items: [] });
+          return json(await clearStoredNotifications());
         }
 
         const id = typeof body.id === "string" ? body.id : null;
+        const action = typeof body.action === "string" ? body.action : undefined;
         if (!id) return badRequest("Expected { id } or { clearAll: true }");
 
-        const items = await getOrInitValue<AppNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
-        const next = items.filter((i) => i.id !== id);
-        await setValue(STORAGE_KEYS.NOTIFICATIONS, next);
-        return json({ items: next });
+        const items = await listStoredNotifications();
+        const notification = items.find((item) => item.id === id);
+        if (!notification) return json({ error: "Notification not found" }, { status: 404 });
+
+        if (action === "dismiss") {
+          const schedulerJobId =
+            typeof notification.metadata?.schedulerJobId === "string"
+              ? notification.metadata.schedulerJobId
+              : undefined;
+          if (schedulerJobId) await cancelSchedulerJob(schedulerJobId);
+        }
+
+        return json(await deleteStoredNotification(id));
       },
     },
   },

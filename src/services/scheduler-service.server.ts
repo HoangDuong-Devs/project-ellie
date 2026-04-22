@@ -1,5 +1,6 @@
 import "@tanstack/react-start/server-only";
 import { getOrInitValue, setValue } from "@/services/domain-store.server";
+import { createStoredNotification } from "@/services/notification-center.server";
 import { emitRuntimeWakeEvent } from "@/services/openclaw-runtime-event.server";
 import { STORAGE_KEYS } from "@/services/storage-keys";
 import type { AppNotification } from "@/types/notifications";
@@ -37,16 +38,13 @@ async function readNotifications() {
   return await getOrInitValue<AppNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
 }
 
-async function writeNotifications(items: AppNotification[]) {
-  return await setValue(STORAGE_KEYS.NOTIFICATIONS, items);
-}
-
 function notificationFromJob(job: SchedulerJob): AppNotification {
   const payload = job.payload as SchedulerJobPayload & {
     title?: string;
     body?: string;
     category?: AppNotification["category"];
     kind?: AppNotification["kind"];
+    sourceItemId?: string;
   };
 
   return {
@@ -58,6 +56,11 @@ function notificationFromJob(job: SchedulerJob): AppNotification {
     dedupeKey: job.dedupeKey,
     createdAt: nowIso(),
     read: false,
+    metadata: {
+      schedulerJobId: job.id,
+      schedulerJobType: job.type,
+      ...(payload.sourceItemId ? { sourceItemId: payload.sourceItemId } : {}),
+    },
   };
 }
 
@@ -165,7 +168,15 @@ export async function runDueSchedulerJobs(now = new Date()): Promise<SchedulerRu
       }
 
       const notification = notificationFromJob(runningJob);
-      notificationItems.unshift(notification);
+      const createdNotification = await createStoredNotification({
+        title: notification.title,
+        body: notification.body,
+        category: notification.category,
+        kind: notification.kind,
+        dedupeKey: notification.dedupeKey,
+        metadata: notification.metadata,
+      });
+      notificationItems.splice(0, notificationItems.length, ...createdNotification.items);
 
       const wakeResult = await emitRuntimeWakeEvent(buildWakeEventText(runningJob));
       if (wakeResult.ok) wakeEvents += 1;
@@ -199,7 +210,6 @@ export async function runDueSchedulerJobs(now = new Date()): Promise<SchedulerRu
   }
 
   await writeJobs(updatedJobs);
-  await writeNotifications(notificationItems.slice(0, 200));
 
   return {
     processed: touched.length,

@@ -161,6 +161,19 @@ Body:
   "patch": { "title": "Updated title", "reminders": [10, 60] }
 }
 ```
+Or event actions:
+```json
+{ "id": "event-id", "action": "move", "targetStartISO": "2026-04-23T08:00" }
+```
+```json
+{ "id": "event-id", "action": "duplicate" }
+```
+```json
+{ "id": "event-id", "action": "cancel-occurrence", "targetDateISO": "2026-04-29" }
+```
+```json
+{ "id": "event-id", "action": "complete-occurrence", "targetDateISO": "2026-04-29" }
+```
 
 ### `DELETE /api/calendar/events`
 Body:
@@ -448,6 +461,44 @@ Body:
 Body:
 ```json
 { "id": "session-id" }
+```
+
+## Notifications
+
+### `GET /api/notifications/center`
+Response:
+```json
+{ "items": [AppNotification] }
+```
+
+### `POST /api/notifications/center`
+Body:
+```json
+{ "title": "Nhắc lịch", "body": "Bắt đầu trong 10 phút", "category": "calendar", "kind": "info" }
+```
+
+### `PATCH /api/notifications/center`
+Body examples:
+```json
+{ "id": "notification-id" }
+```
+```json
+{ "id": "notification-id", "action": "snooze", "minutes": 10 }
+```
+```json
+{ "markAllRead": true }
+```
+
+### `DELETE /api/notifications/center`
+Body examples:
+```json
+{ "id": "notification-id" }
+```
+```json
+{ "id": "notification-id", "action": "dismiss" }
+```
+```json
+{ "clearAll": true }
 ```
 
 ## Error shape

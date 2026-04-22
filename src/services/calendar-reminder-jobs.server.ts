@@ -46,6 +46,7 @@ export async function syncCalendarReminderJobs(item: CalendarItem) {
         category: "calendar",
         kind: "info",
         sourceItemId: item.id,
+        reminderOffsetMinutes: offset,
       },
     });
   }

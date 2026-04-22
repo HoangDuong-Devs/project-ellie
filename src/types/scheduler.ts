@@ -31,6 +31,7 @@ export interface CalendarReminderJobPayload {
   category: "calendar";
   kind?: "info" | "warn" | "danger" | "success";
   sourceItemId?: string;
+  reminderOffsetMinutes?: number;
 }
 
 export interface DailyDigestJobPayload {
