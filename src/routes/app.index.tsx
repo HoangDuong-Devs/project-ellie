@@ -43,6 +43,14 @@ function Dashboard() {
   });
 
   const max7 = Math.max(1, ...i.last7DaysExpense.map((d) => d.amount));
+  const total7DaysExpense = i.last7DaysExpense.reduce((sum, d) => sum + d.amount, 0);
+  const avg7DaysExpense = total7DaysExpense / Math.max(1, i.last7DaysExpense.length);
+  const topDayExpense = i.last7DaysExpense.reduce<{ label: string; amount: number } | null>(
+    (best, d) => (!best || d.amount > best.amount ? { label: d.label, amount: d.amount } : best),
+    null,
+  );
+  const activeSpendDays = i.last7DaysExpense.filter((d) => d.amount > 0).length;
+  const has7DaysExpense = total7DaysExpense > 0;
 
   const stats = [
     {
@@ -200,7 +208,7 @@ function Dashboard() {
                         "w-full rounded-t-xl transition-colors",
                         isToday
                           ? "bg-gradient-brand shadow-soft"
-                          : "bg-muted-foreground/20 group-hover:bg-primary/40",
+                          : "bg-muted-foreground/35",
                       )}
                       title={formatVND(d.amount)}
                     />
@@ -217,6 +225,34 @@ function Dashboard() {
               );
             })}
           </div>
+          <div className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+            <div className="rounded-2xl bg-muted/40 px-3 py-2">
+              <div className="text-muted-foreground">Tổng 7 ngày</div>
+              <div className="font-semibold text-foreground">{formatVND(total7DaysExpense)}</div>
+            </div>
+            <div className="rounded-2xl bg-muted/40 px-3 py-2">
+              <div className="text-muted-foreground">Trung bình/ngày</div>
+              <div className="font-semibold text-foreground">{formatVND(avg7DaysExpense)}</div>
+            </div>
+            <div className="rounded-2xl bg-muted/40 px-3 py-2">
+              <div className="text-muted-foreground">Cao nhất</div>
+              <div className="font-semibold text-foreground">
+                {topDayExpense && topDayExpense.amount > 0
+                  ? `${topDayExpense.label}: ${formatVND(topDayExpense.amount)}`
+                  : "Chưa có"}
+              </div>
+            </div>
+          </div>
+          {!has7DaysExpense && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              7 ngày gần đây chưa có giao dịch chi tiêu nào.
+            </p>
+          )}
+          {has7DaysExpense && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Có chi tiêu trong {activeSpendDays}/7 ngày gần nhất.
+            </p>
+          )}
         </section>
 
         {/* Budget */}
