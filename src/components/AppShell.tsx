@@ -10,7 +10,9 @@ import {
   Moon,
   Sun,
   Kanban,
+  MessageCircle,
 } from "lucide-react";
+import { AssistantBubble } from "@/components/assistant/AssistantBubble";
 import { useEffect, useState } from "react";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -33,7 +35,14 @@ import type { Goal } from "@/types/goals";
 import type { PomodoroSession } from "@/types/focus";
 
 type NavItem = {
-  to: "/app" | "/app/finance" | "/app/calendar" | "/app/focus" | "/app/goals" | "/app/work";
+  to:
+    | "/app"
+    | "/app/finance"
+    | "/app/calendar"
+    | "/app/focus"
+    | "/app/goals"
+    | "/app/work"
+    | "/app/assistant";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
@@ -46,6 +55,7 @@ const NAV: NavItem[] = [
   { to: "/app/work", label: "Công việc", icon: Kanban },
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
+  { to: "/app/assistant", label: "Trợ lý", icon: MessageCircle },
 ];
 
 export function AppShell() {
