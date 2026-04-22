@@ -59,9 +59,12 @@ This playbook defines how the assistant should handle common day-to-day requests
   - `POST /api/scheduler/run`
   - `npm run scheduler:run`
   - `npm run scheduler:worker`
+  - `npm run dev:all`
+  - `npm run preview:all`
 - Calendar event create/update/delete already sync reminder jobs.
 - The repo now includes a simple always-on in-process worker loop for scheduler execution.
-- It still is not a system service by itself, so it must be started and kept alive by a host process manager, terminal session, cron wrapper, or similar runtime supervisor.
+- For convenience, the app and worker can now be started together with a single command while still remaining separate processes internally.
+- It still is not a system service by itself, so it must be started and kept alive by a host process manager, terminal session, cron wrapper, or similar runtime supervisor if you want production-like persistence.
 
 ## 2. Calendar workflow
 

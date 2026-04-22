@@ -547,6 +547,12 @@ Starts an always-on in-process scheduler loop.
 - It sleeps until the next pending job time, capped by a safe max sleep window.
 - It stops cleanly on `SIGINT` or `SIGTERM`.
 
+### `npm run dev:all`
+Starts the Vite dev app and scheduler worker together.
+
+### `npm run preview:all`
+Starts the Vite preview app and scheduler worker together.
+
 ## Error shape
 
 Validation errors return:
