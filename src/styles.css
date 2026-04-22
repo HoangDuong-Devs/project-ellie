@@ -2,6 +2,8 @@
 @source "../src";
 @import "tw-animate-css";
 
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -47,91 +49,145 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-brand-pink: var(--brand-pink);
   --color-brand-cyan: var(--brand-cyan);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-blue: var(--brand-blue);
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
-  --radius: 1rem;
-  --background: oklch(0.99 0.01 330);
-  --foreground: oklch(0.22 0.05 280);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.05 280);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.05 280);
-  --primary: oklch(0.7 0.21 350);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.04 220);
-  --secondary-foreground: oklch(0.3 0.1 250);
-  --muted: oklch(0.96 0.02 320);
-  --muted-foreground: oklch(0.5 0.04 290);
-  --accent: oklch(0.78 0.16 220);
-  --accent-foreground: oklch(0.99 0 0);
-  --destructive: oklch(0.6 0.24 27);
-  --destructive-foreground: oklch(0.99 0 0);
-  --border: oklch(0.92 0.02 320);
-  --input: oklch(0.92 0.02 320);
-  --ring: oklch(0.7 0.21 350);
-  --chart-1: oklch(0.7 0.21 350);
-  --chart-2: oklch(0.78 0.16 220);
-  --chart-3: oklch(0.75 0.18 320);
-  --chart-4: oklch(0.7 0.18 200);
-  --chart-5: oklch(0.8 0.15 280);
-  --sidebar: oklch(0.985 0.01 330);
-  --sidebar-foreground: oklch(0.22 0.05 280);
-  --sidebar-primary: oklch(0.7 0.21 350);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.95 0.03 320);
-  --sidebar-accent-foreground: oklch(0.3 0.1 320);
-  --sidebar-border: oklch(0.92 0.02 320);
-  --sidebar-ring: oklch(0.7 0.21 350);
+  --radius: 1.25rem;
 
-  --brand-pink: oklch(0.72 0.22 350);
-  --brand-cyan: oklch(0.78 0.16 220);
-  --gradient-brand: linear-gradient(135deg, oklch(0.75 0.22 350), oklch(0.78 0.16 220));
-  --gradient-brand-soft: linear-gradient(135deg, oklch(0.96 0.05 350), oklch(0.96 0.04 220));
-  --shadow-soft: 0 10px 30px -12px color-mix(in oklab, oklch(0.7 0.21 350) 25%, transparent);
-  --shadow-glow: 0 0 40px -8px color-mix(in oklab, oklch(0.78 0.16 220) 40%, transparent);
+  /* Elysia-inspired pastel light theme */
+  --background: oklch(0.995 0.005 320);
+  --foreground: oklch(0.25 0.06 280);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.25 0.06 280);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.25 0.06 280);
+
+  /* Primary = soft pink (Elysia "Get Started" button) */
+  --primary: oklch(0.74 0.18 350);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.96 0.03 250);
+  --secondary-foreground: oklch(0.3 0.1 270);
+  --muted: oklch(0.97 0.015 320);
+  --muted-foreground: oklch(0.55 0.04 280);
+  --accent: oklch(0.78 0.14 250);
+  --accent-foreground: oklch(0.99 0 0);
+  --destructive: oklch(0.62 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.93 0.015 310);
+  --input: oklch(0.93 0.015 310);
+  --ring: oklch(0.74 0.18 350);
+
+  --chart-1: oklch(0.74 0.18 350);
+  --chart-2: oklch(0.78 0.14 250);
+  --chart-3: oklch(0.78 0.16 290);
+  --chart-4: oklch(0.82 0.13 220);
+  --chart-5: oklch(0.85 0.12 180);
+
+  --sidebar: oklch(0.985 0.008 320);
+  --sidebar-foreground: oklch(0.25 0.06 280);
+  --sidebar-primary: oklch(0.74 0.18 350);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.025 310);
+  --sidebar-accent-foreground: oklch(0.3 0.1 280);
+  --sidebar-border: oklch(0.93 0.015 310);
+  --sidebar-ring: oklch(0.74 0.18 350);
+
+  /* Elysia rainbow brand stops: blue → purple → pink */
+  --brand-blue: oklch(0.78 0.14 240);
+  --brand-purple: oklch(0.74 0.16 295);
+  --brand-pink: oklch(0.76 0.18 350);
+  --brand-cyan: oklch(0.84 0.11 200);
+
+  --gradient-brand: linear-gradient(
+    100deg,
+    oklch(0.78 0.14 240),
+    oklch(0.74 0.16 295) 50%,
+    oklch(0.76 0.18 350)
+  );
+  --gradient-brand-soft: linear-gradient(
+    135deg,
+    oklch(0.96 0.05 240),
+    oklch(0.96 0.05 295) 50%,
+    oklch(0.96 0.05 350)
+  );
+  --gradient-aurora: radial-gradient(
+      80% 60% at 15% 10%,
+      oklch(0.92 0.08 350 / 0.55),
+      transparent 60%
+    ),
+    radial-gradient(70% 60% at 90% 0%, oklch(0.9 0.09 250 / 0.5), transparent 60%),
+    radial-gradient(60% 60% at 50% 100%, oklch(0.92 0.08 295 / 0.45), transparent 60%);
+
+  --shadow-soft: 0 12px 40px -16px color-mix(in oklab, oklch(0.74 0.18 350) 30%, transparent);
+  --shadow-glow: 0 0 60px -10px color-mix(in oklab, oklch(0.78 0.14 250) 45%, transparent);
 }
 
 .dark {
-  --background: oklch(0.16 0.03 290);
+  --background: oklch(0.16 0.025 285);
   --foreground: oklch(0.97 0.01 320);
-  --card: oklch(0.22 0.04 285);
+  --card: oklch(0.21 0.035 285);
   --card-foreground: oklch(0.97 0.01 320);
-  --popover: oklch(0.22 0.04 285);
+  --popover: oklch(0.21 0.035 285);
   --popover-foreground: oklch(0.97 0.01 320);
-  --primary: oklch(0.75 0.22 350);
-  --primary-foreground: oklch(0.16 0.03 290);
-  --secondary: oklch(0.28 0.05 280);
+  --primary: oklch(0.78 0.18 350);
+  --primary-foreground: oklch(0.16 0.025 285);
+  --secondary: oklch(0.27 0.045 280);
   --secondary-foreground: oklch(0.97 0.01 320);
-  --muted: oklch(0.28 0.05 280);
-  --muted-foreground: oklch(0.7 0.04 290);
-  --accent: oklch(0.78 0.16 220);
-  --accent-foreground: oklch(0.16 0.03 290);
+  --muted: oklch(0.25 0.04 280);
+  --muted-foreground: oklch(0.72 0.04 290);
+  --accent: oklch(0.78 0.14 250);
+  --accent-foreground: oklch(0.16 0.025 285);
   --destructive: oklch(0.7 0.19 22);
   --destructive-foreground: oklch(0.97 0.01 320);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.75 0.22 350);
-  --chart-1: oklch(0.75 0.22 350);
-  --chart-2: oklch(0.78 0.16 220);
-  --chart-3: oklch(0.75 0.18 320);
-  --chart-4: oklch(0.7 0.18 200);
-  --chart-5: oklch(0.8 0.15 280);
-  --sidebar: oklch(0.2 0.04 285);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.78 0.18 350);
+  --chart-1: oklch(0.78 0.18 350);
+  --chart-2: oklch(0.78 0.14 250);
+  --chart-3: oklch(0.78 0.16 295);
+  --chart-4: oklch(0.82 0.13 220);
+  --chart-5: oklch(0.85 0.12 180);
+  --sidebar: oklch(0.19 0.03 285);
   --sidebar-foreground: oklch(0.97 0.01 320);
-  --sidebar-primary: oklch(0.75 0.22 350);
-  --sidebar-primary-foreground: oklch(0.16 0.03 290);
-  --sidebar-accent: oklch(0.28 0.05 280);
+  --sidebar-primary: oklch(0.78 0.18 350);
+  --sidebar-primary-foreground: oklch(0.16 0.025 285);
+  --sidebar-accent: oklch(0.26 0.04 285);
   --sidebar-accent-foreground: oklch(0.97 0.01 320);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.75 0.22 350);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.78 0.18 350);
 
-  --brand-pink: oklch(0.75 0.22 350);
-  --brand-cyan: oklch(0.78 0.16 220);
-  --gradient-brand: linear-gradient(135deg, oklch(0.7 0.22 350), oklch(0.72 0.16 220));
-  --gradient-brand-soft: linear-gradient(135deg, oklch(0.3 0.1 350), oklch(0.3 0.08 220));
-  --shadow-soft: 0 10px 30px -12px color-mix(in oklab, oklch(0.75 0.22 350) 35%, transparent);
-  --shadow-glow: 0 0 40px -8px color-mix(in oklab, oklch(0.78 0.16 220) 40%, transparent);
+  --brand-blue: oklch(0.78 0.14 240);
+  --brand-purple: oklch(0.78 0.16 295);
+  --brand-pink: oklch(0.78 0.18 350);
+  --brand-cyan: oklch(0.84 0.11 200);
+
+  --gradient-brand: linear-gradient(
+    100deg,
+    oklch(0.78 0.14 240),
+    oklch(0.78 0.16 295) 50%,
+    oklch(0.78 0.18 350)
+  );
+  --gradient-brand-soft: linear-gradient(
+    135deg,
+    oklch(0.32 0.08 240),
+    oklch(0.32 0.08 295) 50%,
+    oklch(0.32 0.08 350)
+  );
+  --gradient-aurora: radial-gradient(
+      80% 60% at 15% 10%,
+      oklch(0.45 0.14 350 / 0.35),
+      transparent 60%
+    ),
+    radial-gradient(70% 60% at 90% 0%, oklch(0.4 0.14 250 / 0.35), transparent 60%),
+    radial-gradient(60% 60% at 50% 100%, oklch(0.42 0.14 295 / 0.3), transparent 60%);
+
+  --shadow-soft: 0 12px 40px -16px color-mix(in oklab, oklch(0.78 0.18 350) 40%, transparent);
+  --shadow-glow: 0 0 60px -10px color-mix(in oklab, oklch(0.78 0.14 250) 50%, transparent);
 }
 
 @layer base {
@@ -143,14 +199,28 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family:
-      "Inter",
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      "Segoe UI",
-      Roboto,
-      sans-serif;
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  /* Subtle aurora background that recalls Elysia's hero */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--gradient-aurora);
+    z-index: -1;
   }
 }
 
@@ -159,6 +229,9 @@
 }
 @utility bg-gradient-brand-soft {
   background-image: var(--gradient-brand-soft);
+}
+@utility bg-gradient-aurora {
+  background-image: var(--gradient-aurora);
 }
 @utility text-gradient-brand {
   background-image: var(--gradient-brand);
@@ -171,4 +244,33 @@
 }
 @utility shadow-glow {
   box-shadow: var(--shadow-glow);
+}
+@utility font-display {
+  font-family: var(--font-sans);
+  letter-spacing: -0.025em;
+}
+@utility font-mono-brand {
+  font-family: var(--font-mono);
+}
+
+/* Pill button reminiscent of Elysia "Get Started" */
+@utility btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+@utility btn-pill:hover {
+  transform: translateY(-1px);
+}
+
+/* Thin custom scrollbar */
+@utility scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--color-primary) 40%, transparent) transparent;
 }
