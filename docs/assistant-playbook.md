@@ -52,6 +52,16 @@ This playbook defines how the assistant should handle common day-to-day requests
 ### Default destination
 - `http://100.113.229.69:8080/app/finance`
 
+## Scheduler status note
+
+- Project Ellie currently has a real persisted scheduler domain and due-job execution path.
+- Confirmed source-backed entry points:
+  - `POST /api/scheduler/run`
+  - `npm run scheduler:run`
+- Calendar event create/update/delete already sync reminder jobs.
+- At the moment, the repo still does not show a built-in always-on worker loop, cron installer, or systemd service that continuously invokes the scheduler on its own.
+- So reminders are real and runnable, but still depend on an external invocation path until an always-on runner is added.
+
 ## 2. Calendar workflow
 
 ### User intent examples

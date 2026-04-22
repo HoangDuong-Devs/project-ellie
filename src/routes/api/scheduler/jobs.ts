@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { badRequest, isObject, json, safeJson } from "@/services/api-utils";
 import {
+  querySchedulerJobs,
+  rescheduleSchedulerJob,
+} from "@/services/scheduler-operator.server";
+import {
   cancelSchedulerJob,
   createSchedulerJob,
   listSchedulerJobs,
 } from "@/services/scheduler-service.server";
-import type { SchedulerJobPayload, SchedulerJobType } from "@/types/scheduler";
+import type { SchedulerJobPayload, SchedulerJobStatus, SchedulerJobType } from "@/types/scheduler";
 
 function isSchedulerJobType(value: unknown): value is SchedulerJobType {
   return [
@@ -17,11 +21,26 @@ function isSchedulerJobType(value: unknown): value is SchedulerJobType {
   ].includes(String(value));
 }
 
+function isSchedulerJobStatus(value: unknown): value is SchedulerJobStatus {
+  return ["pending", "running", "completed", "failed", "cancelled"].includes(String(value));
+}
+
 export const Route = createFileRoute("/api/scheduler/jobs")({
   server: {
     handlers: {
-      GET: async () => {
-        const jobs = await listSchedulerJobs();
+      GET: async ({ request }) => {
+        const url = new URL(request.url);
+        const status = url.searchParams.get("status");
+        const type = url.searchParams.get("type");
+        const sourceItemId = url.searchParams.get("sourceItemId");
+
+        const jobs = status || type || sourceItemId
+          ? await querySchedulerJobs({
+              ...(isSchedulerJobStatus(status) ? { status } : {}),
+              ...(isSchedulerJobType(type) ? { type } : {}),
+              ...(sourceItemId ? { sourceItemId } : {}),
+            })
+          : await listSchedulerJobs();
         return json({ jobs });
       },
       POST: async ({ request }) => {
@@ -54,12 +73,23 @@ export const Route = createFileRoute("/api/scheduler/jobs")({
 
         const id = typeof body.id === "string" ? body.id : "";
         const action = typeof body.action === "string" ? body.action : "";
-        if (!id || action !== "cancel") {
-          return badRequest("Expected { id, action: 'cancel' }");
+        if (!id) {
+          return badRequest("Expected { id, action }");
         }
 
-        const job = await cancelSchedulerJob(id);
-        return json({ job });
+        if (action === "cancel") {
+          const job = await cancelSchedulerJob(id);
+          return json({ job });
+        }
+
+        if (action === "reschedule") {
+          const scheduledFor = typeof body.scheduledFor === "string" ? body.scheduledFor : "";
+          if (!scheduledFor) return badRequest("scheduledFor is required for reschedule");
+          const job = await rescheduleSchedulerJob(id, scheduledFor);
+          return json({ job });
+        }
+
+        return badRequest("Expected action to be 'cancel' or 'reschedule'");
       },
     },
   },

@@ -501,6 +501,44 @@ Body examples:
 { "clearAll": true }
 ```
 
+## Scheduler
+
+### `GET /api/scheduler/jobs`
+Response:
+```json
+{ "jobs": [SchedulerJob] }
+```
+Optional query params:
+- `status=pending|running|completed|failed|cancelled`
+- `type=calendar_reminder|daily_digest|budget_check|assistant_routine|notification_test`
+- `sourceItemId=event-id`
+
+### `POST /api/scheduler/jobs`
+Body:
+```json
+{
+  "type": "notification_test",
+  "scheduledFor": "2026-04-23T01:00:00.000Z",
+  "payload": {
+    "title": "Test",
+    "body": "Scheduler test",
+    "category": "system"
+  }
+}
+```
+
+### `PATCH /api/scheduler/jobs`
+Body examples:
+```json
+{ "id": "job-id", "action": "cancel" }
+```
+```json
+{ "id": "job-id", "action": "reschedule", "scheduledFor": "2026-04-23T01:10:00.000Z" }
+```
+
+### `POST /api/scheduler/run`
+Runs due jobs immediately.
+
 ## Error shape
 
 Validation errors return:
