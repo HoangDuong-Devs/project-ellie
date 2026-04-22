@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   WORK: "ellie:work:v1",
   NOTIFICATIONS: "ellie:notifications",
   NOTIFICATION_PREFS: "ellie:notification-prefs",
+  SCHEDULER_JOBS: "ellie:scheduler-jobs",
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];

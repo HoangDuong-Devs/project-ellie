@@ -32,6 +32,10 @@ const DOMAIN_FILE_MAP: Array<{ test: (key: string) => boolean; file: string }> =
       key.startsWith("ellie:focus") || key.startsWith("ellie:pomodoro") || key.startsWith("ellie:goal"),
     file: "settings.json",
   },
+  {
+    test: (key) => key.startsWith("ellie:notification") || key.startsWith("ellie:scheduler"),
+    file: "general.json",
+  },
 ];
 
 function getDomainFileForKey(key: string) {

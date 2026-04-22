@@ -5,4 +5,5 @@ export type DataDomain =
   | "focus"
   | "work"
   | "notifications"
+  | "scheduler"
   | "all";

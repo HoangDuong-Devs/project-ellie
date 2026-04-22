@@ -27,6 +27,8 @@ import { Route as ApiWorkLabelsRouteImport } from './routes/api/work/labels'
 import { Route as ApiWorkDataRouteImport } from './routes/api/work/data'
 import { Route as ApiWorkColumnsRouteImport } from './routes/api/work/columns'
 import { Route as ApiWorkCardsRouteImport } from './routes/api/work/cards'
+import { Route as ApiSchedulerRunRouteImport } from './routes/api/scheduler/run'
+import { Route as ApiSchedulerJobsRouteImport } from './routes/api/scheduler/jobs'
 import { Route as ApiNotificationsPrefsRouteImport } from './routes/api/notifications/prefs'
 import { Route as ApiNotificationsCenterRouteImport } from './routes/api/notifications/center'
 import { Route as ApiLiveChangesRouteImport } from './routes/api/live/changes'
@@ -132,6 +134,16 @@ const ApiWorkCardsRoute = ApiWorkCardsRouteImport.update({
   path: '/api/work/cards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSchedulerRunRoute = ApiSchedulerRunRouteImport.update({
+  id: '/api/scheduler/run',
+  path: '/api/scheduler/run',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSchedulerJobsRoute = ApiSchedulerJobsRouteImport.update({
+  id: '/api/scheduler/jobs',
+  path: '/api/scheduler/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNotificationsPrefsRoute = ApiNotificationsPrefsRouteImport.update({
   id: '/api/notifications/prefs',
   path: '/api/notifications/prefs',
@@ -227,6 +239,8 @@ export interface FileRoutesByFullPath {
   '/api/live/changes': typeof ApiLiveChangesRoute
   '/api/notifications/center': typeof ApiNotificationsCenterRoute
   '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
+  '/api/scheduler/jobs': typeof ApiSchedulerJobsRoute
+  '/api/scheduler/run': typeof ApiSchedulerRunRoute
   '/api/work/cards': typeof ApiWorkCardsRoute
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
@@ -260,6 +274,8 @@ export interface FileRoutesByTo {
   '/api/live/changes': typeof ApiLiveChangesRoute
   '/api/notifications/center': typeof ApiNotificationsCenterRoute
   '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
+  '/api/scheduler/jobs': typeof ApiSchedulerJobsRoute
+  '/api/scheduler/run': typeof ApiSchedulerRunRoute
   '/api/work/cards': typeof ApiWorkCardsRoute
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
@@ -295,6 +311,8 @@ export interface FileRoutesById {
   '/api/live/changes': typeof ApiLiveChangesRoute
   '/api/notifications/center': typeof ApiNotificationsCenterRoute
   '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
+  '/api/scheduler/jobs': typeof ApiSchedulerJobsRoute
+  '/api/scheduler/run': typeof ApiSchedulerRunRoute
   '/api/work/cards': typeof ApiWorkCardsRoute
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
@@ -331,6 +349,8 @@ export interface FileRouteTypes {
     | '/api/live/changes'
     | '/api/notifications/center'
     | '/api/notifications/prefs'
+    | '/api/scheduler/jobs'
+    | '/api/scheduler/run'
     | '/api/work/cards'
     | '/api/work/columns'
     | '/api/work/data'
@@ -364,6 +384,8 @@ export interface FileRouteTypes {
     | '/api/live/changes'
     | '/api/notifications/center'
     | '/api/notifications/prefs'
+    | '/api/scheduler/jobs'
+    | '/api/scheduler/run'
     | '/api/work/cards'
     | '/api/work/columns'
     | '/api/work/data'
@@ -398,6 +420,8 @@ export interface FileRouteTypes {
     | '/api/live/changes'
     | '/api/notifications/center'
     | '/api/notifications/prefs'
+    | '/api/scheduler/jobs'
+    | '/api/scheduler/run'
     | '/api/work/cards'
     | '/api/work/columns'
     | '/api/work/data'
@@ -425,6 +449,8 @@ export interface RootRouteChildren {
   ApiLiveChangesRoute: typeof ApiLiveChangesRoute
   ApiNotificationsCenterRoute: typeof ApiNotificationsCenterRoute
   ApiNotificationsPrefsRoute: typeof ApiNotificationsPrefsRoute
+  ApiSchedulerJobsRoute: typeof ApiSchedulerJobsRoute
+  ApiSchedulerRunRoute: typeof ApiSchedulerRunRoute
   ApiWorkCardsRoute: typeof ApiWorkCardsRoute
   ApiWorkColumnsRoute: typeof ApiWorkColumnsRoute
   ApiWorkDataRoute: typeof ApiWorkDataRoute
@@ -560,6 +586,20 @@ declare module '@tanstack/react-router' {
       path: '/api/work/cards'
       fullPath: '/api/work/cards'
       preLoaderRoute: typeof ApiWorkCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scheduler/run': {
+      id: '/api/scheduler/run'
+      path: '/api/scheduler/run'
+      fullPath: '/api/scheduler/run'
+      preLoaderRoute: typeof ApiSchedulerRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/scheduler/jobs': {
+      id: '/api/scheduler/jobs'
+      path: '/api/scheduler/jobs'
+      fullPath: '/api/scheduler/jobs'
+      preLoaderRoute: typeof ApiSchedulerJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/notifications/prefs': {
@@ -717,6 +757,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLiveChangesRoute: ApiLiveChangesRoute,
   ApiNotificationsCenterRoute: ApiNotificationsCenterRoute,
   ApiNotificationsPrefsRoute: ApiNotificationsPrefsRoute,
+  ApiSchedulerJobsRoute: ApiSchedulerJobsRoute,
+  ApiSchedulerRunRoute: ApiSchedulerRunRoute,
   ApiWorkCardsRoute: ApiWorkCardsRoute,
   ApiWorkColumnsRoute: ApiWorkColumnsRoute,
   ApiWorkDataRoute: ApiWorkDataRoute,

@@ -22,6 +22,9 @@ function domainsForKey(key: string): DataDomain[] {
   if (key.startsWith("ellie:notification")) {
     return ["notifications"];
   }
+  if (key.startsWith("ellie:scheduler")) {
+    return ["scheduler"];
+  }
   return ["all"];
 }
 

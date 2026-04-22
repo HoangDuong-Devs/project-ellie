@@ -1,5 +1,3 @@
-đối với phiên bản dành cho 1 người dùng (Single-user) hoặc chạy trên một node duy nhất, anh không cần đến các kiến trúc phân tán phức tạp như Kafka hay RabbitMQ.
-
 Cơ chế tối ưu, thanh lịch và tiêu tốn ít tài nguyên nhất cho trường hợp này là sự kết hợp giữa Hàng đợi ưu tiên (Priority Queue) và Vòng lặp sự kiện bất đồng bộ (Async Event Loop với cơ chế Sleep/Wakeup).
 
 Dưới đây là thiết kế thuật toán hoàn chỉnh để anh có thể tích hợp ngay vào backend của mình.
@@ -41,3 +39,40 @@ Tính toán run_at và đẩy Task vào Min-Heap.
 Kiểm tra đánh thức (Ngắt - Interrupt): * Nếu Task vừa thêm trở thành phần tử mới ở đỉnh Heap (nghĩa là nó diễn ra sớm hơn task mà Worker đang chờ), anh phải gửi một tín hiệu đánh thức ngắt giấc ngủ hiện tại của Worker.
 
 Worker thức dậy, vòng lặp chạy lại, tính toán lại delay theo task mới này và ngủ lại với thời gian ngắn hơn.
+
+---
+
+## Scheduler v1 direction
+
+Goal: move Project Ellie from browser-only watchers toward a server-backed scheduler domain.
+
+### Implemented skeleton
+- Added `SchedulerJob` model with job type, status, schedule time, attempts, dedupe key, and payload.
+- Added persisted storage key: `ellie:scheduler-jobs`.
+- Added scheduler domain wiring so server live sync can publish scheduler changes.
+- Added server service: `src/services/scheduler-service.server.ts`
+  - list jobs
+  - create job
+  - cancel job
+  - run due jobs
+- Added API routes:
+  - `GET/POST/PATCH /api/scheduler/jobs`
+  - `POST /api/scheduler/run`
+- Added CLI script:
+  - `pnpm scheduler:run`
+
+### Current behavior
+- Jobs are stored persistently.
+- Due jobs create notification-center items when executed.
+- Dedupe is respected via `dedupeKey`.
+- Retry metadata exists, but runner is still simple interval/manual execution based.
+
+### Next steps
+1. Calendar event save/update should create reminder jobs directly.
+2. Daily digest should become a real scheduled job, not browser watcher logic.
+3. Budget threshold checks should move from client watcher to server-side scheduled jobs.
+4. Replace manual/interval run path with a wakeable worker loop or cron-backed runner.
+5. Expose scheduler status/history in the UI.
+
+### Longer-term worker design
+Use a priority-queue or next-due-job wakeup loop for efficient execution. The current v1 keeps the contract and persistence simple first, then upgrades the runner implementation later.

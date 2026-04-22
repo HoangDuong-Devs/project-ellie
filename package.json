@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "data:cli": "node scripts/ellie-data-cli.mjs",
+    "scheduler:run": "node scripts/run-scheduler.mjs",
     "api:check-doc-sync": "node scripts/check-api-doc-sync.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
