@@ -27,6 +27,8 @@ import { Route as ApiWorkLabelsRouteImport } from './routes/api/work/labels'
 import { Route as ApiWorkDataRouteImport } from './routes/api/work/data'
 import { Route as ApiWorkColumnsRouteImport } from './routes/api/work/columns'
 import { Route as ApiWorkCardsRouteImport } from './routes/api/work/cards'
+import { Route as ApiNotificationsPrefsRouteImport } from './routes/api/notifications/prefs'
+import { Route as ApiNotificationsCenterRouteImport } from './routes/api/notifications/center'
 import { Route as ApiLiveChangesRouteImport } from './routes/api/live/changes'
 import { Route as ApiFocusSettingsRouteImport } from './routes/api/focus/settings'
 import { Route as ApiFocusSessionsRouteImport } from './routes/api/focus/sessions'
@@ -130,6 +132,16 @@ const ApiWorkCardsRoute = ApiWorkCardsRouteImport.update({
   path: '/api/work/cards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNotificationsPrefsRoute = ApiNotificationsPrefsRouteImport.update({
+  id: '/api/notifications/prefs',
+  path: '/api/notifications/prefs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNotificationsCenterRoute = ApiNotificationsCenterRouteImport.update({
+  id: '/api/notifications/center',
+  path: '/api/notifications/center',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLiveChangesRoute = ApiLiveChangesRouteImport.update({
   id: '/api/live/changes',
   path: '/api/live/changes',
@@ -213,6 +225,8 @@ export interface FileRoutesByFullPath {
   '/api/focus/sessions': typeof ApiFocusSessionsRoute
   '/api/focus/settings': typeof ApiFocusSettingsRoute
   '/api/live/changes': typeof ApiLiveChangesRoute
+  '/api/notifications/center': typeof ApiNotificationsCenterRoute
+  '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
   '/api/work/cards': typeof ApiWorkCardsRoute
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
@@ -244,6 +258,8 @@ export interface FileRoutesByTo {
   '/api/focus/sessions': typeof ApiFocusSessionsRoute
   '/api/focus/settings': typeof ApiFocusSettingsRoute
   '/api/live/changes': typeof ApiLiveChangesRoute
+  '/api/notifications/center': typeof ApiNotificationsCenterRoute
+  '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
   '/api/work/cards': typeof ApiWorkCardsRoute
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
@@ -277,6 +293,8 @@ export interface FileRoutesById {
   '/api/focus/sessions': typeof ApiFocusSessionsRoute
   '/api/focus/settings': typeof ApiFocusSettingsRoute
   '/api/live/changes': typeof ApiLiveChangesRoute
+  '/api/notifications/center': typeof ApiNotificationsCenterRoute
+  '/api/notifications/prefs': typeof ApiNotificationsPrefsRoute
   '/api/work/cards': typeof ApiWorkCardsRoute
   '/api/work/columns': typeof ApiWorkColumnsRoute
   '/api/work/data': typeof ApiWorkDataRoute
@@ -311,6 +329,8 @@ export interface FileRouteTypes {
     | '/api/focus/sessions'
     | '/api/focus/settings'
     | '/api/live/changes'
+    | '/api/notifications/center'
+    | '/api/notifications/prefs'
     | '/api/work/cards'
     | '/api/work/columns'
     | '/api/work/data'
@@ -342,6 +362,8 @@ export interface FileRouteTypes {
     | '/api/focus/sessions'
     | '/api/focus/settings'
     | '/api/live/changes'
+    | '/api/notifications/center'
+    | '/api/notifications/prefs'
     | '/api/work/cards'
     | '/api/work/columns'
     | '/api/work/data'
@@ -374,6 +396,8 @@ export interface FileRouteTypes {
     | '/api/focus/sessions'
     | '/api/focus/settings'
     | '/api/live/changes'
+    | '/api/notifications/center'
+    | '/api/notifications/prefs'
     | '/api/work/cards'
     | '/api/work/columns'
     | '/api/work/data'
@@ -399,6 +423,8 @@ export interface RootRouteChildren {
   ApiFocusSessionsRoute: typeof ApiFocusSessionsRoute
   ApiFocusSettingsRoute: typeof ApiFocusSettingsRoute
   ApiLiveChangesRoute: typeof ApiLiveChangesRoute
+  ApiNotificationsCenterRoute: typeof ApiNotificationsCenterRoute
+  ApiNotificationsPrefsRoute: typeof ApiNotificationsPrefsRoute
   ApiWorkCardsRoute: typeof ApiWorkCardsRoute
   ApiWorkColumnsRoute: typeof ApiWorkColumnsRoute
   ApiWorkDataRoute: typeof ApiWorkDataRoute
@@ -534,6 +560,20 @@ declare module '@tanstack/react-router' {
       path: '/api/work/cards'
       fullPath: '/api/work/cards'
       preLoaderRoute: typeof ApiWorkCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications/prefs': {
+      id: '/api/notifications/prefs'
+      path: '/api/notifications/prefs'
+      fullPath: '/api/notifications/prefs'
+      preLoaderRoute: typeof ApiNotificationsPrefsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications/center': {
+      id: '/api/notifications/center'
+      path: '/api/notifications/center'
+      fullPath: '/api/notifications/center'
+      preLoaderRoute: typeof ApiNotificationsCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/live/changes': {
@@ -675,6 +715,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFocusSessionsRoute: ApiFocusSessionsRoute,
   ApiFocusSettingsRoute: ApiFocusSettingsRoute,
   ApiLiveChangesRoute: ApiLiveChangesRoute,
+  ApiNotificationsCenterRoute: ApiNotificationsCenterRoute,
+  ApiNotificationsPrefsRoute: ApiNotificationsPrefsRoute,
   ApiWorkCardsRoute: ApiWorkCardsRoute,
   ApiWorkColumnsRoute: ApiWorkColumnsRoute,
   ApiWorkDataRoute: ApiWorkDataRoute,

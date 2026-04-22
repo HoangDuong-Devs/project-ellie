@@ -1,6 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, Moon, Sun, Trash2, Upload } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  CalendarRange,
+  Download,
+  Moon,
+  Sun,
+  Sunrise,
+  Target,
+  Timer,
+  Trash2,
+  Upload,
+  Wallet,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { requestNotificationPermission } from "@/hooks/useNotifications";
+import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
+import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/PageHeader";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 
@@ -18,11 +35,39 @@ const KEYS = [
   "ellie:goals",
 ];
 
+type BooleanNotificationPrefKey = "calendar" | "finance" | "goal" | "focus" | "dailyDigest";
+
 function Settings() {
   const [dark, setDark] = useState(false);
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission>("default");
+  const { prefs, setPref, reset: resetPrefs } = useNotificationPrefs();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setDark(getInitialDark()), []);
+  useEffect(() => {
+    setDark(getInitialDark());
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPerm(Notification.permission);
+    }
+  }, []);
+
+  async function enableNotifications() {
+    const p = await requestNotificationPermission();
+    setNotifPerm(p);
+    if (p === "granted") {
+      toast.success("Đã bật thông báo", {
+        description: "Bạn sẽ nhận thông báo nhắc lịch & cảnh báo ngân sách.",
+      });
+      try {
+        new Notification("ProjectEllie", { body: "Thông báo đã được bật ✨" });
+      } catch {
+        /* ignore */
+      }
+    } else if (p === "denied") {
+      toast.error("Trình duyệt đã chặn thông báo", {
+        description: "Mở cài đặt trình duyệt để cho phép thông báo từ trang này.",
+      });
+    }
+  }
 
   function toggle() {
     const next = !dark;
@@ -91,6 +136,158 @@ function Settings() {
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             {dark ? "Chuyển sang Sáng" : "Chuyển sang Tối"}
           </button>
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
+          <h3 className="mb-2 font-semibold">Thông báo</h3>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Cho phép thông báo đẩy để nhận nhắc nhở sự kiện trong lịch và cảnh báo khi vượt ngân
+            sách.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            {notifPerm === "granted" ? (
+              <span className="inline-flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-600 dark:text-cyan-400">
+                <Bell className="h-4 w-4" /> Đã bật thông báo
+              </span>
+            ) : notifPerm === "denied" ? (
+              <span className="inline-flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive">
+                <BellOff className="h-4 w-4" /> Trình duyệt đang chặn — mở cài đặt trình duyệt để
+                cho phép
+              </span>
+            ) : (
+              <button
+                onClick={enableNotifications}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-soft hover:scale-[1.02]"
+              >
+                <Bell className="h-4 w-4" /> Bật thông báo
+              </button>
+            )}
+          </div>
+
+          <div className="mt-5 border-t border-border pt-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h4 className="text-sm font-semibold">Loại thông báo</h4>
+              <button
+                onClick={() => {
+                  resetPrefs();
+                  toast.success("Đã đặt lại tất cả về bật");
+                }}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                Đặt lại
+              </button>
+            </div>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Tắt loại nào bạn không muốn nhận. Áp dụng cho cả thông báo đẩy, toast và bell trên
+              thanh trên.
+            </p>
+            <div className="grid gap-2">
+              {(
+                [
+                  {
+                    key: "calendar",
+                    label: "Lịch & nhắc sự kiện",
+                    desc: "Nhắc trước khi sự kiện bắt đầu",
+                    Icon: CalendarRange,
+                  },
+                  {
+                    key: "finance",
+                    label: "Tài chính",
+                    desc: "Giao dịch mới & cảnh báo ngân sách",
+                    Icon: Wallet,
+                  },
+                  {
+                    key: "goal",
+                    label: "Mục tiêu",
+                    desc: "Khi hoàn thành mục tiêu đã đề ra",
+                    Icon: Target,
+                  },
+                  {
+                    key: "focus",
+                    label: "Focus / Pomodoro",
+                    desc: "Sau mỗi phiên tập trung hoàn tất",
+                    Icon: Timer,
+                  },
+                  {
+                    key: "dailyDigest",
+                    label: "Tổng hợp hằng ngày",
+                    desc: "Tóm tắt sự kiện trong ngày khi mở app",
+                    Icon: Sunrise,
+                  },
+                ] as {
+                  key: BooleanNotificationPrefKey;
+                  label: string;
+                  desc: string;
+                  Icon: typeof Bell;
+                }[]
+              ).map(({ key, label, desc, Icon }) => (
+                <label
+                  key={key}
+                  className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 transition-colors hover:bg-accent/10"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent-foreground">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">{label}</div>
+                      <div className="text-xs text-muted-foreground">{desc}</div>
+                    </div>
+                  </div>
+                  <Switch checked={prefs[key]} onCheckedChange={(v) => setPref(key, v)} />
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-4 rounded-xl border border-border bg-background p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium">Nhắc lại nếu chưa đọc</div>
+                  <div className="text-xs text-muted-foreground">
+                    Mặc định: nhắc lại sau 5 phút, tối đa 3 lần.
+                  </div>
+                </div>
+                <Switch
+                  checked={prefs.reminderRepeatEnabled}
+                  onCheckedChange={(v) => setPref("reminderRepeatEnabled", v)}
+                />
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs text-muted-foreground">
+                  Chu kỳ nhắc lại (phút)
+                  <input
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={prefs.reminderRepeatIntervalMinutes}
+                    onChange={(e) => {
+                      const value = Math.max(1, Math.min(120, Number(e.target.value) || 1));
+                      setPref("reminderRepeatIntervalMinutes", value);
+                    }}
+                    disabled={!prefs.reminderRepeatEnabled}
+                    className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+                  />
+                </label>
+
+                <label className="text-xs text-muted-foreground">
+                  Số lần tối đa
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={prefs.reminderRepeatMaxTimes}
+                    onChange={(e) => {
+                      const value = Math.max(1, Math.min(10, Number(e.target.value) || 1));
+                      setPref("reminderRepeatMaxTimes", value);
+                    }}
+                    disabled={!prefs.reminderRepeatEnabled}
+                    className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">

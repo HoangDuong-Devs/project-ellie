@@ -17,6 +17,8 @@ import { useEffect, useState } from "react";
 import { applyTheme, getInitialDark } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { NotificationWatchers } from "@/components/NotificationWatchers";
 
 type NavItem = {
   to:
@@ -68,6 +70,8 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <NotificationWatchers />
+
       {/* Sidebar (desktop) */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-border bg-sidebar lg:flex lg:flex-col">
         <Link to="/" className="flex items-center gap-2 px-5 py-5">
@@ -127,6 +131,7 @@ export function AppShell() {
           <span className="font-bold text-gradient-brand">ProjectEllie</span>
         </Link>
         <div className="flex items-center gap-1">
+          <NotificationCenter />
           <button
             onClick={toggleDark}
             className="rounded-full p-2 text-muted-foreground hover:bg-accent/10"
@@ -145,6 +150,10 @@ export function AppShell() {
 
       {/* Main */}
       <main className="lg:pl-64">
+        {/* Desktop top bar with notification bell */}
+        <div className="sticky top-0 z-20 hidden h-14 items-center justify-end gap-1 border-b border-border bg-background/80 px-6 backdrop-blur-xl lg:flex">
+          <NotificationCenter />
+        </div>
         <div className="mx-auto max-w-6xl px-4 pb-24 pt-6 lg:px-8 lg:pb-10">
           <Outlet />
         </div>

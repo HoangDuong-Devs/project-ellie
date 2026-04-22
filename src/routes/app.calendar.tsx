@@ -34,7 +34,7 @@ import {
   patchTodo,
   upsertEvent,
 } from "@/services/calendar-api-client";
-import { useReminderScheduler, requestNotificationPermission } from "@/hooks/useNotifications";
+import { requestNotificationPermission } from "@/hooks/useNotifications";
 import { uid } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
@@ -128,8 +128,6 @@ function CalendarPage() {
     };
   }, []);
   useDataAutoRefresh(refresh, "calendar");
-
-  useReminderScheduler(items);
 
   const [view, setView] = useState<ViewMode>("week");
   const [cursor, setCursor] = useState<Date>(() => new Date());
