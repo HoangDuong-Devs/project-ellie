@@ -21,6 +21,7 @@ export interface NotificationPrefs {
   focus: boolean;
   system: boolean;
   dailyDigest: boolean;
+  dailySummaryHour: number;
   defaultCalendarReminders: number[];
   reminderRepeatEnabled: boolean;
   reminderRepeatIntervalMinutes: number;
@@ -34,6 +35,7 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   focus: true,
   system: true,
   dailyDigest: true,
+  dailySummaryHour: 23,
   defaultCalendarReminders: [],
   reminderRepeatEnabled: true,
   reminderRepeatIntervalMinutes: 5,

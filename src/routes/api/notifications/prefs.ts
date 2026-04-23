@@ -35,6 +35,12 @@ function normalizePrefs(input: Partial<NotificationPrefs>): NotificationPrefs {
       typeof input.dailyDigest === "boolean"
         ? input.dailyDigest
         : DEFAULT_NOTIFICATION_PREFS.dailyDigest,
+    dailySummaryHour: asIntInRange(
+      input.dailySummaryHour,
+      DEFAULT_NOTIFICATION_PREFS.dailySummaryHour,
+      0,
+      23,
+    ),
     defaultCalendarReminders: normalizeReminderOffsets(
       input.defaultCalendarReminders,
       DEFAULT_NOTIFICATION_PREFS.defaultCalendarReminders,

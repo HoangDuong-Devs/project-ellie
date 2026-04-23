@@ -305,6 +305,27 @@ function Settings() {
             </div>
 
             <div className="mt-4 rounded-xl border border-border bg-background p-4">
+              <div className="mb-1 text-sm font-medium">Báo cáo tổng kết ngày</div>
+              <div className="mb-3 text-xs text-muted-foreground">
+                Gửi 1 thông báo tổng hợp toàn bộ chức năng vào giờ đã chọn mỗi ngày.
+              </div>
+              <label className="text-xs text-muted-foreground">
+                Giờ gửi (0-23h)
+                <input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={prefs.dailySummaryHour}
+                  onChange={(e) => {
+                    const value = Math.max(0, Math.min(23, Number(e.target.value) || 0));
+                    setPref("dailySummaryHour", value);
+                  }}
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-border bg-background p-4">
               <div className="mb-2 text-sm font-medium">Nhắc lịch mặc định khi tạo sự kiện mới</div>
               <div className="mb-3 text-xs text-muted-foreground">
                 Đây là giá trị mặc định. Khi tạo từng lịch, bạn vẫn có thể chỉnh riêng trong popup

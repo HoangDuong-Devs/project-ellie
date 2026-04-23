@@ -404,10 +404,10 @@ export function useNightlySummaryWatcher(feed: NotificationWatcherFeed, enabled 
     const LS_KEY = "ellie:nightly-summary:last-date";
 
     const tick = () => {
-      if (!isDailyDigestEnabled()) return;
-
+      const prefs = getNotificationPrefsCache();
+      const targetHour = Math.max(0, Math.min(23, Math.trunc(prefs.dailySummaryHour ?? 23)));
       const now = new Date();
-      if (now.getHours() !== 23) return;
+      if (now.getHours() !== targetHour) return;
 
       const todayKey = localDateKey(now);
       if (sentRef.current === todayKey) return;
@@ -468,7 +468,8 @@ export function useNightlySummaryWatcher(feed: NotificationWatcherFeed, enabled 
         `- Focus: ${focusCount} phiên (${focusMinutes} phút)`,
       ].join("\n");
 
-      void notify("📘 Tổng kết ngày (23:00)", body, {
+      const titleHour = `${String(targetHour).padStart(2, "0")}:00`;
+      void notify(`📘 Tổng kết ngày (${titleHour})`, body, {
         category: "system",
         kind: "info",
         dedupeKey: `nightly-summary:${todayKey}`,
