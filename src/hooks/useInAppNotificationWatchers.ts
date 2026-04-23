@@ -3,6 +3,7 @@ import {
   useInAppDailyDigestWatcher,
   useInAppFocusWatcher,
   useInAppGoalWatcher,
+  useInAppNightlySummaryWatcher,
   useInAppReminderWatcher,
   useInAppTransactionWatcher,
 } from "@/hooks/useNotifications";
@@ -15,4 +16,5 @@ export function useInAppNotificationWatchers(feed: NotificationWatcherFeed, enab
   useInAppGoalWatcher(feed.goals, enabled);
   useInAppFocusWatcher(feed.focusSessions, enabled);
   useInAppDailyDigestWatcher(feed.calendarItems, enabled);
+  useInAppNightlySummaryWatcher(feed, enabled);
 }

@@ -5,6 +5,7 @@ import type { Transaction } from "@/types/finance";
 import type { MonthlyBudget } from "@/services/finance-service";
 import type { Goal } from "@/types/goals";
 import type { PomodoroSession } from "@/types/focus";
+import type { Todo } from "@/types/schedule";
 import { getReminderOffsets, parseLocal, expandOccurrences, fmtTime } from "@/lib/calendar";
 import { formatVND } from "@/lib/format";
 import { createNotification, listNotifications } from "@/services/notification-api-client";
@@ -15,6 +16,7 @@ import {
   isDailyDigestEnabled,
 } from "./useNotificationPrefs";
 import type { AppNotification } from "@/types/notifications";
+import type { NotificationWatcherFeed } from "@/hooks/useNotificationWatcherFeed";
 
 /** Show notification: native push + in-app toast + persistent center entry. */
 async function notify(
@@ -388,6 +390,106 @@ export function useDailyEventsDigest(items: CalendarItem[], enabled = true) {
 }
 
 export const useInAppDailyDigestWatcher = useDailyEventsDigest;
+
+function localDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function useNightlySummaryWatcher(feed: NotificationWatcherFeed, enabled = true) {
+  const sentRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const LS_KEY = "ellie:nightly-summary:last-date";
+
+    const tick = () => {
+      if (!isDailyDigestEnabled()) return;
+
+      const now = new Date();
+      if (now.getHours() !== 23) return;
+
+      const todayKey = localDateKey(now);
+      if (sentRef.current === todayKey) return;
+
+      try {
+        const saved = window.localStorage.getItem(LS_KEY);
+        if (saved === todayKey) {
+          sentRef.current = todayKey;
+          return;
+        }
+      } catch {
+        // ignore localStorage errors
+      }
+
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(now);
+      end.setHours(23, 59, 59, 999);
+
+      const todayEvents = expandOccurrences(feed.calendarItems, start, end);
+
+      const todayExpenses = feed.transactions
+        .filter((t) => t.type === "expense" && localDateKey(new Date(t.date)) === todayKey)
+        .reduce((sum, t) => sum + t.amount, 0);
+      const todayIncome = feed.transactions
+        .filter((t) => t.type === "income" && localDateKey(new Date(t.date)) === todayKey)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const goalDone = feed.goals.filter((g) => g.completed).length;
+      const goalActive = feed.goals.length - goalDone;
+
+      const focusToday = feed.focusSessions.filter((s) => localDateKey(new Date(s.date)) === todayKey);
+      const focusCount = focusToday.length;
+      const focusMinutes = focusToday.reduce((sum, s) => sum + s.minutes, 0);
+
+      const todoDone = feed.todos.filter((t: Todo) => t.done).length;
+      const todoOpen = feed.todos.length - todoDone;
+
+      const nowMonth = now.getMonth();
+      const nowYear = now.getFullYear();
+      const monthExpense = feed.transactions
+        .filter((t) => {
+          const d = new Date(t.date);
+          return t.type === "expense" && d.getMonth() === nowMonth && d.getFullYear() === nowYear;
+        })
+        .reduce((sum, t) => sum + t.amount, 0);
+      const budgetLine =
+        feed.budget.total > 0
+          ? `- Ngân sách tháng: ${Math.round((monthExpense / feed.budget.total) * 100)}% (${formatVND(monthExpense)} / ${formatVND(feed.budget.total)})`
+          : `- Ngân sách tháng: chưa thiết lập`;
+
+      const body = [
+        `- Lịch: ${todayEvents.length} sự kiện`,
+        `- Tài chính hôm nay: thu ${formatVND(todayIncome)} · chi ${formatVND(todayExpenses)}`,
+        budgetLine,
+        `- Công việc: ${todoDone} hoàn tất · ${todoOpen} chưa xong`,
+        `- Mục tiêu: ${goalDone} hoàn thành · ${goalActive} đang chạy`,
+        `- Focus: ${focusCount} phiên (${focusMinutes} phút)`,
+      ].join("\n");
+
+      void notify("📘 Tổng kết ngày (23:00)", body, {
+        category: "system",
+        kind: "info",
+        dedupeKey: `nightly-summary:${todayKey}`,
+        tag: `nightly-summary-${todayKey}`,
+      });
+
+      sentRef.current = todayKey;
+      try {
+        window.localStorage.setItem(LS_KEY, todayKey);
+      } catch {
+        // ignore localStorage errors
+      }
+    };
+
+    tick();
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, [enabled, feed]);
+}
+
+export const useInAppNightlySummaryWatcher = useNightlySummaryWatcher;
 
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (typeof window === "undefined" || !("Notification" in window)) return "denied";
