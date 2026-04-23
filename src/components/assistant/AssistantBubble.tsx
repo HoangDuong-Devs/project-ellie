@@ -13,8 +13,8 @@ export function AssistantBubble() {
     setOpen(false);
   }, [pathname]);
 
-  // Hide bubble on the dedicated assistant page itself
-  if (pathname === "/app/assistant") return null;
+  // Hide bubble on dedicated assistant pages
+  if (pathname === "/app/assistant" || pathname === "/app/companion") return null;
 
   return (
     <>
