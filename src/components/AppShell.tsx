@@ -11,6 +11,7 @@ import {
   Sun,
   Kanban,
   MessageCircle,
+  Bot,
 } from "lucide-react";
 import { AssistantBubble } from "@/components/assistant/AssistantBubble";
 import { useEffect, useState } from "react";
@@ -42,7 +43,8 @@ type NavItem = {
     | "/app/focus"
     | "/app/goals"
     | "/app/work"
-    | "/app/assistant";
+    | "/app/assistant"
+    | "/app/companion";
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
@@ -56,6 +58,7 @@ const NAV: NavItem[] = [
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
   { to: "/app/assistant", label: "Trợ lý", icon: MessageCircle },
+  { to: "/app/companion", label: "Ellie", icon: Bot },
 ];
 
 export function AppShell() {
