@@ -17,6 +17,7 @@ import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppGoalsRouteImport } from './routes/app.goals'
 import { Route as AppFocusRouteImport } from './routes/app.focus'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
+import { Route as AppCompanionRouteImport } from './routes/app.companion'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppAssistantRouteImport } from './routes/app.assistant'
 
@@ -60,6 +61,11 @@ const AppFinanceRoute = AppFinanceRouteImport.update({
   path: '/finance',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCompanionRoute = AppCompanionRouteImport.update({
+  id: '/companion',
+  path: '/companion',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCalendarRoute = AppCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/assistant': typeof AppAssistantRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/companion': typeof AppCompanionRoute
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/assistant': typeof AppAssistantRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/companion': typeof AppCompanionRoute
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/app/assistant': typeof AppAssistantRoute
   '/app/calendar': typeof AppCalendarRoute
+  '/app/companion': typeof AppCompanionRoute
   '/app/finance': typeof AppFinanceRoute
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/assistant'
     | '/app/calendar'
+    | '/app/companion'
     | '/app/finance'
     | '/app/focus'
     | '/app/goals'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app/assistant'
     | '/app/calendar'
+    | '/app/companion'
     | '/app/finance'
     | '/app/focus'
     | '/app/goals'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/assistant'
     | '/app/calendar'
+    | '/app/companion'
     | '/app/finance'
     | '/app/focus'
     | '/app/goals'
@@ -208,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFinanceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/companion': {
+      id: '/app/companion'
+      path: '/companion'
+      fullPath: '/app/companion'
+      preLoaderRoute: typeof AppCompanionRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/calendar': {
       id: '/app/calendar'
       path: '/calendar'
@@ -228,6 +247,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAssistantRoute: typeof AppAssistantRoute
   AppCalendarRoute: typeof AppCalendarRoute
+  AppCompanionRoute: typeof AppCompanionRoute
   AppFinanceRoute: typeof AppFinanceRoute
   AppFocusRoute: typeof AppFocusRoute
   AppGoalsRoute: typeof AppGoalsRoute
@@ -239,6 +259,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAssistantRoute: AppAssistantRoute,
   AppCalendarRoute: AppCalendarRoute,
+  AppCompanionRoute: AppCompanionRoute,
   AppFinanceRoute: AppFinanceRoute,
   AppFocusRoute: AppFocusRoute,
   AppGoalsRoute: AppGoalsRoute,
