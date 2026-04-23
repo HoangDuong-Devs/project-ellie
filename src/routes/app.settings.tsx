@@ -309,19 +309,32 @@ function Settings() {
               <div className="mb-3 text-xs text-muted-foreground">
                 Gửi 1 thông báo tổng hợp toàn bộ chức năng vào giờ đã chọn mỗi ngày.
               </div>
-              <label className="text-xs text-muted-foreground">
-                Giờ gửi (0-23h)
-                <input
-                  type="number"
-                  min={0}
-                  max={23}
-                  value={prefs.dailySummaryHour}
-                  onChange={(e) => {
-                    const value = Math.max(0, Math.min(23, Number(e.target.value) || 0));
-                    setPref("dailySummaryHour", value);
-                  }}
-                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="text-xs text-muted-foreground">
+                  Bật để nhận tổng kết ngày trong khung 18:00 đến 01:00.
+                </div>
+                <Switch
+                  checked={prefs.dailySummaryEnabled}
+                  onCheckedChange={(v) => setPref("dailySummaryEnabled", v)}
                 />
+              </div>
+              <label className="text-xs text-muted-foreground">
+                Giờ gửi (18:00 - 01:00)
+                <select
+                  value={prefs.dailySummaryHour}
+                  onChange={(e) => setPref("dailySummaryHour", Number(e.target.value))}
+                  disabled={!prefs.dailySummaryEnabled}
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
+                >
+                  <option value={18}>18:00</option>
+                  <option value={19}>19:00</option>
+                  <option value={20}>20:00</option>
+                  <option value={21}>21:00</option>
+                  <option value={22}>22:00</option>
+                  <option value={23}>23:00</option>
+                  <option value={0}>00:00 (hôm sau)</option>
+                  <option value={1}>01:00 (hôm sau)</option>
+                </select>
               </label>
             </div>
 

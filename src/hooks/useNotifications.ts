@@ -405,49 +405,56 @@ export function useNightlySummaryWatcher(feed: NotificationWatcherFeed, enabled 
 
     const tick = () => {
       const prefs = getNotificationPrefsCache();
+      if (!prefs.dailySummaryEnabled) return;
       const targetHour = Math.max(0, Math.min(23, Math.trunc(prefs.dailySummaryHour ?? 23)));
       const now = new Date();
       if (now.getHours() !== targetHour) return;
 
-      const todayKey = localDateKey(now);
-      if (sentRef.current === todayKey) return;
+      const reportDate = new Date(now);
+      // 00:00/01:00 belong to previous day's report
+      if (targetHour === 0 || targetHour === 1) {
+        reportDate.setDate(reportDate.getDate() - 1);
+      }
+
+      const reportKey = localDateKey(reportDate);
+      if (sentRef.current === reportKey) return;
 
       try {
         const saved = window.localStorage.getItem(LS_KEY);
-        if (saved === todayKey) {
-          sentRef.current = todayKey;
+        if (saved === reportKey) {
+          sentRef.current = reportKey;
           return;
         }
       } catch {
         // ignore localStorage errors
       }
 
-      const start = new Date(now);
+      const start = new Date(reportDate);
       start.setHours(0, 0, 0, 0);
-      const end = new Date(now);
+      const end = new Date(reportDate);
       end.setHours(23, 59, 59, 999);
 
       const todayEvents = expandOccurrences(feed.calendarItems, start, end);
 
       const todayExpenses = feed.transactions
-        .filter((t) => t.type === "expense" && localDateKey(new Date(t.date)) === todayKey)
+        .filter((t) => t.type === "expense" && localDateKey(new Date(t.date)) === reportKey)
         .reduce((sum, t) => sum + t.amount, 0);
       const todayIncome = feed.transactions
-        .filter((t) => t.type === "income" && localDateKey(new Date(t.date)) === todayKey)
+        .filter((t) => t.type === "income" && localDateKey(new Date(t.date)) === reportKey)
         .reduce((sum, t) => sum + t.amount, 0);
 
       const goalDone = feed.goals.filter((g) => g.completed).length;
       const goalActive = feed.goals.length - goalDone;
 
-      const focusToday = feed.focusSessions.filter((s) => localDateKey(new Date(s.date)) === todayKey);
+      const focusToday = feed.focusSessions.filter((s) => localDateKey(new Date(s.date)) === reportKey);
       const focusCount = focusToday.length;
       const focusMinutes = focusToday.reduce((sum, s) => sum + s.minutes, 0);
 
       const todoDone = feed.todos.filter((t: Todo) => t.done).length;
       const todoOpen = feed.todos.length - todoDone;
 
-      const nowMonth = now.getMonth();
-      const nowYear = now.getFullYear();
+      const nowMonth = reportDate.getMonth();
+      const nowYear = reportDate.getFullYear();
       const monthExpense = feed.transactions
         .filter((t) => {
           const d = new Date(t.date);
@@ -469,16 +476,17 @@ export function useNightlySummaryWatcher(feed: NotificationWatcherFeed, enabled 
       ].join("\n");
 
       const titleHour = `${String(targetHour).padStart(2, "0")}:00`;
-      void notify(`📘 Tổng kết ngày (${titleHour})`, body, {
+      const titleDate = `${String(reportDate.getDate()).padStart(2, "0")}/${String(reportDate.getMonth() + 1).padStart(2, "0")}`;
+      void notify(`📘 Tổng kết ${titleDate} (${titleHour})`, body, {
         category: "system",
         kind: "info",
-        dedupeKey: `nightly-summary:${todayKey}`,
-        tag: `nightly-summary-${todayKey}`,
+        dedupeKey: `nightly-summary:${reportKey}`,
+        tag: `nightly-summary-${reportKey}`,
       });
 
-      sentRef.current = todayKey;
+      sentRef.current = reportKey;
       try {
-        window.localStorage.setItem(LS_KEY, todayKey);
+        window.localStorage.setItem(LS_KEY, reportKey);
       } catch {
         // ignore localStorage errors
       }

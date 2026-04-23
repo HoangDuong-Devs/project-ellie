@@ -22,6 +22,14 @@ function normalizeReminderOffsets(value: unknown, fallback: number[]): number[] 
   return Array.from(uniq).sort((a, b) => b - a);
 }
 
+function normalizeDailySummaryHour(value: unknown, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  const h = Math.trunc(value);
+  // Allowed window: 18:00 -> 01:00 (next day)
+  if ((h >= 18 && h <= 23) || h === 0 || h === 1) return h;
+  return fallback;
+}
+
 function normalizePrefs(input: Partial<NotificationPrefs>): NotificationPrefs {
   return {
     calendar:
@@ -35,11 +43,13 @@ function normalizePrefs(input: Partial<NotificationPrefs>): NotificationPrefs {
       typeof input.dailyDigest === "boolean"
         ? input.dailyDigest
         : DEFAULT_NOTIFICATION_PREFS.dailyDigest,
-    dailySummaryHour: asIntInRange(
+    dailySummaryEnabled:
+      typeof input.dailySummaryEnabled === "boolean"
+        ? input.dailySummaryEnabled
+        : DEFAULT_NOTIFICATION_PREFS.dailySummaryEnabled,
+    dailySummaryHour: normalizeDailySummaryHour(
       input.dailySummaryHour,
       DEFAULT_NOTIFICATION_PREFS.dailySummaryHour,
-      0,
-      23,
     ),
     defaultCalendarReminders: normalizeReminderOffsets(
       input.defaultCalendarReminders,
