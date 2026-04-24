@@ -10,6 +10,7 @@ import {
   EyeOff,
   MessageSquare,
   ChevronDown,
+  Loader2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -21,6 +22,9 @@ import {
 } from "@/hooks/useAssistantInsights";
 import { uid } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { VRMCanvas, type CompanionMood } from "@/components/companion/VRMCanvas";
+import { useSpeakingAnimation, detectMood } from "@/hooks/useSpeakingAnimation";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/companion")({
   head: () => ({
@@ -28,7 +32,7 @@ export const Route = createFileRoute("/app/companion")({
       { title: "Companion — ProjectEllie" },
       {
         name: "description",
-        content: "Trò chuyện cùng nhân vật AI 3D Ellie — companion mode kiểu Grok.",
+        content: "Trò chuyện cùng nhân vật AI 3D Ellie — companion mode với VRM viewer và Lovable AI.",
       },
     ],
   }),
@@ -47,14 +51,11 @@ const WELCOME: ChatMessage = {
   role: "assistant",
   ts: new Date().toISOString(),
   content: [
-    "Chào bạn! Mình là **Ellie** ✨",
+    "Chào cậu! Mình là **Ellie** ✨",
     "",
-    "Đây là chế độ Companion — bạn có thể vừa nhìn mình vừa trò chuyện. Thử các lệnh nhanh phía dưới hoặc gõ `/` để xem tất cả lệnh nhé.",
+    "Mình ở đây để trò chuyện với cậu nè. Cứ hỏi mình bất cứ điều gì, hoặc gõ `/` để xem các lệnh báo cáo nhanh.",
   ].join("\n"),
 };
-
-// AIRI hosted demo URL — has VRM stage with default character
-const AIRI_STAGE_URL = "https://airi.moeru.ai/";
 
 function findCommand(text: string): AssistantCommand | null {
   const t = text.trim().toLowerCase();
@@ -63,19 +64,99 @@ function findCommand(text: string): AssistantCommand | null {
   return ASSISTANT_COMMANDS.find((c) => c.label === name) ?? null;
 }
 
-function fallbackReply(text: string): string {
-  const t = text.toLowerCase();
-  if (/(hello|hi|chào|hey)/i.test(t)) return "Chào bạn! 👋 Bắt đầu với `/tongquan` nhé.";
-  if (/(chi|tiêu|ngân sách|tiền)/.test(t))
-    return "Mình có thể giúp với chi tiêu! Thử `/baocao-ngay` hoặc `/ngansach`.";
-  if (/(lịch|sự kiện)/.test(t)) return "Gõ `/lich-homnay` để xem lịch hôm nay nhé.";
-  if (/(mục tiêu|goal)/.test(t)) return "Gõ `/muctieu` để xem tiến độ nhé.";
-  if (/(focus|pomodoro)/.test(t)) return "Thử `/focus` để xem thống kê tập trung.";
-  return [
-    "Hiện mình hỗ trợ các lệnh báo cáo. Gõ `/` để xem danh sách:",
-    "",
-    ASSISTANT_COMMANDS.map((c) => `- \`${c.label}\` — ${c.description}`).join("\n"),
-  ].join("\n");
+async function streamChat({
+  messages,
+  onDelta,
+  onDone,
+  onError,
+  signal,
+}: {
+  messages: { role: "user" | "assistant"; content: string }[];
+  onDelta: (chunk: string) => void;
+  onDone: () => void;
+  onError: (msg: string) => void;
+  signal?: AbortSignal;
+}) {
+  try {
+    const resp = await fetch("/api/companion-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+      signal,
+    });
+
+    if (!resp.ok) {
+      let errMsg = `HTTP ${resp.status}`;
+      try {
+        const data = await resp.json();
+        if (data?.error) errMsg = data.error;
+      } catch {
+        /* ignore */
+      }
+      onError(errMsg);
+      return;
+    }
+
+    if (!resp.body) {
+      onError("Không nhận được phản hồi");
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let streamDone = false;
+
+    while (!streamDone) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let nl: number;
+      while ((nl = buffer.indexOf("\n")) !== -1) {
+        let line = buffer.slice(0, nl);
+        buffer = buffer.slice(nl + 1);
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        if (line.startsWith(":") || line.trim() === "") continue;
+        if (!line.startsWith("data: ")) continue;
+        const json = line.slice(6).trim();
+        if (json === "[DONE]") {
+          streamDone = true;
+          break;
+        }
+        try {
+          const parsed = JSON.parse(json);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) onDelta(delta);
+        } catch {
+          buffer = line + "\n" + buffer;
+          break;
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      for (let raw of buffer.split("\n")) {
+        if (!raw) continue;
+        if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+        if (raw.startsWith(":") || raw.trim() === "") continue;
+        if (!raw.startsWith("data: ")) continue;
+        const json = raw.slice(6).trim();
+        if (json === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(json);
+          const delta = parsed.choices?.[0]?.delta?.content;
+          if (delta) onDelta(delta);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    onDone();
+  } catch (e) {
+    if ((e as Error).name === "AbortError") return;
+    onError(e instanceof Error ? e.message : "Lỗi không rõ");
+  }
 }
 
 function CompanionPage() {
@@ -87,7 +168,13 @@ function CompanionPage() {
   const [showSlash, setShowSlash] = useState(false);
   const [showAvatar, setShowAvatar] = useLocalStorage("ellie:companion-show-avatar", true);
   const [chatExpanded, setChatExpanded] = useState(true);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [mood, setMood] = useState<CompanionMood>("happy");
+  const [speakTrigger, setSpeakTrigger] = useState<number | null>(null);
+  const speakingLevel = useSpeakingAnimation(speakTrigger, 2200);
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -99,37 +186,92 @@ function CompanionPage() {
       )
     : [];
 
-  const send = (raw?: string) => {
+  const send = async (raw?: string) => {
     const text = (raw ?? input).trim();
-    if (!text) return;
+    if (!text || isStreaming) return;
+
     const userMsg: ChatMessage = {
       id: uid(),
       role: "user",
       content: text,
       ts: new Date().toISOString(),
     };
-    const cmd = findCommand(text);
-    const reply = cmd ? cmd.run(insights) : fallbackReply(text);
-    const botMsg: ChatMessage = {
-      id: uid(),
-      role: "assistant",
-      content: reply,
-      ts: new Date().toISOString(),
-    };
-    setMessages([...messages, userMsg, botMsg]);
     setInput("");
     setShowSlash(false);
+
+    // Slash command? Reply locally (no AI call).
+    const cmd = findCommand(text);
+    if (cmd) {
+      const reply = cmd.run(insights);
+      const botMsg: ChatMessage = {
+        id: uid(),
+        role: "assistant",
+        content: reply,
+        ts: new Date().toISOString(),
+      };
+      setMessages([...messages, userMsg, botMsg]);
+      setMood(detectMood(reply));
+      setSpeakTrigger(Date.now());
+      return;
+    }
+
+    // Otherwise → stream from Lovable AI
+    const baseHistory = [...messages, userMsg];
+    const assistantId = uid();
+    const placeholder: ChatMessage = {
+      id: assistantId,
+      role: "assistant",
+      content: "",
+      ts: new Date().toISOString(),
+    };
+    setMessages([...baseHistory, placeholder]);
+    setIsStreaming(true);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    let assembled = "";
+    await streamChat({
+      messages: baseHistory.map((m) => ({ role: m.role, content: m.content })),
+      signal: controller.signal,
+      onDelta: (chunk) => {
+        assembled += chunk;
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, content: assembled } : m)),
+        );
+        setSpeakTrigger(Date.now()); // refresh mouth animation each token
+      },
+      onDone: () => {
+        setIsStreaming(false);
+        setMood(detectMood(assembled));
+      },
+      onError: (msg) => {
+        setIsStreaming(false);
+        toast.error(msg);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, content: `_Xin lỗi, có lỗi xảy ra: ${msg}_` }
+              : m,
+          ),
+        );
+      },
+    });
   };
 
-  const reset = () => setMessages([WELCOME]);
+  const reset = () => {
+    abortRef.current?.abort();
+    setIsStreaming(false);
+    setMessages([WELCOME]);
+    setMood("happy");
+  };
 
   return (
     <div className="-mx-4 -mt-6 lg:-mx-8 lg:-mt-6">
-      {/* Full-bleed companion stage. Height fills viewport minus desktop topbar (56px) and accounts for mobile bottom nav padding (96px from main pb-24) */}
       <div
         className={cn(
           "relative overflow-hidden rounded-none bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950",
-          "h-[calc(100vh-56px)] lg:h-[calc(100vh-56px)]",
+          "h-[calc(100vh-56px)]",
           "min-h-[600px]",
         )}
       >
@@ -140,14 +282,12 @@ function CompanionPage() {
           <div className="absolute top-1/2 left-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-400/20 blur-[100px]" />
         </div>
 
-        {/* Avatar layer (AIRI iframe) */}
+        {/* VRM avatar layer */}
         {showAvatar && (
-          <iframe
-            src={AIRI_STAGE_URL}
-            title="Ellie 3D Avatar"
-            className="absolute inset-0 h-full w-full border-0"
-            style={{ background: "transparent" }}
-            allow="microphone; camera; autoplay; clipboard-write"
+          <VRMCanvas
+            mood={mood}
+            speakingLevel={speakingLevel}
+            className="absolute inset-0 h-full w-full"
           />
         )}
 
@@ -162,6 +302,12 @@ function CompanionPage() {
               <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
+            {isStreaming && (
+              <span className="ml-2 flex items-center gap-1 text-[10px] text-white/70">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                đang nghĩ...
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -193,20 +339,18 @@ function CompanionPage() {
           </div>
         </div>
 
-        {/* Chat overlay - desktop: floating right panel; mobile: bottom sheet */}
+        {/* Chat overlay */}
         <div
           className={cn(
             "absolute z-20 transition-all duration-300",
-            // Mobile: bottom sheet
             "left-3 right-3 bottom-3",
             chatExpanded ? "top-[40%]" : "top-auto",
-            // Desktop: right floating panel
             "lg:left-auto lg:right-6 lg:top-20 lg:bottom-6",
-            chatExpanded ? "lg:w-[420px]" : "lg:w-[420px] lg:top-auto lg:h-auto",
+            "lg:w-[420px]",
+            !chatExpanded && "lg:top-auto lg:h-auto",
           )}
         >
           <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-white/15 bg-black/40 shadow-2xl backdrop-blur-xl">
-            {/* Chat header (mobile collapse handle) */}
             <button
               onClick={() => setChatExpanded(!chatExpanded)}
               className="flex items-center justify-between border-b border-white/10 px-4 py-2.5 text-left transition hover:bg-white/5"
@@ -228,7 +372,6 @@ function CompanionPage() {
 
             {chatExpanded && (
               <>
-                {/* Messages */}
                 <div
                   ref={scrollRef}
                   className="scroll-thin flex-1 space-y-3 overflow-y-auto px-3 py-3"
@@ -250,11 +393,18 @@ function CompanionPage() {
                         )}
                       >
                         {m.role === "assistant" ? (
-                          <div className="prose prose-sm prose-invert max-w-none prose-headings:mt-0 prose-headings:mb-2 prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-strong:text-white prose-code:text-pink-300">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {m.content}
-                            </ReactMarkdown>
-                          </div>
+                          m.content ? (
+                            <div className="prose prose-sm prose-invert max-w-none prose-headings:mt-0 prose-headings:mb-2 prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-strong:text-white prose-code:text-pink-300">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {m.content}
+                              </ReactMarkdown>
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-white/60">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <span className="text-xs">Ellie đang gõ...</span>
+                            </span>
+                          )
                         ) : (
                           <div className="whitespace-pre-wrap">{m.content}</div>
                         )}
@@ -269,14 +419,14 @@ function CompanionPage() {
                     <button
                       key={c.id}
                       onClick={() => send(c.label)}
-                      className="rounded-full border border-white/20 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/90 transition hover:border-white/40 hover:bg-white/10"
+                      disabled={isStreaming}
+                      className="rounded-full border border-white/20 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/90 transition hover:border-white/40 hover:bg-white/10 disabled:opacity-50"
                     >
                       {c.emoji} {c.description}
                     </button>
                   ))}
                 </div>
 
-                {/* Slash autocomplete */}
                 {showSlash && filteredCommands.length > 0 && (
                   <div className="mx-3 mb-1 max-h-48 overflow-y-auto rounded-2xl border border-white/15 bg-black/60 backdrop-blur-xl">
                     {filteredCommands.map((c) => (
@@ -295,7 +445,6 @@ function CompanionPage() {
                   </div>
                 )}
 
-                {/* Input */}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -316,16 +465,23 @@ function CompanionPage() {
                       }
                       if (e.key === "Escape") setShowSlash(false);
                     }}
-                    placeholder="Nói chuyện với Ellie hoặc gõ /..."
+                    placeholder={
+                      isStreaming ? "Ellie đang trả lời..." : "Nói chuyện với Ellie hoặc gõ /..."
+                    }
                     rows={1}
-                    className="scroll-thin max-h-24 flex-1 resize-none rounded-2xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/10"
+                    disabled={isStreaming}
+                    className="scroll-thin max-h-24 flex-1 resize-none rounded-2xl border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                   />
                   <button
                     type="submit"
-                    disabled={!input.trim()}
+                    disabled={!input.trim() || isStreaming}
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-brand text-white shadow-glow transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <Send className="h-4 w-4" />
+                    {isStreaming ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                   </button>
                 </form>
               </>
@@ -333,11 +489,10 @@ function CompanionPage() {
           </div>
         </div>
 
-        {/* Loading hint when avatar is loading */}
         {showAvatar && (
           <div className="pointer-events-none absolute bottom-4 left-4 z-10 hidden lg:block">
             <div className="rounded-full bg-black/30 px-3 py-1 text-[11px] text-white/60 backdrop-blur-md">
-              Powered by Project AIRI
+              VRM · Lovable AI
             </div>
           </div>
         )}

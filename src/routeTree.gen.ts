@@ -20,6 +20,7 @@ import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppCompanionRouteImport } from './routes/app.companion'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppAssistantRouteImport } from './routes/app.assistant'
+import { Route as ApiCompanionChatRouteImport } from './routes/api.companion-chat'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -76,10 +77,16 @@ const AppAssistantRoute = AppAssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiCompanionChatRoute = ApiCompanionChatRouteImport.update({
+  id: '/api/companion-chat',
+  path: '/api/companion-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/api/companion-chat': typeof ApiCompanionChatRoute
   '/app/assistant': typeof AppAssistantRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/companion': typeof AppCompanionRoute
@@ -92,6 +99,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/companion-chat': typeof ApiCompanionChatRoute
   '/app/assistant': typeof AppAssistantRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/companion': typeof AppCompanionRoute
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/api/companion-chat': typeof ApiCompanionChatRoute
   '/app/assistant': typeof AppAssistantRoute
   '/app/calendar': typeof AppCalendarRoute
   '/app/companion': typeof AppCompanionRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/api/companion-chat'
     | '/app/assistant'
     | '/app/calendar'
     | '/app/companion'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/companion-chat'
     | '/app/assistant'
     | '/app/calendar'
     | '/app/companion'
@@ -146,6 +157,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
+    | '/api/companion-chat'
     | '/app/assistant'
     | '/app/calendar'
     | '/app/companion'
@@ -160,6 +172,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  ApiCompanionChatRoute: typeof ApiCompanionChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAssistantRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/companion-chat': {
+      id: '/api/companion-chat'
+      path: '/api/companion-chat'
+      fullPath: '/api/companion-chat'
+      preLoaderRoute: typeof ApiCompanionChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -273,7 +293,17 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  ApiCompanionChatRoute: ApiCompanionChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
