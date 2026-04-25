@@ -172,6 +172,8 @@ function CompanionPage() {
   const [mood, setMood] = useState<CompanionMood>("happy");
   const [speakTrigger, setSpeakTrigger] = useState<number | null>(null);
   const speakingLevel = useSpeakingAnimation(speakTrigger, 2200);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
