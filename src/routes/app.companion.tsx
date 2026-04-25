@@ -172,6 +172,8 @@ function CompanionPage() {
   const [mood, setMood] = useState<CompanionMood>("happy");
   const [speakTrigger, setSpeakTrigger] = useState<number | null>(null);
   const speakingLevel = useSpeakingAnimation(speakTrigger, 2200);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -359,7 +361,7 @@ function CompanionPage() {
                 <MessageSquare className="h-4 w-4 text-white/70" />
                 <span className="text-sm font-medium text-white">Trò chuyện</span>
                 <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60">
-                  {messages.length}
+                  {mounted ? messages.length : 1}
                 </span>
               </div>
               <ChevronDown
