@@ -12,6 +12,7 @@ import {
   Kanban,
   MessageCircle,
   Bot,
+  BookOpen,
 } from "lucide-react";
 import { AssistantBubble } from "@/components/assistant/AssistantBubble";
 import { useEffect, useState } from "react";
@@ -43,6 +44,7 @@ type NavItem = {
     | "/app/focus"
     | "/app/goals"
     | "/app/work"
+    | "/app/journal"
     | "/app/assistant"
     | "/app/companion";
   label: string;
@@ -57,6 +59,7 @@ const NAV: NavItem[] = [
   { to: "/app/work", label: "Công việc", icon: Kanban },
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
+  { to: "/app/journal", label: "Nhật ký", icon: BookOpen },
   { to: "/app/assistant", label: "Trợ lý", icon: MessageCircle },
   { to: "/app/companion", label: "Ellie", icon: Bot },
 ];

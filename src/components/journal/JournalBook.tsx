@@ -1,5 +1,4 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-// @ts-expect-error - react-pageflip lacks types in this version
 import HTMLFlipBook from "react-pageflip";
 import type { JournalEntry } from "@/types/journal";
 import { BookOpen, Sparkles } from "lucide-react";
