@@ -152,114 +152,111 @@ export function JournalBook({ entries, onOpenEntry, onNewEntry }: Props) {
         showPageCorners
         disableFlipByClick={false}
       >
-        {/* Front cover */}
-        <Page cover>
-          <div className="flex flex-col items-center gap-6 px-8 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100/10 ring-2 ring-amber-200/30">
-              <BookOpen className="h-8 w-8" />
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-[0.4em] text-amber-200/70">
-                My Journal
+        {[
+          <Page cover key="front-cover">
+            <div className="flex flex-col items-center gap-6 px-8 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100/10 ring-2 ring-amber-200/30">
+                <BookOpen className="h-8 w-8" />
               </div>
-              <h2 className="mt-3 font-serif text-3xl font-bold leading-tight">Nhật ký</h2>
-              <p className="mt-2 text-sm italic text-amber-100/70">
-                Ghi lại những khoảnh khắc của riêng bạn
+              <div>
+                <div className="text-xs uppercase tracking-[0.4em] text-amber-200/70">
+                  My Journal
+                </div>
+                <h2 className="mt-3 font-serif text-3xl font-bold leading-tight">Nhật ký</h2>
+                <p className="mt-2 text-sm italic text-amber-100/70">
+                  Ghi lại những khoảnh khắc của riêng bạn
+                </p>
+              </div>
+              <div className="mt-8 text-[11px] uppercase tracking-widest text-amber-200/50">
+                {new Date().getFullYear()}
+              </div>
+            </div>
+          </Page>,
+          <Page key="toc">
+            <div className="flex h-full flex-col">
+              <div className="mb-4 border-b border-current/20 pb-2">
+                <div className="text-[10px] uppercase tracking-[0.3em] opacity-60">Mục lục</div>
+                <h3 className="font-serif text-2xl font-bold">Các tháng</h3>
+              </div>
+              <div className="flex-1 space-y-3 overflow-y-auto pr-2">
+                {grouped.size === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center gap-2 text-center opacity-60">
+                    <Sparkles className="h-6 w-6" />
+                    <p className="text-sm italic">Chưa có entry nào</p>
+                    <p className="text-xs">Nhấn "Viết hôm nay" để bắt đầu</p>
+                  </div>
+                ) : (
+                  Array.from(grouped.entries())
+                    .reverse()
+                    .map(([k, list]) => (
+                      <div key={k}>
+                        <div className="font-serif text-sm font-semibold">{monthLabel(k)}</div>
+                        <ul className="mt-1 space-y-1 pl-3 text-xs">
+                          {list
+                            .slice()
+                            .reverse()
+                            .map((e) => (
+                              <li key={e.id}>
+                                <button
+                                  onClick={() => onOpenEntry(e.id)}
+                                  className="text-left italic underline-offset-4 hover:underline"
+                                >
+                                  {new Date(e.date).getDate()}.{" "}
+                                  {e.title || "(không tiêu đề)"}
+                                </button>
+                              </li>
+                            ))}
+                        </ul>
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+          </Page>,
+          ...sorted.map((e) => (
+            <Page key={e.id}>
+              <div className="flex h-full flex-col">
+                <div className="mb-3 border-b border-current/20 pb-2">
+                  <div className="text-[10px] uppercase tracking-[0.3em] opacity-60">
+                    {formatDate(e.date)}
+                  </div>
+                  <h3 className="mt-1 font-serif text-2xl font-bold leading-tight">
+                    {e.title || "(không tiêu đề)"}
+                  </h3>
+                </div>
+                <div
+                  className="prose prose-sm max-w-none flex-1 overflow-hidden font-serif leading-relaxed [&_*]:!text-current"
+                  dangerouslySetInnerHTML={{
+                    __html: e.content || "<p class='italic opacity-50'>Trang trống...</p>",
+                  }}
+                />
+                <button
+                  onClick={() => onOpenEntry(e.id)}
+                  className="mt-3 self-end text-[11px] uppercase tracking-widest opacity-60 hover:opacity-100"
+                >
+                  Chỉnh sửa →
+                </button>
+              </div>
+            </Page>
+          )),
+          ...(sorted.length % 2 === 0
+            ? [
+                <Page key="blank">
+                  <div className="flex h-full items-center justify-center text-xs italic opacity-40">
+                    ~ Trang trống ~
+                  </div>
+                </Page>,
+              ]
+            : []),
+          <Page cover key="back-cover">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Sparkles className="h-6 w-6 text-amber-200/60" />
+              <p className="font-serif text-sm italic text-amber-100/70">
+                "Mỗi trang là một mảnh ký ức."
               </p>
             </div>
-            <div className="mt-8 text-[11px] uppercase tracking-widest text-amber-200/50">
-              {new Date().getFullYear()}
-            </div>
-          </div>
-        </Page>
-
-        {/* Table of contents */}
-        <Page>
-          <div className="flex h-full flex-col">
-            <div className="mb-4 border-b border-current/20 pb-2">
-              <div className="text-[10px] uppercase tracking-[0.3em] opacity-60">Mục lục</div>
-              <h3 className="font-serif text-2xl font-bold">Các tháng</h3>
-            </div>
-            <div className="flex-1 space-y-3 overflow-y-auto pr-2">
-              {grouped.size === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center gap-2 text-center opacity-60">
-                  <Sparkles className="h-6 w-6" />
-                  <p className="text-sm italic">Chưa có entry nào</p>
-                  <p className="text-xs">Nhấn "Viết hôm nay" để bắt đầu</p>
-                </div>
-              ) : (
-                Array.from(grouped.entries())
-                  .reverse()
-                  .map(([k, list]) => (
-                    <div key={k}>
-                      <div className="font-serif text-sm font-semibold">{monthLabel(k)}</div>
-                      <ul className="mt-1 space-y-1 pl-3 text-xs">
-                        {list
-                          .slice()
-                          .reverse()
-                          .map((e) => (
-                            <li key={e.id}>
-                              <button
-                                onClick={() => onOpenEntry(e.id)}
-                                className="text-left italic underline-offset-4 hover:underline"
-                              >
-                                {new Date(e.date).getDate()}.{" "}
-                                {e.title || "(không tiêu đề)"}
-                              </button>
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  ))
-              )}
-            </div>
-          </div>
-        </Page>
-
-        {/* Entry pages */}
-        {sorted.map((e) => (
-          <Page key={e.id}>
-            <div className="flex h-full flex-col">
-              <div className="mb-3 border-b border-current/20 pb-2">
-                <div className="text-[10px] uppercase tracking-[0.3em] opacity-60">
-                  {formatDate(e.date)}
-                </div>
-                <h3 className="mt-1 font-serif text-2xl font-bold leading-tight">
-                  {e.title || "(không tiêu đề)"}
-                </h3>
-              </div>
-              <div
-                className="prose prose-sm max-w-none flex-1 overflow-hidden font-serif leading-relaxed [&_*]:!text-current"
-                dangerouslySetInnerHTML={{
-                  __html: e.content || "<p class='italic opacity-50'>Trang trống...</p>",
-                }}
-              />
-              <button
-                onClick={() => onOpenEntry(e.id)}
-                className="mt-3 self-end text-[11px] uppercase tracking-widest opacity-60 hover:opacity-100"
-              >
-                Chỉnh sửa →
-              </button>
-            </div>
-          </Page>
-        ))}
-
-        {/* Back cover (ensure even page count by adding blank if needed) */}
-        {sorted.length % 2 === 0 && (
-          <Page>
-            <div className="flex h-full items-center justify-center text-xs italic opacity-40">
-              ~ Trang trống ~
-            </div>
-          </Page>
-        )}
-        <Page cover>
-          <div className="flex flex-col items-center gap-3 text-center">
-            <Sparkles className="h-6 w-6 text-amber-200/60" />
-            <p className="font-serif text-sm italic text-amber-100/70">
-              "Mỗi trang là một mảnh ký ức."
-            </p>
-          </div>
-        </Page>
+          </Page>,
+        ]}
       </HTMLFlipBook>
     </div>
   );
