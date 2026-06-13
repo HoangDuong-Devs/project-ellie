@@ -1,7 +1,7 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import HTMLFlipBook from "react-pageflip";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { JournalEntry } from "@/types/journal";
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Props = {
   entries: JournalEntry[];
@@ -9,15 +9,22 @@ type Props = {
   onNewEntry: () => void;
 };
 
-const Page = forwardRef<HTMLDivElement, { children: React.ReactNode; cover?: boolean }>(
-  ({ children, cover }, ref) => (
+type BookPage = {
+  key: string;
+  cover?: boolean;
+  content: ReactNode;
+};
+
+function PageSurface({ children, cover, side }: { children: ReactNode; cover?: boolean; side: "left" | "right" }) {
+  return (
     <div
-      ref={ref}
-      className={
+      className={cn(
+        "h-full w-full overflow-hidden shadow-inner",
         cover
-          ? "flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#3a2419] via-[#5c3a26] to-[#3a2419] text-amber-50 shadow-2xl"
-          : "h-full w-full overflow-hidden bg-[#fdf6e8] p-6 text-[#3a2419] shadow-inner dark:bg-[#2a2018] dark:text-amber-50/90"
-      }
+          ? "flex flex-col items-center justify-center bg-gradient-to-br from-[#3a2419] via-[#5c3a26] to-[#3a2419] text-amber-50 shadow-2xl"
+          : "bg-[#fdf6e8] p-6 text-[#3a2419] dark:bg-[#2a2018] dark:text-amber-50/90",
+        side === "left" ? "rounded-l-xl" : "rounded-r-xl",
+      )}
       style={
         cover
           ? undefined
@@ -29,9 +36,8 @@ const Page = forwardRef<HTMLDivElement, { children: React.ReactNode; cover?: boo
     >
       {children}
     </div>
-  ),
-);
-Page.displayName = "JournalPage";
+  );
+}
 
 function formatDate(iso: string) {
   try {
