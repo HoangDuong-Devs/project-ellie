@@ -254,6 +254,17 @@
   font-family: var(--font-mono);
 }
 
+@keyframes journal-page-in {
+  from {
+    opacity: 0.55;
+    transform: rotateY(-8deg) translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0deg) translateX(0);
+  }
+}
+
 /* Pill button reminiscent of Elysia "Get Started" */
 @utility btn-pill {
   display: inline-flex;
