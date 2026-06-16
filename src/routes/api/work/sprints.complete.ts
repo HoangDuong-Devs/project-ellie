@@ -21,8 +21,12 @@ export const Route = createFileRoute("/api/work/sprints/complete")({
         try {
           const id = idSchema.parse(payload.id);
           const moveUnfinishedToBacklog =
-            typeof payload.moveUnfinishedToBacklog === "boolean" ? payload.moveUnfinishedToBacklog : true;
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+            typeof payload.moveUnfinishedToBacklog === "boolean"
+              ? payload.moveUnfinishedToBacklog
+              : true;
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = completeSprint(data, id, moveUnfinishedToBacklog);
           await setValue(STORAGE_KEYS.WORK, next);
           return json({ sprints: next.sprints, cards: next.cards });

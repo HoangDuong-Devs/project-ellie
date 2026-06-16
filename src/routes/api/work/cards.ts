@@ -11,7 +11,9 @@ export const Route = createFileRoute("/api/work/cards")({
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const workspaceId = url.searchParams.get("workspaceId");
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         const cards = workspaceId
           ? data.cards.filter((card) => card.workspaceId === workspaceId)
           : data.cards;
@@ -19,16 +21,21 @@ export const Route = createFileRoute("/api/work/cards")({
       },
       POST: async ({ request }) => {
         const body = await safeJson(request);
-        if (!isObject(body) || typeof body.workspaceId !== "string" || typeof body.title !== "string") {
+        if (
+          !isObject(body) ||
+          typeof body.workspaceId !== "string" ||
+          typeof body.title !== "string"
+        ) {
           return badRequest("Expected { workspaceId, title, ... }");
         }
 
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         const columns = data.columns
           .filter((column) => column.workspaceId === body.workspaceId)
           .sort((a, b) => a.order - b.order);
-        const columnId =
-          typeof body.columnId === "string" ? body.columnId : (columns[0]?.id ?? "");
+        const columnId = typeof body.columnId === "string" ? body.columnId : (columns[0]?.id ?? "");
 
         const order = data.cards.filter(
           (card) => card.workspaceId === body.workspaceId && card.columnId === columnId,
@@ -57,7 +64,11 @@ export const Route = createFileRoute("/api/work/cards")({
           dueDate: typeof body.dueDate === "string" ? body.dueDate : undefined,
           storyPoints: typeof body.storyPoints === "number" ? body.storyPoints : undefined,
           sprintId:
-            typeof body.sprintId === "string" ? body.sprintId : body.sprintId === null ? null : null,
+            typeof body.sprintId === "string"
+              ? body.sprintId
+              : body.sprintId === null
+                ? null
+                : null,
           assignee: typeof body.assignee === "string" ? body.assignee : undefined,
           order,
           createdAt: now,
@@ -78,7 +89,9 @@ export const Route = createFileRoute("/api/work/cards")({
           return badRequest("Expected { id, patch }");
         }
 
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         const exists = data.cards.some((card) => card.id === body.id);
         if (!exists) return json({ error: "Card not found" }, { status: 404 });
 
@@ -98,7 +111,9 @@ export const Route = createFileRoute("/api/work/cards")({
         const body = await safeJson(request);
         if (!isObject(body) || typeof body.id !== "string") return badRequest("Expected { id }");
 
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         const next: WorkData = {
           ...data,
           cards: data.cards.filter((card) => card.id !== body.id),

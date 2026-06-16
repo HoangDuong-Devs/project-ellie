@@ -35,7 +35,10 @@ export function WorkspaceSettings({ workspace, onUpdate, onDelete, canDelete }: 
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            onBlur={() => description !== (workspace.description ?? "") && onUpdate({ description: description.trim() || undefined })}
+            onBlur={() =>
+              description !== (workspace.description ?? "") &&
+              onUpdate({ description: description.trim() || undefined })
+            }
             rows={2}
             className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           />
@@ -49,7 +52,9 @@ export function WorkspaceSettings({ workspace, onUpdate, onDelete, canDelete }: 
                 onClick={() => onUpdate({ icon: i })}
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-lg border text-base transition",
-                  workspace.icon === i ? "border-primary bg-primary/10" : "border-border hover:bg-muted",
+                  workspace.icon === i
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:bg-muted",
                 )}
               >
                 {i}
@@ -84,7 +89,8 @@ export function WorkspaceSettings({ workspace, onUpdate, onDelete, canDelete }: 
           <div className="flex-1">
             <div className="text-sm font-medium">Dùng Sprint (Scrum)</div>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Bật để có Backlog, Sprint, Story Points. Tắt thì chỉ dùng Kanban đơn giản. Bạn có thể bật/tắt bất kỳ lúc nào — dữ liệu cũ vẫn được giữ.
+              Bật để có Backlog, Sprint, Story Points. Tắt thì chỉ dùng Kanban đơn giản. Bạn có thể
+              bật/tắt bất kỳ lúc nào — dữ liệu cũ vẫn được giữ.
             </p>
           </div>
         </label>

@@ -1,7 +1,11 @@
 import { uid } from "@/lib/format";
 import type { LabelColor, Sprint, WorkCard, WorkColumn, WorkData, WorkLabel } from "@/types/work";
 
-export function addColumn(data: WorkData, workspaceId: string, name: string): { data: WorkData; column: WorkColumn } {
+export function addColumn(
+  data: WorkData,
+  workspaceId: string,
+  name: string,
+): { data: WorkData; column: WorkColumn } {
   const order = data.columns.filter((c) => c.workspaceId === workspaceId).length;
   const column: WorkColumn = {
     id: uid(),
@@ -18,7 +22,11 @@ export function addColumn(data: WorkData, workspaceId: string, name: string): { 
   };
 }
 
-export function updateColumn(data: WorkData, id: string, patch: Partial<Pick<WorkColumn, "name" | "order">>): WorkData {
+export function updateColumn(
+  data: WorkData,
+  id: string,
+  patch: Partial<Pick<WorkColumn, "name" | "order">>,
+): WorkData {
   return {
     ...data,
     columns: data.columns.map((c) => (c.id === id ? { ...c, ...patch } : c)),
@@ -48,7 +56,11 @@ export function removeColumn(data: WorkData, id: string): WorkData {
   };
 }
 
-export function addLabel(data: WorkData, name: string, color: LabelColor): { data: WorkData; label: WorkLabel } {
+export function addLabel(
+  data: WorkData,
+  name: string,
+  color: LabelColor,
+): { data: WorkData; label: WorkLabel } {
   const label: WorkLabel = {
     id: uid(),
     name,
@@ -64,7 +76,11 @@ export function addLabel(data: WorkData, name: string, color: LabelColor): { dat
   };
 }
 
-export function updateLabel(data: WorkData, id: string, patch: Partial<Pick<WorkLabel, "name" | "color">>): WorkData {
+export function updateLabel(
+  data: WorkData,
+  id: string,
+  patch: Partial<Pick<WorkLabel, "name" | "color">>,
+): WorkData {
   return {
     ...data,
     labels: data.labels.map((l) => (l.id === id ? { ...l, ...patch } : l)),
@@ -83,7 +99,12 @@ export function removeLabel(data: WorkData, id: string): WorkData {
   };
 }
 
-export function addSprint(data: WorkData, workspaceId: string, name: string, goal?: string): { data: WorkData; sprint: Sprint } {
+export function addSprint(
+  data: WorkData,
+  workspaceId: string,
+  name: string,
+  goal?: string,
+): { data: WorkData; sprint: Sprint } {
   const sprint: Sprint = {
     id: uid(),
     workspaceId,
@@ -113,12 +134,18 @@ export function startSprint(data: WorkData, id: string): WorkData {
   return {
     ...data,
     sprints: data.sprints.map((s) =>
-      s.id === id ? { ...s, state: "active", startDate: s.startDate ?? new Date().toISOString() } : s,
+      s.id === id
+        ? { ...s, state: "active", startDate: s.startDate ?? new Date().toISOString() }
+        : s,
     ),
   };
 }
 
-export function completeSprint(data: WorkData, id: string, moveUnfinishedToBacklog = true): WorkData {
+export function completeSprint(
+  data: WorkData,
+  id: string,
+  moveUnfinishedToBacklog = true,
+): WorkData {
   const sprint = data.sprints.find((s) => s.id === id);
   if (!sprint) return data;
 
@@ -145,12 +172,19 @@ export function removeSprint(data: WorkData, id: string): WorkData {
     ...data,
     sprints: data.sprints.filter((s) => s.id !== id),
     cards: data.cards.map((card) =>
-      card.sprintId === id ? { ...card, sprintId: null, updatedAt: new Date().toISOString() } : card,
+      card.sprintId === id
+        ? { ...card, sprintId: null, updatedAt: new Date().toISOString() }
+        : card,
     ),
   };
 }
 
-export function moveCard(data: WorkData, cardId: string, targetColumnId: string, targetIndex: number): WorkData {
+export function moveCard(
+  data: WorkData,
+  cardId: string,
+  targetColumnId: string,
+  targetIndex: number,
+): WorkData {
   const card = data.cards.find((c) => c.id === cardId);
   if (!card) return data;
 
@@ -205,7 +239,9 @@ export function applyCardAction(
       title: `${card.title} (copy)`,
       createdAt: now,
       updatedAt: now,
-      order: data.cards.filter((c) => c.workspaceId === card.workspaceId && c.columnId === card.columnId).length,
+      order: data.cards.filter(
+        (c) => c.workspaceId === card.workspaceId && c.columnId === card.columnId,
+      ).length,
     };
     return {
       data: {

@@ -77,14 +77,11 @@ function WorkPage() {
   const [isNewCard, setIsNewCard] = useState(false);
 
   if (!activeWorkspace) {
-    return (
-      <div className="py-20 text-center text-muted-foreground">Đang khởi tạo workspace…</div>
-    );
+    return <div className="py-20 text-center text-muted-foreground">Đang khởi tạo workspace…</div>;
   }
 
   const openNewCard = (columnId?: string, sprintId?: string | null) => {
-    const colId =
-      columnId ?? wsColumns.sort((a, b) => a.order - b.order)[0]?.id ?? "";
+    const colId = columnId ?? wsColumns.sort((a, b) => a.order - b.order)[0]?.id ?? "";
     const draft: WorkCard = {
       id: uid(),
       workspaceId: activeWorkspace.id,
@@ -95,7 +92,7 @@ function WorkPage() {
       type: "task",
       labelIds: [],
       subtasks: [],
-      sprintId: sprintId === undefined ? activeSprint?.id ?? null : sprintId,
+      sprintId: sprintId === undefined ? (activeSprint?.id ?? null) : sprintId,
       order: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -137,12 +134,8 @@ function WorkPage() {
           workspaces={data.workspaces}
           activeId={activeWorkspace.id}
           view={view}
-          onSelectWorkspace={(id) =>
-            navigate({ search: { ...search, ws: id, sprint: undefined } })
-          }
-          onSelectView={(v) =>
-            navigate({ search: { ...search, view: v } })
-          }
+          onSelectWorkspace={(id) => navigate({ search: { ...search, ws: id, sprint: undefined } })}
+          onSelectView={(v) => navigate({ search: { ...search, view: v } })}
           onCreate={async (d) => {
             const newId = await store.createWorkspace(d);
             if (!newId) return;
@@ -191,7 +184,7 @@ function WorkPage() {
                 labels={data.labels}
                 sprints={wsSprints}
                 showSprintFields={activeWorkspace.useSprints}
-                activeSprintId={activeWorkspace.useSprints ? activeSprint?.id ?? null : undefined}
+                activeSprintId={activeWorkspace.useSprints ? (activeSprint?.id ?? null) : undefined}
                 onCardClick={(c) => {
                   setEditingCard(c);
                   setIsNewCard(false);
@@ -229,7 +222,9 @@ function WorkPage() {
                   if (name?.trim()) store.createSprint(activeWorkspace.id, name.trim());
                 }}
                 onStartSprint={store.startSprint}
-                onCompleteSprint={(id) => store.completeSprint(id, { moveUnfinishedToBacklog: true })}
+                onCompleteSprint={(id) =>
+                  store.completeSprint(id, { moveUnfinishedToBacklog: true })
+                }
                 onDeleteSprint={store.deleteSprint}
                 onUpdateSprint={store.updateSprint}
               />

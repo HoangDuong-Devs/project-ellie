@@ -132,9 +132,10 @@ function CalendarPage() {
 
   const [view, setView] = useState<ViewMode>("week");
   const [cursor, setCursor] = useState<Date>(() => new Date());
-  const [editing, setEditing] = useState<{ item?: CalendarItem; defaults?: Partial<CalendarItem> } | null>(
-    null,
-  );
+  const [editing, setEditing] = useState<{
+    item?: CalendarItem;
+    defaults?: Partial<CalendarItem>;
+  } | null>(null);
   const { prefs } = useNotificationPrefs();
   const defaultEventReminders = prefs.defaultCalendarReminders ?? [];
 
@@ -174,8 +175,7 @@ function CalendarPage() {
       .catch(() => {
         /* ignore */
       });
-    const hasReminder =
-      it.reminderMinutes != null || (it.reminders && it.reminders.length > 0);
+    const hasReminder = it.reminderMinutes != null || (it.reminders && it.reminders.length > 0);
     if (hasReminder && !notifAsked) {
       setNotifAsked(true);
       requestNotificationPermission();
@@ -255,7 +255,10 @@ function CalendarPage() {
 
   return (
     <div>
-      <PageHeader title="Lịch" description="Quản lý sự kiện theo ngày, tuần, tháng — phong cách Google Calendar." />
+      <PageHeader
+        title="Lịch"
+        description="Quản lý sự kiện theo ngày, tuần, tháng — phong cách Google Calendar."
+      />
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div className="grid gap-5 lg:grid-cols-[260px_1fr]">
@@ -347,10 +350,16 @@ function CalendarPage() {
                 >
                   Hôm nay
                 </button>
-                <button onClick={() => shift(-1)} className="rounded-full border border-border p-1.5 hover:bg-accent/10">
+                <button
+                  onClick={() => shift(-1)}
+                  className="rounded-full border border-border p-1.5 hover:bg-accent/10"
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <button onClick={() => shift(1)} className="rounded-full border border-border p-1.5 hover:bg-accent/10">
+                <button
+                  onClick={() => shift(1)}
+                  className="rounded-full border border-border p-1.5 hover:bg-accent/10"
+                >
                   <ChevronRight className="h-4 w-4" />
                 </button>
                 <h3 className="ml-1 text-base font-bold sm:text-lg">{headerLabel}</h3>
@@ -362,7 +371,9 @@ function CalendarPage() {
                     onClick={() => setView(v)}
                     className={cn(
                       "rounded-full px-3 py-1.5 transition-all",
-                      view === v ? "bg-gradient-brand text-white shadow-soft" : "text-muted-foreground hover:text-foreground",
+                      view === v
+                        ? "bg-gradient-brand text-white shadow-soft"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {v === "day" ? "Ngày" : v === "week" ? "Tuần" : "Tháng"}
@@ -467,18 +478,28 @@ function MiniMonth({ cursor, onPick }: { cursor: Date; onPick: (d: Date) => void
   return (
     <div className="rounded-2xl border border-border bg-card p-3 shadow-soft">
       <div className="mb-2 flex items-center justify-between">
-        <button onClick={() => setM(addMonths(m, -1))} className="rounded-full p-1 hover:bg-accent/10">
+        <button
+          onClick={() => setM(addMonths(m, -1))}
+          className="rounded-full p-1 hover:bg-accent/10"
+        >
           <ChevronLeft className="h-3.5 w-3.5" />
         </button>
         <span className="text-xs font-semibold">
           Tháng {m.getMonth() + 1}, {m.getFullYear()}
         </span>
-        <button onClick={() => setM(addMonths(m, 1))} className="rounded-full p-1 hover:bg-accent/10">
+        <button
+          onClick={() => setM(addMonths(m, 1))}
+          className="rounded-full p-1 hover:bg-accent/10"
+        >
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
       </div>
       <div className="grid grid-cols-7 text-center text-[10px] font-semibold text-muted-foreground">
-        {WEEK_LABELS.map((d) => <div key={d} className="py-1">{d}</div>)}
+        {WEEK_LABELS.map((d) => (
+          <div key={d} className="py-1">
+            {d}
+          </div>
+        ))}
       </div>
       <div className="grid grid-cols-7 gap-0.5">
         {cells.map((d) => {
@@ -543,13 +564,20 @@ function CalendarsPanel({
               onClick={() => onToggleVisible(c.id)}
               className={cn(
                 "flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-all",
-                c.visible ? `${COLORS[c.color].bg} border-transparent` : "border-muted-foreground/40",
+                c.visible
+                  ? `${COLORS[c.color].bg} border-transparent`
+                  : "border-muted-foreground/40",
               )}
               aria-label="Toggle visibility"
             >
               {c.visible && <Check className="h-3 w-3 text-white" />}
             </button>
-            <span className={cn("flex-1 truncate text-sm", !c.visible && "text-muted-foreground line-through")}>
+            <span
+              className={cn(
+                "flex-1 truncate text-sm",
+                !c.visible && "text-muted-foreground line-through",
+              )}
+            >
               {c.name}
             </span>
             {calendars.length > 1 && (
@@ -649,7 +677,10 @@ function TodosPanel({
       ) : (
         <ul className="space-y-1">
           {open.map((todo) => (
-            <li key={todo.id} className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-muted/40">
+            <li
+              key={todo.id}
+              className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-muted/40"
+            >
               <button
                 onClick={() => onToggle(todo.id)}
                 className="flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 border-muted-foreground/40 hover:border-primary"
@@ -704,7 +735,9 @@ function MonthView({
   return (
     <div>
       <div className="grid grid-cols-7 border-b border-border pb-2 text-center text-xs font-semibold text-muted-foreground">
-        {WEEK_LABELS.map((d) => <div key={d}>{d}</div>)}
+        {WEEK_LABELS.map((d) => (
+          <div key={d}>{d}</div>
+        ))}
       </div>
       <div className="grid grid-cols-7 gap-1 pt-1">
         {cells.map((d) => {
@@ -722,7 +755,9 @@ function MonthView({
               <div
                 className={cn(
                   "min-h-[92px] cursor-pointer rounded-xl border p-1.5 transition-all",
-                  out ? "border-transparent bg-muted/20 text-muted-foreground/60" : "border-border bg-card hover:border-primary/40",
+                  out
+                    ? "border-transparent bg-muted/20 text-muted-foreground/60"
+                    : "border-border bg-card hover:border-primary/40",
                   isToday && "border-primary bg-pink-500/5",
                   hasPublic && !out && "border-rose-300/60 bg-rose-50/40",
                 )}
@@ -734,10 +769,21 @@ function MonthView({
                 title={[formatLunarFull(lunar), ...holidays.map((h) => h.name)].join("\n")}
               >
                 <div className="mb-0.5 flex items-start justify-between gap-1">
-                  <div className={cn("text-xs font-semibold leading-none", isToday && "text-gradient-brand", hasPublic && !out && !isToday && "text-rose-600")}>
+                  <div
+                    className={cn(
+                      "text-xs font-semibold leading-none",
+                      isToday && "text-gradient-brand",
+                      hasPublic && !out && !isToday && "text-rose-600",
+                    )}
+                  >
                     {d.getDate()}
                   </div>
-                  <div className={cn("text-[9px] font-medium leading-none", isFirstLunar ? "text-primary font-semibold" : "text-muted-foreground/70")}>
+                  <div
+                    className={cn(
+                      "text-[9px] font-medium leading-none",
+                      isFirstLunar ? "text-primary font-semibold" : "text-muted-foreground/70",
+                    )}
+                  >
                     {formatLunarShort(lunar)}
                   </div>
                 </div>
@@ -745,7 +791,11 @@ function MonthView({
                   <div
                     className={cn(
                       "mb-0.5 truncate text-[9px] font-medium leading-tight",
-                      hasPublic ? "text-rose-600" : hasTrad ? "text-amber-600" : "text-muted-foreground",
+                      hasPublic
+                        ? "text-rose-600"
+                        : hasTrad
+                          ? "text-amber-600"
+                          : "text-muted-foreground",
                     )}
                     title={holidays.map((h) => h.name).join(", ")}
                   >
@@ -770,14 +820,18 @@ function MonthView({
                           )}
                           title={o.title}
                         >
-                          {!o.allDay && <span className="opacity-70">{fmtTime(o.instanceStart)} </span>}
+                          {!o.allDay && (
+                            <span className="opacity-70">{fmtTime(o.instanceStart)} </span>
+                          )}
                           {o.title}
                         </button>
                       </DraggableEvent>
                     );
                   })}
                   {list.length > 2 && (
-                    <div className="px-1 text-[10px] text-muted-foreground">+{list.length - 2} nữa</div>
+                    <div className="px-1 text-[10px] text-muted-foreground">
+                      +{list.length - 2} nữa
+                    </div>
                   )}
                 </div>
               </div>
@@ -835,12 +889,37 @@ function WeekView({
             const holidays = getHolidaysForDate(d);
             const top = holidays[0];
             return (
-              <div key={d.toISOString()} className="border-l border-border px-2 py-2 text-center" title={top ? top.name : undefined}>
-                <div className="text-[10px] font-semibold text-muted-foreground">{WEEK_LABELS[i]}</div>
-                <div className={cn("text-base font-bold", isT && "text-gradient-brand", top?.type === "public" && !isT && "text-rose-600")}>{d.getDate()}</div>
-                <div className="text-[9px] text-muted-foreground/80">ÂL {formatLunarShort(lunar)}</div>
+              <div
+                key={d.toISOString()}
+                className="border-l border-border px-2 py-2 text-center"
+                title={top ? top.name : undefined}
+              >
+                <div className="text-[10px] font-semibold text-muted-foreground">
+                  {WEEK_LABELS[i]}
+                </div>
+                <div
+                  className={cn(
+                    "text-base font-bold",
+                    isT && "text-gradient-brand",
+                    top?.type === "public" && !isT && "text-rose-600",
+                  )}
+                >
+                  {d.getDate()}
+                </div>
+                <div className="text-[9px] text-muted-foreground/80">
+                  ÂL {formatLunarShort(lunar)}
+                </div>
                 {top && (
-                  <div className={cn("mt-0.5 truncate text-[9px] font-medium", top.type === "public" ? "text-rose-600" : top.type === "traditional" ? "text-amber-600" : "text-muted-foreground")}>
+                  <div
+                    className={cn(
+                      "mt-0.5 truncate text-[9px] font-medium",
+                      top.type === "public"
+                        ? "text-rose-600"
+                        : top.type === "traditional"
+                          ? "text-amber-600"
+                          : "text-muted-foreground",
+                    )}
+                  >
                     {top.name}
                   </div>
                 )}
@@ -865,7 +944,10 @@ function WeekView({
                         <DraggableEvent key={o.instanceKey} id={o.instanceKey}>
                           <button
                             onClick={() => onOpen(o)}
-                            className={cn("block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium", COLORS[color].soft)}
+                            className={cn(
+                              "block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium",
+                              COLORS[color].soft,
+                            )}
                           >
                             {o.title}
                           </button>
@@ -884,7 +966,11 @@ function WeekView({
           {/* Hour labels */}
           <div className="bg-muted/20">
             {HOURS.map((h) => (
-              <div key={h} style={{ height: HOUR_PX }} className="border-b border-border pr-2 text-right text-[10px] text-muted-foreground">
+              <div
+                key={h}
+                style={{ height: HOUR_PX }}
+                className="border-b border-border pr-2 text-right text-[10px] text-muted-foreground"
+              >
                 {pad(h)}:00
               </div>
             ))}
@@ -928,7 +1014,7 @@ function WeekView({
                       top={top}
                       height={height}
                       onResize={(deltaPx) => {
-                        const deltaMin = Math.round((deltaPx / HOUR_PX) * 60 / 15) * 15;
+                        const deltaMin = Math.round(((deltaPx / HOUR_PX) * 60) / 15) * 15;
                         const newEnd = new Date(o.instanceEnd.getTime() + deltaMin * 60_000);
                         if (newEnd <= o.instanceStart) return;
                         onResize(o.id, newEnd);
@@ -942,7 +1028,9 @@ function WeekView({
                         )}
                       >
                         <div className="font-semibold leading-tight">{o.title}</div>
-                        <div className="text-[10px] opacity-75">{fmtRange(o.instanceStart, o.instanceEnd)}</div>
+                        <div className="text-[10px] opacity-75">
+                          {fmtRange(o.instanceStart, o.instanceEnd)}
+                        </div>
                       </button>
                     </ResizableTimedEvent>
                   );
@@ -996,7 +1084,11 @@ function DayView({
             key={h.name}
             className={cn(
               "rounded-full px-2 py-0.5 text-[10px] font-medium",
-              h.type === "public" ? "bg-rose-100 text-rose-700" : h.type === "traditional" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground",
+              h.type === "public"
+                ? "bg-rose-100 text-rose-700"
+                : h.type === "traditional"
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-muted text-muted-foreground",
             )}
           >
             {h.name}
@@ -1014,7 +1106,10 @@ function DayView({
                 <button
                   key={o.instanceKey}
                   onClick={() => onOpen(o)}
-                  className={cn("block w-full truncate rounded px-2 py-1 text-left text-sm font-medium", COLORS[color].soft)}
+                  className={cn(
+                    "block w-full truncate rounded px-2 py-1 text-left text-sm font-medium",
+                    COLORS[color].soft,
+                  )}
                 >
                   {o.title}
                 </button>
@@ -1023,10 +1118,17 @@ function DayView({
           </div>
         </div>
       )}
-      <div className="relative grid grid-cols-[60px_1fr] overflow-y-auto" style={{ maxHeight: "65vh" }}>
+      <div
+        className="relative grid grid-cols-[60px_1fr] overflow-y-auto"
+        style={{ maxHeight: "65vh" }}
+      >
         <div className="bg-muted/20">
           {HOURS.map((h) => (
-            <div key={h} style={{ height: HOUR_PX }} className="border-b border-border pr-2 text-right text-[10px] text-muted-foreground">
+            <div
+              key={h}
+              style={{ height: HOUR_PX }}
+              className="border-b border-border pr-2 text-right text-[10px] text-muted-foreground"
+            >
               {pad(h)}:00
             </div>
           ))}
@@ -1041,7 +1143,10 @@ function DayView({
             />
           ))}
           {isT && (
-            <div className="pointer-events-none absolute inset-x-0 z-20 h-0.5 bg-gradient-brand" style={{ top: (nowMin / 60) * HOUR_PX }}>
+            <div
+              className="pointer-events-none absolute inset-x-0 z-20 h-0.5 bg-gradient-brand"
+              style={{ top: (nowMin / 60) * HOUR_PX }}
+            >
               <div className="absolute -left-1 -top-1 h-2 w-2 rounded-full bg-pink-500" />
             </div>
           )}
@@ -1057,11 +1162,18 @@ function DayView({
                 key={o.instanceKey}
                 onClick={() => onOpen(o)}
                 style={{ top, height, left: 8, right: 8 }}
-                className={cn("absolute overflow-hidden rounded-lg border px-2 py-1 text-left text-xs shadow-sm", COLORS[color].soft)}
+                className={cn(
+                  "absolute overflow-hidden rounded-lg border px-2 py-1 text-left text-xs shadow-sm",
+                  COLORS[color].soft,
+                )}
               >
                 <div className="font-semibold leading-tight">{o.title}</div>
-                <div className="text-[10px] opacity-75">{fmtRange(o.instanceStart, o.instanceEnd)}</div>
-                {o.description && <div className="mt-1 truncate text-[10px] opacity-75">{o.description}</div>}
+                <div className="text-[10px] opacity-75">
+                  {fmtRange(o.instanceStart, o.instanceEnd)}
+                </div>
+                {o.description && (
+                  <div className="mt-1 truncate text-[10px] opacity-75">{o.description}</div>
+                )}
               </button>
             );
           })}
@@ -1093,7 +1205,11 @@ function DroppableDay({
 function DraggableEvent({ id, children }: { id: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id });
   const style = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`, zIndex: 50, opacity: isDragging ? 0.7 : 1 }
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        zIndex: 50,
+        opacity: isDragging ? 0.7 : 1,
+      }
     : undefined;
   return (
     <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
@@ -1210,7 +1326,10 @@ function EventModal({
   const [ed, et] = form.endISO.split("T");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-lg rounded-3xl border border-border bg-card p-5 shadow-soft"
         onClick={(e) => e.stopPropagation()}
@@ -1294,7 +1413,9 @@ function EventModal({
               className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
             >
               {calendars.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           </div>
@@ -1354,7 +1475,6 @@ function EventModal({
             defaultValue={defaultReminders[0] ?? null}
           />
 
-
           <textarea
             placeholder="Mô tả (tuỳ chọn)"
             value={form.description || ""}
@@ -1372,7 +1492,9 @@ function EventModal({
             >
               <Trash2 className="h-4 w-4" /> Xoá
             </button>
-          ) : <div />}
+          ) : (
+            <div />
+          )}
           <div className="flex gap-2">
             <button onClick={onClose} className="rounded-xl border border-border px-4 py-2 text-sm">
               Huỷ
@@ -1422,7 +1544,11 @@ function RecurrenceEditor({
     if (p === "custom") {
       onChange({
         recurrence: "custom",
-        recurrenceRule: rule || { freq: "weekly", interval: 1, byWeekDays: [((anchorDate.getDay() + 6) % 7) as WeekDay] },
+        recurrenceRule: rule || {
+          freq: "weekly",
+          interval: 1,
+          byWeekDays: [((anchorDate.getDay() + 6) % 7) as WeekDay],
+        },
         recurrenceUntil: value.recurrenceUntil,
       });
       return;
@@ -1457,7 +1583,9 @@ function RecurrenceEditor({
         className="w-full rounded-xl border border-input bg-background px-2 py-1.5 text-sm"
       >
         {(Object.keys(RECURRENCE_LABELS) as RecurrenceFreq[]).map((k) => (
-          <option key={k} value={k}>{RECURRENCE_LABELS[k]}</option>
+          <option key={k} value={k}>
+            {RECURRENCE_LABELS[k]}
+          </option>
         ))}
       </select>
 
@@ -1498,7 +1626,8 @@ function RecurrenceEditor({
                       type="button"
                       onClick={() => {
                         const cur = new Set(rule.byWeekDays || []);
-                        if (active) cur.delete(wd); else cur.add(wd);
+                        if (active) cur.delete(wd);
+                        else cur.add(wd);
                         patchRule({ byWeekDays: Array.from(cur).sort() as WeekDay[] });
                       }}
                       className={cn(
@@ -1518,17 +1647,23 @@ function RecurrenceEditor({
                   type="button"
                   onClick={() => patchRule({ byWeekDays: [0, 1, 2, 3, 4] })}
                   className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-accent/10"
-                >T2-T6</button>
+                >
+                  T2-T6
+                </button>
                 <button
                   type="button"
                   onClick={() => patchRule({ byWeekDays: [5, 6] })}
                   className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-accent/10"
-                >Cuối tuần</button>
+                >
+                  Cuối tuần
+                </button>
                 <button
                   type="button"
                   onClick={() => patchRule({ byWeekDays: [0, 1, 2, 3, 4, 5, 6] })}
                   className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] hover:bg-accent/10"
-                >Mỗi ngày</button>
+                >
+                  Mỗi ngày
+                </button>
               </div>
             </div>
           )}
@@ -1583,7 +1718,9 @@ function RecurrenceEditor({
                   <input
                     type="date"
                     value={rule.until || ""}
-                    onChange={(e) => patchRule({ until: e.target.value || undefined, count: undefined })}
+                    onChange={(e) =>
+                      patchRule({ until: e.target.value || undefined, count: undefined })
+                    }
                     className="rounded-lg border border-input bg-background px-2 py-1 text-xs"
                   />
                 )}
@@ -1602,7 +1739,12 @@ function RecurrenceEditor({
                       min={1}
                       max={999}
                       value={rule.count ?? 10}
-                      onChange={(e) => patchRule({ count: Math.max(1, Number(e.target.value) || 1), until: undefined })}
+                      onChange={(e) =>
+                        patchRule({
+                          count: Math.max(1, Number(e.target.value) || 1),
+                          until: undefined,
+                        })
+                      }
                       className="w-16 rounded-lg border border-input bg-background px-2 py-1 text-xs"
                     />
                     <span>lần</span>
@@ -1698,9 +1840,7 @@ function RemindersEditor({
       </label>
       <p className="mb-2 text-[11px] text-muted-foreground">
         Thiết lập cho sự kiện này. Mặc định từ cài đặt:{" "}
-        {defaultValue == null
-          ? "Không nhắc"
-          : fmt(defaultValue)}
+        {defaultValue == null ? "Không nhắc" : fmt(defaultValue)}
       </p>
       {value == null ? (
         <p className="mb-2 text-xs text-muted-foreground">Chưa có nhắc nhở</p>
@@ -1745,17 +1885,17 @@ function RemindersEditor({
                 Không nhắc
               </button>
               {REMINDER_PRESETS.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                onClick={() => select(p.value)}
-                className={cn(
-                  "block w-full px-3 py-2 text-left text-sm hover:bg-accent/10",
-                  value === p.value && "bg-accent/10 font-medium",
-                )}
-              >
-                {p.label}
-              </button>
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => select(p.value)}
+                  className={cn(
+                    "block w-full px-3 py-2 text-left text-sm hover:bg-accent/10",
+                    value === p.value && "bg-accent/10 font-medium",
+                  )}
+                >
+                  {p.label}
+                </button>
               ))}
             </div>
           </div>

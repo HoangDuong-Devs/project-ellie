@@ -6,6 +6,12 @@ export function useStorageState<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(initialRef.current);
   const [ready, setReady] = useState(false);
   const mountedRef = useRef(true);
+  const lastSyncedRef = useRef<T | undefined>(undefined);
+  const valueRef = useRef(value);
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   useEffect(() => {
     initialRef.current = initial;
@@ -54,10 +60,41 @@ export function useStorageState<T>(key: string, initial: T) {
 
   useEffect(() => {
     if (!ready) return;
-    setStorageValueServer({ data: { key, value } }).catch(() => {
-      /* ignore */
-    });
+
+    // Skip syncing on the initial mount load
+    if (lastSyncedRef.current === undefined) {
+      lastSyncedRef.current = value;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (value !== lastSyncedRef.current) {
+        lastSyncedRef.current = value;
+        setStorageValueServer({ data: { key, value } }).catch(() => {
+          /* ignore */
+        });
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [key, ready, value]);
+
+  useEffect(() => {
+    return () => {
+      // Sync on unmount if there are unsaved changes
+      if (
+        ready &&
+        lastSyncedRef.current !== undefined &&
+        valueRef.current !== lastSyncedRef.current
+      ) {
+        setStorageValueServer({ data: { key, value: valueRef.current } }).catch(() => {
+          /* ignore */
+        });
+      }
+    };
+  }, [key, ready]);
 
   const reset = useCallback(() => setValue(initialRef.current), []);
 

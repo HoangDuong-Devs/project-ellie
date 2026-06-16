@@ -20,7 +20,9 @@ export const Route = createFileRoute("/api/work/sprints/start")({
         const payload = isObject(body) ? body : {};
         try {
           const id = idSchema.parse(payload.id);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = startSprint(data, id);
           await setValue(STORAGE_KEYS.WORK, next);
           return json({ sprints: next.sprints });

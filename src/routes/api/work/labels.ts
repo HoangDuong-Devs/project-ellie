@@ -16,14 +16,18 @@ export const Route = createFileRoute("/api/work/labels")({
   server: {
     handlers: {
       GET: async () => {
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         return json({ labels: data.labels });
       },
       POST: async ({ request }) => {
         const body = await safeJson(request);
         try {
           const parsed = labelCreateSchema.parse(body);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = addLabel(data, parsed.name, parsed.color);
           await setValue(STORAGE_KEYS.WORK, next.data);
           return json({ label: next.label, labels: next.data.labels });
@@ -36,7 +40,9 @@ export const Route = createFileRoute("/api/work/labels")({
         const body = await safeJson(request);
         try {
           const parsed = labelPatchSchema.parse(body);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = updateLabel(data, parsed.id, parsed.patch);
           await setValue(STORAGE_KEYS.WORK, next);
           return json({ labels: next.labels });
@@ -50,7 +56,9 @@ export const Route = createFileRoute("/api/work/labels")({
         const payload = isObject(body) ? body : {};
         try {
           const id = idSchema.parse(payload.id);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = removeLabel(data, id);
           await setValue(STORAGE_KEYS.WORK, next);
           return json({ labels: next.labels, cards: next.cards });

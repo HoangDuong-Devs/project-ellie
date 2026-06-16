@@ -17,6 +17,7 @@ It translates the local API contract into stable domain actions that an assistan
 Primary purpose: daily finance logging, reporting, and savings goal tracking.
 
 ### Read actions
+
 - list transactions
   - `GET /api/finance/transactions`
 - get monthly summary
@@ -25,6 +26,7 @@ Primary purpose: daily finance logging, reporting, and savings goal tracking.
   - `GET /api/finance/savings-goals`
 
 ### Write actions
+
 - create transaction
   - `POST /api/finance/transactions`
 - update transaction
@@ -39,6 +41,7 @@ Primary purpose: daily finance logging, reporting, and savings goal tracking.
   - `DELETE /api/finance/savings-goals`
 
 ### Recommended assistant commands
+
 - add expense/income
 - show this month spending
 - show cashflow summary
@@ -52,6 +55,7 @@ Primary purpose: daily finance logging, reporting, and savings goal tracking.
 Primary purpose: event planning, schedule management, and calendar structure.
 
 ### Read actions
+
 - list calendars
   - `GET /api/calendar/calendars`
 - list events
@@ -60,6 +64,7 @@ Primary purpose: event planning, schedule management, and calendar structure.
   - `GET /api/calendar/todos`
 
 ### Write actions
+
 - create/update event
   - `POST /api/calendar/events`
 - patch event
@@ -80,6 +85,7 @@ Primary purpose: event planning, schedule management, and calendar structure.
   - `DELETE /api/calendar/todos`
 
 ### Recommended assistant commands
+
 - create event
 - move event
 - cancel event
@@ -93,6 +99,7 @@ Primary purpose: event planning, schedule management, and calendar structure.
 Primary purpose: project tracking, kanban, backlog, and sprint operations.
 
 ### Read actions
+
 - get full work data
   - `GET /api/work/data`
 - optional domain reads
@@ -103,6 +110,7 @@ Primary purpose: project tracking, kanban, backlog, and sprint operations.
   - `GET /api/work/sprints`
 
 ### Write actions
+
 - create/update/delete workspace
   - `/api/work/workspaces`
 - create/update/delete card
@@ -121,6 +129,7 @@ Primary purpose: project tracking, kanban, backlog, and sprint operations.
   - `POST /api/work/sprints/complete`
 
 ### Recommended assistant commands
+
 - list active projects
 - create work card
 - move card to another column
@@ -135,10 +144,12 @@ Primary purpose: project tracking, kanban, backlog, and sprint operations.
 Primary purpose: personal goals and milestone tracking.
 
 ### Read actions
+
 - list goals
   - `GET /api/goals`
 
 ### Write actions
+
 - create goal
   - `POST /api/goals`
 - patch goal
@@ -147,6 +158,7 @@ Primary purpose: personal goals and milestone tracking.
   - `DELETE /api/goals`
 
 ### Recommended assistant commands
+
 - create goal
 - update goal steps
 - mark goal completed
@@ -158,12 +170,14 @@ Primary purpose: personal goals and milestone tracking.
 Primary purpose: pomodoro/focus preferences and session tracking.
 
 ### Read actions
+
 - get focus settings
   - `GET /api/focus/settings`
 - list focus sessions
   - `GET /api/focus/sessions`
 
 ### Write actions
+
 - create or replace settings
   - `POST /api/focus/settings`
 - patch settings
@@ -172,6 +186,7 @@ Primary purpose: pomodoro/focus preferences and session tracking.
   - `POST /api/focus/sessions`
 
 ### Recommended assistant commands
+
 - show focus settings
 - update pomodoro timing
 - log focus session

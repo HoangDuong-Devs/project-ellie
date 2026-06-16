@@ -33,3 +33,9 @@ data/*.json
 *.njsproj
 *.sln
 *.sw?
+.gitnexus
+
+# Local agent/private project notes
+.claude/
+AGENTS.md
+CLAUDE.md

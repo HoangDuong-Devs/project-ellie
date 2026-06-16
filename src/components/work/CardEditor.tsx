@@ -1,18 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Bug,
-  BookOpen,
-  CheckSquare,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Bug, BookOpen, CheckSquare, Plus, Trash2, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { uid } from "@/lib/format";
 import {
@@ -43,14 +31,25 @@ interface Props {
   onCreateLabel: (name: string, color: LabelColor) => void | Promise<unknown>;
 }
 
-const TYPE_OPTIONS: { value: IssueType; label: string; icon: typeof CheckSquare; color: string }[] = [
-  { value: "task", label: "Task", icon: CheckSquare, color: "text-blue-500" },
-  { value: "story", label: "Story", icon: BookOpen, color: "text-emerald-500" },
-  { value: "bug", label: "Bug", icon: Bug, color: "text-rose-500" },
-];
+const TYPE_OPTIONS: { value: IssueType; label: string; icon: typeof CheckSquare; color: string }[] =
+  [
+    { value: "task", label: "Task", icon: CheckSquare, color: "text-blue-500" },
+    { value: "story", label: "Story", icon: BookOpen, color: "text-emerald-500" },
+    { value: "bug", label: "Bug", icon: Bug, color: "text-rose-500" },
+  ];
 
 const PRIORITY_OPTIONS: WorkPriority[] = ["highest", "high", "medium", "low", "lowest"];
-const LABEL_COLOR_KEYS: LabelColor[] = ["pink", "red", "orange", "yellow", "green", "cyan", "blue", "purple", "gray"];
+const LABEL_COLOR_KEYS: LabelColor[] = [
+  "pink",
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "cyan",
+  "blue",
+  "purple",
+  "gray",
+];
 
 export function CardEditor({
   open,
@@ -157,7 +156,10 @@ export function CardEditor({
               ) : (
                 <div className="space-y-1.5">
                   {draft.subtasks.map((s) => (
-                    <div key={s.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5">
+                    <div
+                      key={s.id}
+                      className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5"
+                    >
                       <input
                         type="checkbox"
                         checked={s.done}
@@ -368,7 +370,10 @@ function LabelsField({
       <div className="mb-2 flex items-center justify-between">
         <label className="text-xs font-medium text-muted-foreground">Nhãn</label>
         {!adding && (
-          <button onClick={() => setAdding(true)} className="flex items-center gap-1 text-xs text-primary hover:underline">
+          <button
+            onClick={() => setAdding(true)}
+            className="flex items-center gap-1 text-xs text-primary hover:underline"
+          >
             <Plus className="h-3 w-3" /> Thêm nhãn
           </button>
         )}

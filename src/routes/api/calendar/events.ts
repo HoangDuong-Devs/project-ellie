@@ -6,10 +6,7 @@ import {
   replaceCalendarItem,
   resolveOccurrenceDate,
 } from "@/services/calendar-actions.server";
-import {
-  removeCalendarItem,
-  upsertCalendarItem,
-} from "@/services/calendar-service";
+import { removeCalendarItem, upsertCalendarItem } from "@/services/calendar-service";
 import {
   cancelCalendarReminderJobs,
   syncCalendarReminderJobs,

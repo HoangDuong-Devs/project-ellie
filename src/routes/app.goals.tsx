@@ -3,12 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Check, Plus, Trash2, Trophy } from "lucide-react";
 import { uid } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
-import {
-  createGoal,
-  deleteGoal,
-  listGoals,
-  patchGoal,
-} from "@/services/goals-api-client";
+import { createGoal, deleteGoal, listGoals, patchGoal } from "@/services/goals-api-client";
 import type { Goal } from "@/types/goals";
 import { cn } from "@/lib/utils";
 import { useDataAutoRefresh } from "@/services/api-live-sync";
@@ -116,7 +111,10 @@ function Goals() {
 
   return (
     <div>
-      <PageHeader title="Mục tiêu" description="Đặt mục tiêu, chia nhỏ thành các bước, theo dõi tiến độ." />
+      <PageHeader
+        title="Mục tiêu"
+        description="Đặt mục tiêu, chia nhỏ thành các bước, theo dõi tiến độ."
+      />
 
       <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <h3 className="mb-4 font-semibold">Tạo mục tiêu mới</h3>

@@ -106,7 +106,10 @@ export function createSavingsGoal(input: CreateSavingsGoalInput) {
   });
 }
 
-export function patchSavingsGoal(id: string, patch: Partial<Pick<SavingsGoal, "title" | "target">>) {
+export function patchSavingsGoal(
+  id: string,
+  patch: Partial<Pick<SavingsGoal, "title" | "target">>,
+) {
   return request<SavingsGoalsResponse>("/api/finance/savings-goals", {
     method: "PATCH",
     body: JSON.stringify({ id, patch }),

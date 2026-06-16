@@ -1,7 +1,11 @@
 import "@tanstack/react-start/server-only";
 import { getOrInitValue, setValue } from "@/services/domain-store.server";
 import { STORAGE_KEYS } from "@/services/storage-keys";
-import type { AppNotification, NotificationCategory, NotificationKind } from "@/types/notifications";
+import type {
+  AppNotification,
+  NotificationCategory,
+  NotificationKind,
+} from "@/types/notifications";
 
 const MAX_KEEP = 200;
 

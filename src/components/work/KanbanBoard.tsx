@@ -81,7 +81,7 @@ export function KanbanBoard({
     return map;
   }, [cards, sortedColumns, showSprintFields, activeSprintId]);
 
-  const activeCard = activeId ? cards.find((c) => c.id === activeId) ?? null : null;
+  const activeCard = activeId ? (cards.find((c) => c.id === activeId) ?? null) : null;
 
   const findColumnOfCard = (cardId: string): string | null => {
     for (const [colId, list] of cardsByColumn.entries()) {

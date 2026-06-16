@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { Bell, Check, Trash2, X, CalendarRange, Wallet, Target, Timer, Info } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   useNotificationCenter,
   type AppNotification,
@@ -52,10 +48,10 @@ function NotifRow({
     n.kind === "danger"
       ? "border-l-destructive"
       : n.kind === "warn"
-      ? "border-l-orange-500"
-      : n.kind === "success"
-      ? "border-l-emerald-500"
-      : "border-l-primary";
+        ? "border-l-orange-500"
+        : n.kind === "success"
+          ? "border-l-emerald-500"
+          : "border-l-primary";
   return (
     <div
       className={cn(

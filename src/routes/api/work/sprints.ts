@@ -18,15 +18,21 @@ export const Route = createFileRoute("/api/work/sprints")({
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const workspaceId = url.searchParams.get("workspaceId");
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
-        const sprints = workspaceId ? data.sprints.filter((s) => s.workspaceId === workspaceId) : data.sprints;
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
+        const sprints = workspaceId
+          ? data.sprints.filter((s) => s.workspaceId === workspaceId)
+          : data.sprints;
         return json({ sprints });
       },
       POST: async ({ request }) => {
         const body = await safeJson(request);
         try {
           const parsed = sprintCreateSchema.parse(body);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = addSprint(data, parsed.workspaceId, parsed.name, parsed.goal);
           await setValue(STORAGE_KEYS.WORK, next.data);
           return json({ sprint: next.sprint, sprints: next.data.sprints });
@@ -39,7 +45,9 @@ export const Route = createFileRoute("/api/work/sprints")({
         const body = await safeJson(request);
         try {
           const parsed = sprintPatchSchema.parse(body);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = updateSprint(data, parsed.id, parsed.patch);
           await setValue(STORAGE_KEYS.WORK, next);
           return json({ sprints: next.sprints });
@@ -53,7 +61,9 @@ export const Route = createFileRoute("/api/work/sprints")({
         const payload = isObject(body) ? body : {};
         try {
           const id = idSchema.parse(payload.id);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = removeSprint(data, id);
           await setValue(STORAGE_KEYS.WORK, next);
           return json({ sprints: next.sprints, cards: next.cards });

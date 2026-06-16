@@ -36,7 +36,7 @@ Khi anh thêm một sự kiện từ giao diện:
 
 Tính toán run_at và đẩy Task vào Min-Heap.
 
-Kiểm tra đánh thức (Ngắt - Interrupt): * Nếu Task vừa thêm trở thành phần tử mới ở đỉnh Heap (nghĩa là nó diễn ra sớm hơn task mà Worker đang chờ), anh phải gửi một tín hiệu đánh thức ngắt giấc ngủ hiện tại của Worker.
+Kiểm tra đánh thức (Ngắt - Interrupt): \* Nếu Task vừa thêm trở thành phần tử mới ở đỉnh Heap (nghĩa là nó diễn ra sớm hơn task mà Worker đang chờ), anh phải gửi một tín hiệu đánh thức ngắt giấc ngủ hiện tại của Worker.
 
 Worker thức dậy, vòng lặp chạy lại, tính toán lại delay theo task mới này và ngủ lại với thời gian ngắn hơn.
 
@@ -47,6 +47,7 @@ Worker thức dậy, vòng lặp chạy lại, tính toán lại delay theo task
 Goal: move Project Ellie from browser-only watchers toward a server-backed scheduler domain.
 
 ### Implemented skeleton
+
 - Added `SchedulerJob` model with job type, status, schedule time, attempts, dedupe key, and payload.
 - Added persisted storage key: `ellie:scheduler-jobs`.
 - Added scheduler domain wiring so server live sync can publish scheduler changes.
@@ -62,12 +63,14 @@ Goal: move Project Ellie from browser-only watchers toward a server-backed sched
   - `pnpm scheduler:run`
 
 ### Current behavior
+
 - Jobs are stored persistently.
 - Due jobs create notification-center items when executed.
 - Dedupe is respected via `dedupeKey`.
 - Retry metadata exists, but runner is still simple interval/manual execution based.
 
 ### Next steps
+
 1. Calendar event save/update should create reminder jobs directly.
 2. Daily digest should become a real scheduled job, not browser watcher logic.
 3. Budget threshold checks should move from client watcher to server-side scheduled jobs.
@@ -75,4 +78,5 @@ Goal: move Project Ellie from browser-only watchers toward a server-backed sched
 5. Expose scheduler status/history in the UI.
 
 ### Longer-term worker design
+
 Use a priority-queue or next-due-job wakeup loop for efficient execution. The current v1 keeps the contract and persistence simple first, then upgrades the runner implementation later.

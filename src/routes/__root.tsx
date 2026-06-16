@@ -30,17 +30,37 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lovable App" },
-      { name: "description", content: "ProjectEllie is a personal productivity app for managing finances, schedules, and tasks." },
+      {
+        name: "description",
+        content:
+          "ProjectEllie is a personal productivity app for managing finances, schedules, and tasks.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "ProjectEllie is a personal productivity app for managing finances, schedules, and tasks." },
+      {
+        property: "og:description",
+        content:
+          "ProjectEllie is a personal productivity app for managing finances, schedules, and tasks.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "ProjectEllie is a personal productivity app for managing finances, schedules, and tasks." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ba017de-3a3c-492f-bb27-54df587c0188/id-preview-3f560310--90e329a1-79c6-43eb-b0d7-bac1519bf3fc.lovable.app-1776737933476.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ba017de-3a3c-492f-bb27-54df587c0188/id-preview-3f560310--90e329a1-79c6-43eb-b0d7-bac1519bf3fc.lovable.app-1776737933476.png" },
+      {
+        name: "twitter:description",
+        content:
+          "ProjectEllie is a personal productivity app for managing finances, schedules, and tasks.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ba017de-3a3c-492f-bb27-54df587c0188/id-preview-3f560310--90e329a1-79c6-43eb-b0d7-bac1519bf3fc.lovable.app-1776737933476.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2ba017de-3a3c-492f-bb27-54df587c0188/id-preview-3f560310--90e329a1-79c6-43eb-b0d7-bac1519bf3fc.lovable.app-1776737933476.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

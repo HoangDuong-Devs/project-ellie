@@ -13,7 +13,9 @@ export const Route = createFileRoute("/api/work/workspaces")({
   server: {
     handlers: {
       GET: async () => {
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         return json({ workspaces: data.workspaces });
       },
       POST: async ({ request }) => {
@@ -22,7 +24,9 @@ export const Route = createFileRoute("/api/work/workspaces")({
           return badRequest("Expected { name, ... }");
         }
 
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         const created = createWorkspaceWithDefaults({
           name: body.name,
           icon: typeof body.icon === "string" ? body.icon : undefined,
@@ -46,7 +50,9 @@ export const Route = createFileRoute("/api/work/workspaces")({
           return badRequest("Expected { id, patch }");
         }
 
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         const exists = data.workspaces.some((ws) => ws.id === body.id);
         if (!exists) return json({ error: "Workspace not found" }, { status: 404 });
 
@@ -64,7 +70,9 @@ export const Route = createFileRoute("/api/work/workspaces")({
         const body = await safeJson(request);
         if (!isObject(body) || typeof body.id !== "string") return badRequest("Expected { id }");
 
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         const next: WorkData = {
           ...data,
           workspaces: data.workspaces.filter((ws) => ws.id !== body.id),

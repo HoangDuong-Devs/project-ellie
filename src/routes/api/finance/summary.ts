@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  listTransactionsForMonth,
-  monthlySummary,
-  totalBalance,
-} from "@/services/finance-service";
+import { listTransactionsForMonth, monthlySummary, totalBalance } from "@/services/finance-service";
 import { badRequest, json } from "@/services/api-utils";
 import { getOrInitValue } from "@/services/domain-store.server";
 import { financeSummaryQuerySchema } from "@/services/finance-api-schemas";

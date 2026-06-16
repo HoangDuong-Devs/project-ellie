@@ -77,7 +77,10 @@ export async function createSchedulerJob(input: {
   maxAttempts?: number;
 }) {
   const jobs = await readJobs();
-  if (input.dedupeKey && jobs.some((job) => job.dedupeKey === input.dedupeKey && !isTerminalStatus(job.status))) {
+  if (
+    input.dedupeKey &&
+    jobs.some((job) => job.dedupeKey === input.dedupeKey && !isTerminalStatus(job.status))
+  ) {
     return jobs.find((job) => job.dedupeKey === input.dedupeKey) ?? null;
   }
 
@@ -199,7 +202,9 @@ export async function runDueSchedulerJobs(now = new Date()): Promise<SchedulerRu
         status: canRetry ? "pending" : "failed",
         failedAt: canRetry ? undefined : nowIso(),
         nextAttemptAt: canRetry ? new Date(Date.now() + RETRY_DELAY_MS).toISOString() : undefined,
-        scheduledFor: canRetry ? new Date(Date.now() + RETRY_DELAY_MS).toISOString() : runningJob.scheduledFor,
+        scheduledFor: canRetry
+          ? new Date(Date.now() + RETRY_DELAY_MS).toISOString()
+          : runningJob.scheduledFor,
         updatedAt: nowIso(),
         error: error instanceof Error ? error.message : "Unknown scheduler error",
       };

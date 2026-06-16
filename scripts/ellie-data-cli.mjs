@@ -89,7 +89,9 @@ async function main() {
     try {
       parsed = JSON.parse(rawValue);
     } catch (error) {
-      console.error(`Invalid JSON value: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `Invalid JSON value: ${error instanceof Error ? error.message : String(error)}`,
+      );
       process.exit(1);
     }
 

@@ -1,14 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, RotateCcw, Settings as SettingsIcon } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { toast } from "sonner";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   createFocusSession,
   getFocusSettings,
@@ -18,6 +12,16 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import type { FocusSettings, PomodoroSession } from "@/types/focus";
 import { useDataAutoRefresh } from "@/services/api-live-sync";
+
+interface ActiveTimerState {
+  mode: "work" | "break";
+  secondsLeft: number;
+  lastTickTime: number;
+  segmentStart: number;
+  running: boolean;
+}
+
+const ACTIVE_TIMER_KEY = "ellie:active-focus-timer";
 
 export const Route = createFileRoute("/app/focus")({
   head: () => ({ meta: [{ title: "Focus — ProjectEllie" }] }),
@@ -37,12 +41,13 @@ function Focus() {
   const [showSettings, setShowSettings] = useState(false);
   const totalRef = useRef(settings.workMinutes * 60);
   const segmentStartRef = useRef<number | null>(null);
+  const lastTickTimeRef = useRef<number | null>(null);
+  const hasRestoredRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const skipNextTimerResetRef = useRef(false);
 
   const refresh = useCallback(async () => {
-    const [settingsRes, sessionsRes] = await Promise.all([
-      getFocusSettings(),
-      listFocusSessions(),
-    ]);
+    const [settingsRes, sessionsRes] = await Promise.all([getFocusSettings(), listFocusSessions()]);
     setSettings(settingsRes.settings);
     setSessions(sessionsRes.sessions);
   }, []);
@@ -58,10 +63,81 @@ function Focus() {
         if (!active) return;
         setSettings(settingsRes.settings);
         setSessions(sessionsRes.sessions);
+
+        // Restore active timer state
+        try {
+          const raw = localStorage.getItem(ACTIVE_TIMER_KEY);
+          if (raw) {
+            const state: ActiveTimerState = JSON.parse(raw);
+            if (state.running) {
+              const elapsedSinceLastPersist = Math.max(
+                0,
+                Math.floor((Date.now() - state.lastTickTime) / 1000),
+              );
+              const remainingSeconds = state.secondsLeft - elapsedSinceLastPersist;
+
+              if (remainingSeconds > 0) {
+                hasRestoredRef.current = true;
+                setMode(state.mode);
+                setSecondsLeft(remainingSeconds);
+                totalRef.current =
+                  (state.mode === "work"
+                    ? settingsRes.settings.workMinutes
+                    : settingsRes.settings.breakMinutes) * 60;
+                setRunning(true);
+                segmentStartRef.current = state.segmentStart;
+                lastTickTimeRef.current = Date.now();
+                localStorage.setItem(
+                  ACTIVE_TIMER_KEY,
+                  JSON.stringify({
+                    ...state,
+                    secondsLeft: remainingSeconds,
+                    lastTickTime: Date.now(),
+                  } satisfies ActiveTimerState),
+                );
+              } else {
+                const elapsedSec = Math.floor((Date.now() - state.segmentStart) / 1000);
+                const minutes = Math.max(1, Math.round(elapsedSec / 60));
+                if (state.mode === "work" && minutes > 0) {
+                  const data = await createFocusSession(minutes);
+                  setSessions(data.sessions);
+                  toast.success(`Đã lưu ${minutes} phút tập trung từ phiên đang chạy.`);
+                }
+                hasRestoredRef.current = true;
+                setMode(state.mode === "work" ? "break" : "work");
+                const nextTotal =
+                  (state.mode === "work"
+                    ? settingsRes.settings.breakMinutes
+                    : settingsRes.settings.workMinutes) * 60;
+                totalRef.current = nextTotal;
+                setSecondsLeft(nextTotal);
+                setRunning(false);
+                segmentStartRef.current = null;
+                lastTickTimeRef.current = null;
+                localStorage.removeItem(ACTIVE_TIMER_KEY);
+              }
+            } else {
+              hasRestoredRef.current = true;
+              setMode(state.mode);
+              setSecondsLeft(state.secondsLeft);
+              setRunning(false);
+              lastTickTimeRef.current = null;
+              totalRef.current =
+                (state.mode === "work"
+                  ? settingsRes.settings.workMinutes
+                  : settingsRes.settings.breakMinutes) * 60;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to restore timer state", e);
+        }
       } catch {
         // keep defaults
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          hasInitializedRef.current = true;
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -84,45 +160,102 @@ function Focus() {
     if (segmentStartRef.current == null) return;
     const elapsedSec = Math.floor((Date.now() - segmentStartRef.current) / 1000);
     segmentStartRef.current = null;
+    lastTickTimeRef.current = null;
     const minutes = Math.floor(elapsedSec / 60);
     if (mode === "work" && minutes > 0) {
       void logSession(minutes);
     }
   }
 
+  function persistActiveTimer(nextSecondsLeft: number, tickTime: number) {
+    if (segmentStartRef.current === null) return;
+    localStorage.setItem(
+      ACTIVE_TIMER_KEY,
+      JSON.stringify({
+        mode,
+        secondsLeft: nextSecondsLeft,
+        lastTickTime: tickTime,
+        segmentStart: segmentStartRef.current,
+        running: true,
+      } satisfies ActiveTimerState),
+    );
+  }
+
+  function syncRunningTimer(now = Date.now()) {
+    if (!running) return;
+    const lastTick = lastTickTimeRef.current ?? now;
+    const elapsedSeconds = Math.max(0, Math.floor((now - lastTick) / 1000));
+    if (elapsedSeconds <= 0) return;
+
+    lastTickTimeRef.current = now;
+    setSecondsLeft((current) => {
+      const next = Math.max(0, current - elapsedSeconds);
+      if (next === 0) {
+        if (mode === "work" && segmentStartRef.current != null) {
+          const elapsedSec = Math.floor((now - segmentStartRef.current) / 1000);
+          const minutes = Math.max(1, Math.round(elapsedSec / 60));
+          queueMicrotask(() => {
+            void logSession(minutes);
+          });
+        }
+        segmentStartRef.current = null;
+        lastTickTimeRef.current = null;
+        setRunning(false);
+        setMode((currentMode) => (currentMode === "work" ? "break" : "work"));
+        localStorage.removeItem(ACTIVE_TIMER_KEY);
+        return 0;
+      }
+
+      persistActiveTimer(next, now);
+      return next;
+    });
+  }
+
   useEffect(() => {
+    if (!hasInitializedRef.current) return;
+    if (hasRestoredRef.current) {
+      hasRestoredRef.current = false;
+      return;
+    }
+    if (skipNextTimerResetRef.current) {
+      skipNextTimerResetRef.current = false;
+      return;
+    }
     const total = (mode === "work" ? settings.workMinutes : settings.breakMinutes) * 60;
     totalRef.current = total;
     setSecondsLeft(total);
     setRunning(false);
     segmentStartRef.current = null;
+    lastTickTimeRef.current = null;
+    localStorage.removeItem(ACTIVE_TIMER_KEY);
   }, [mode, settings.workMinutes, settings.breakMinutes]);
 
   useEffect(() => {
     if (!running) return;
-    segmentStartRef.current = Date.now();
+    if (segmentStartRef.current === null) {
+      segmentStartRef.current = Date.now();
+    }
+    if (lastTickTimeRef.current === null) {
+      lastTickTimeRef.current = Date.now();
+    }
     const id = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(id);
-          // log full segment on natural completion
-          if (mode === "work" && segmentStartRef.current != null) {
-            const elapsedSec = Math.floor((Date.now() - segmentStartRef.current) / 1000);
-            const minutes = Math.max(1, Math.round(elapsedSec / 60));
-            queueMicrotask(() => {
-              void logSession(minutes);
-            });
-          }
-          segmentStartRef.current = null;
-          setRunning(false);
-          setMode((m) => (m === "work" ? "break" : "work"));
-          return 0;
-        }
-        return s - 1;
-      });
+      syncRunningTimer(Date.now());
     }, 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const syncFromVisibility = () => {
+      if (!document.hidden) {
+        syncRunningTimer(Date.now());
+      }
+    };
+
+    window.addEventListener("focus", syncFromVisibility);
+    document.addEventListener("visibilitychange", syncFromVisibility);
+
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", syncFromVisibility);
+      document.removeEventListener("visibilitychange", syncFromVisibility);
+    };
   }, [running, mode]);
 
   function handleToggle() {
@@ -130,16 +263,75 @@ function Focus() {
       // pausing — log elapsed
       logElapsed();
       setRunning(false);
+      localStorage.removeItem(ACTIVE_TIMER_KEY);
     } else {
+      const now = Date.now();
       setRunning(true);
+      segmentStartRef.current ??= now;
+      lastTickTimeRef.current = now;
+      persistActiveTimer(secondsLeft, now);
+    }
+  }
+
+  function interruptActiveTimer() {
+    if (running) {
+      logElapsed();
+    }
+    setRunning(false);
+    segmentStartRef.current = null;
+    lastTickTimeRef.current = null;
+    localStorage.removeItem(ACTIVE_TIMER_KEY);
+  }
+
+  function handleModeChange(nextMode: "work" | "break") {
+    if (nextMode === mode) return;
+    interruptActiveTimer();
+    setMode(nextMode);
+  }
+
+  async function handleSettingsChange(patch: Partial<FocusSettings>) {
+    const next = {
+      ...settings,
+      ...patch,
+    };
+
+    const currentModeDurationChanged =
+      (mode === "work" && typeof patch.workMinutes === "number") ||
+      (mode === "break" && typeof patch.breakMinutes === "number");
+
+    skipNextTimerResetRef.current = true;
+
+    if (currentModeDurationChanged) {
+      const nextTotal = (mode === "work" ? next.workMinutes : next.breakMinutes) * 60;
+      const elapsedSeconds = Math.max(0, totalRef.current - secondsLeft);
+      const nextSecondsLeft = Math.max(0, nextTotal - elapsedSeconds);
+
+      totalRef.current = nextTotal;
+      setSecondsLeft(nextSecondsLeft);
+
+      if (running) {
+        const segmentStart =
+          segmentStartRef.current ?? Date.now() - elapsedSeconds * 1000;
+        const now = Date.now();
+        segmentStartRef.current = segmentStart;
+        lastTickTimeRef.current = now;
+        persistActiveTimer(nextSecondsLeft, now);
+      }
+    }
+
+    setSettings(next);
+
+    try {
+      const data = await patchFocusSettings(patch);
+      setSettings(data.settings);
+    } catch {
+      // ignore
     }
   }
 
   function handleReset() {
-    if (running) logElapsed();
-    setRunning(false);
+    interruptActiveTimer();
     setSecondsLeft(totalRef.current);
-    segmentStartRef.current = null;
   }
 
   const progress = 1 - secondsLeft / totalRef.current;
@@ -192,17 +384,8 @@ function Focus() {
                 max={120}
                 value={settings.workMinutes}
                 onChange={async (e) => {
-                  const next = {
-                    ...settings,
-                    workMinutes: Math.max(1, Number(e.target.value)),
-                  };
-                  setSettings(next);
-                  try {
-                    const data = await patchFocusSettings({ workMinutes: next.workMinutes });
-                    setSettings(data.settings);
-                  } catch {
-                    // ignore
-                  }
+                  const workMinutes = Math.max(1, Number(e.target.value));
+                  await handleSettingsChange({ workMinutes });
                 }}
                 className="w-full rounded-xl border border-input bg-background px-3 py-2"
               />
@@ -215,17 +398,8 @@ function Focus() {
                 max={60}
                 value={settings.breakMinutes}
                 onChange={async (e) => {
-                  const next = {
-                    ...settings,
-                    breakMinutes: Math.max(1, Number(e.target.value)),
-                  };
-                  setSettings(next);
-                  try {
-                    const data = await patchFocusSettings({ breakMinutes: next.breakMinutes });
-                    setSettings(data.settings);
-                  } catch {
-                    // ignore
-                  }
+                  const breakMinutes = Math.max(1, Number(e.target.value));
+                  await handleSettingsChange({ breakMinutes });
                 }}
                 className="w-full rounded-xl border border-input bg-background px-3 py-2"
               />
@@ -238,13 +412,13 @@ function Focus() {
         <section className="flex flex-col items-center justify-center rounded-3xl border border-border bg-card p-8 shadow-soft">
           <div className="mb-4 inline-flex rounded-full border border-border bg-muted/40 p-1 text-xs">
             <button
-              onClick={() => setMode("work")}
+              onClick={() => handleModeChange("work")}
               className={`rounded-full px-3 py-1 ${mode === "work" ? "bg-gradient-brand text-white" : "text-muted-foreground"}`}
             >
               Làm việc
             </button>
             <button
-              onClick={() => setMode("break")}
+              onClick={() => handleModeChange("break")}
               className={`rounded-full px-3 py-1 ${mode === "break" ? "bg-gradient-brand text-white" : "text-muted-foreground"}`}
             >
               Nghỉ
@@ -320,7 +494,11 @@ function Focus() {
                 <XAxis dataKey="name" stroke="currentColor" fontSize={12} />
                 <YAxis stroke="currentColor" fontSize={11} />
                 <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)" }}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
+                  }}
                 />
                 <Bar dataKey="minutes" fill="url(#ellieGrad2)" radius={[8, 8, 0, 0]} />
                 <defs>

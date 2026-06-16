@@ -1,9 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  addTransaction,
-  removeTransaction,
-  updateTransaction,
-} from "@/services/finance-service";
+import { addTransaction, removeTransaction, updateTransaction } from "@/services/finance-service";
 import { badRequest, json, safeJson } from "@/services/api-utils";
 import { getOrInitValue, setValue } from "@/services/domain-store.server";
 import {

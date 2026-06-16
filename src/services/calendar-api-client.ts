@@ -23,7 +23,9 @@ export function listEvents() {
   return request<EventsResponse>("/api/calendar/events");
 }
 
-export function upsertEvent(item: Partial<CalendarItem> & Pick<CalendarItem, "title" | "startISO" | "endISO" | "calendarId">) {
+export function upsertEvent(
+  item: Partial<CalendarItem> & Pick<CalendarItem, "title" | "startISO" | "endISO" | "calendarId">,
+) {
   return request<EventsResponse>("/api/calendar/events", {
     method: "POST",
     body: JSON.stringify(item),
@@ -57,7 +59,9 @@ export function listCalendars() {
   return request<CalendarsResponse>("/api/calendar/calendars");
 }
 
-export function createCalendar(input: Pick<Calendar, "name" | "color"> & Partial<Pick<Calendar, "visible">>) {
+export function createCalendar(
+  input: Pick<Calendar, "name" | "color"> & Partial<Pick<Calendar, "visible">>,
+) {
   return request<CalendarsResponse>("/api/calendar/calendars", {
     method: "POST",
     body: JSON.stringify(input),
@@ -91,7 +95,9 @@ export function listTodos() {
   return request<TodosResponse>("/api/calendar/todos");
 }
 
-export function createTodo(input: Pick<Todo, "title"> & Partial<Pick<Todo, "priority" | "dueDate" | "done">>) {
+export function createTodo(
+  input: Pick<Todo, "title"> & Partial<Pick<Todo, "priority" | "dueDate" | "done">>,
+) {
   return request<TodosResponse>("/api/calendar/todos", {
     method: "POST",
     body: JSON.stringify(input),

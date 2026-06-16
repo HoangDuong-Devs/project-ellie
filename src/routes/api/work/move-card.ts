@@ -19,7 +19,9 @@ export const Route = createFileRoute("/api/work/move-card")({
         const body = await safeJson(request);
         try {
           const parsed = moveCardSchema.parse(body);
-          const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+          const data = ensureWorkData(
+            await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+          );
           const next = moveCard(data, parsed.cardId, parsed.targetColumnId, parsed.targetIndex);
           await setValue(STORAGE_KEYS.WORK, next);
           return json({ cards: next.cards });

@@ -1,4 +1,12 @@
-import type { LabelColor, Sprint, WorkCard, WorkColumn, WorkData, WorkLabel, Workspace } from "@/types/work";
+import type {
+  LabelColor,
+  Sprint,
+  WorkCard,
+  WorkColumn,
+  WorkData,
+  WorkLabel,
+  Workspace,
+} from "@/types/work";
 import { emitDataChanged } from "@/services/api-live-sync";
 
 type WorkDataResponse = { data: WorkData };
@@ -90,7 +98,9 @@ export function deleteColumn(id: string) {
   });
 }
 
-export function createCard(input: Partial<WorkCard> & { workspaceId: string; title: string; columnId?: string }) {
+export function createCard(
+  input: Partial<WorkCard> & { workspaceId: string; title: string; columnId?: string },
+) {
   return request<CardsResponse>("/api/work/cards", {
     method: "POST",
     body: JSON.stringify(input),

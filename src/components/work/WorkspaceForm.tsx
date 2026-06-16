@@ -32,7 +32,13 @@ interface Props {
   title?: string;
 }
 
-export function WorkspaceForm({ open, onOpenChange, onSubmit, initial, title = "Tạo workspace mới" }: Props) {
+export function WorkspaceForm({
+  open,
+  onOpenChange,
+  onSubmit,
+  initial,
+  title = "Tạo workspace mới",
+}: Props) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [icon, setIcon] = useState(initial?.icon ?? "🚀");
@@ -62,7 +68,9 @@ export function WorkspaceForm({ open, onOpenChange, onSubmit, initial, title = "
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Tên workspace</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Tên workspace
+            </label>
             <input
               autoFocus
               value={name}
@@ -73,7 +81,9 @@ export function WorkspaceForm({ open, onOpenChange, onSubmit, initial, title = "
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Mô tả ngắn (tuỳ chọn)</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Mô tả ngắn (tuỳ chọn)
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -83,7 +93,9 @@ export function WorkspaceForm({ open, onOpenChange, onSubmit, initial, title = "
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Biểu tượng</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Biểu tượng
+            </label>
             <div className="flex flex-wrap gap-1.5">
               {ICONS.map((i) => (
                 <button

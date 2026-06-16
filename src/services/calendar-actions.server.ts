@@ -3,12 +3,18 @@ import { parseLocal, ymd, ymdhm } from "@/lib/calendar";
 import { upsertCalendarItem } from "@/services/calendar-service";
 import type { CalendarItem } from "@/types/calendar";
 
-export function moveCalendarItem(item: CalendarItem, targetStartISO: string, targetEndISO?: string) {
+export function moveCalendarItem(
+  item: CalendarItem,
+  targetStartISO: string,
+  targetEndISO?: string,
+) {
   const start = parseLocal(item.startISO);
   const end = parseLocal(item.endISO);
   const duration = end.getTime() - start.getTime();
   const targetStart = parseLocal(targetStartISO);
-  const targetEnd = targetEndISO ? parseLocal(targetEndISO) : new Date(targetStart.getTime() + duration);
+  const targetEnd = targetEndISO
+    ? parseLocal(targetEndISO)
+    : new Date(targetStart.getTime() + duration);
 
   return {
     ...item,

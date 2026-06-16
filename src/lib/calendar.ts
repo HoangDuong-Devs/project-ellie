@@ -1,17 +1,83 @@
-import type { CalendarColor, CalendarItem, RecurrenceFreq, RecurrenceRule, WeekDay } from "@/types/calendar";
+import type {
+  CalendarColor,
+  CalendarItem,
+  RecurrenceFreq,
+  RecurrenceRule,
+  WeekDay,
+} from "@/types/calendar";
 
-export const COLORS: Record<CalendarColor, { dot: string; bg: string; ring: string; text: string; soft: string }> = {
-  pink:   { dot: "bg-pink-500",    bg: "bg-pink-500",    ring: "ring-pink-300",    text: "text-pink-700",    soft: "bg-pink-100 text-pink-800 border-pink-200" },
-  red:    { dot: "bg-rose-500",    bg: "bg-rose-500",    ring: "ring-rose-300",    text: "text-rose-700",    soft: "bg-rose-100 text-rose-800 border-rose-200" },
-  orange: { dot: "bg-orange-500",  bg: "bg-orange-500",  ring: "ring-orange-300",  text: "text-orange-700",  soft: "bg-orange-100 text-orange-800 border-orange-200" },
-  yellow: { dot: "bg-amber-500",   bg: "bg-amber-500",   ring: "ring-amber-300",   text: "text-amber-700",   soft: "bg-amber-100 text-amber-900 border-amber-200" },
-  green:  { dot: "bg-emerald-500", bg: "bg-emerald-500", ring: "ring-emerald-300", text: "text-emerald-700", soft: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  cyan:   { dot: "bg-cyan-500",    bg: "bg-cyan-500",    ring: "ring-cyan-300",    text: "text-cyan-700",    soft: "bg-cyan-100 text-cyan-800 border-cyan-200" },
-  blue:   { dot: "bg-blue-500",    bg: "bg-blue-500",    ring: "ring-blue-300",    text: "text-blue-700",    soft: "bg-blue-100 text-blue-800 border-blue-200" },
-  purple: { dot: "bg-violet-500",  bg: "bg-violet-500",  ring: "ring-violet-300",  text: "text-violet-700",  soft: "bg-violet-100 text-violet-800 border-violet-200" },
+export const COLORS: Record<
+  CalendarColor,
+  { dot: string; bg: string; ring: string; text: string; soft: string }
+> = {
+  pink: {
+    dot: "bg-pink-500",
+    bg: "bg-pink-500",
+    ring: "ring-pink-300",
+    text: "text-pink-700",
+    soft: "bg-pink-100 text-pink-800 border-pink-200",
+  },
+  red: {
+    dot: "bg-rose-500",
+    bg: "bg-rose-500",
+    ring: "ring-rose-300",
+    text: "text-rose-700",
+    soft: "bg-rose-100 text-rose-800 border-rose-200",
+  },
+  orange: {
+    dot: "bg-orange-500",
+    bg: "bg-orange-500",
+    ring: "ring-orange-300",
+    text: "text-orange-700",
+    soft: "bg-orange-100 text-orange-800 border-orange-200",
+  },
+  yellow: {
+    dot: "bg-amber-500",
+    bg: "bg-amber-500",
+    ring: "ring-amber-300",
+    text: "text-amber-700",
+    soft: "bg-amber-100 text-amber-900 border-amber-200",
+  },
+  green: {
+    dot: "bg-emerald-500",
+    bg: "bg-emerald-500",
+    ring: "ring-emerald-300",
+    text: "text-emerald-700",
+    soft: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  },
+  cyan: {
+    dot: "bg-cyan-500",
+    bg: "bg-cyan-500",
+    ring: "ring-cyan-300",
+    text: "text-cyan-700",
+    soft: "bg-cyan-100 text-cyan-800 border-cyan-200",
+  },
+  blue: {
+    dot: "bg-blue-500",
+    bg: "bg-blue-500",
+    ring: "ring-blue-300",
+    text: "text-blue-700",
+    soft: "bg-blue-100 text-blue-800 border-blue-200",
+  },
+  purple: {
+    dot: "bg-violet-500",
+    bg: "bg-violet-500",
+    ring: "ring-violet-300",
+    text: "text-violet-700",
+    soft: "bg-violet-100 text-violet-800 border-violet-200",
+  },
 };
 
-export const COLOR_KEYS: CalendarColor[] = ["pink", "red", "orange", "yellow", "green", "cyan", "blue", "purple"];
+export const COLOR_KEYS: CalendarColor[] = [
+  "pink",
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "cyan",
+  "blue",
+  "purple",
+];
 
 export const RECURRENCE_LABELS: Record<RecurrenceFreq, string> = {
   none: "Không lặp",
@@ -23,7 +89,15 @@ export const RECURRENCE_LABELS: Record<RecurrenceFreq, string> = {
 };
 
 export const WEEKDAY_SHORT = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"] as const;
-export const WEEKDAY_LONG = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"] as const;
+export const WEEKDAY_LONG = [
+  "Thứ 2",
+  "Thứ 3",
+  "Thứ 4",
+  "Thứ 5",
+  "Thứ 6",
+  "Thứ 7",
+  "Chủ nhật",
+] as const;
 
 export const REMINDER_PRESETS: { value: number; label: string }[] = [
   { value: 0, label: "Đúng giờ" },
@@ -88,7 +162,11 @@ export function addMonths(d: Date, n: number) {
 }
 
 export function sameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 /** Convert JS getDay() (Sun=0..Sat=6) to our WeekDay (Mon=0..Sun=6). */
@@ -140,6 +218,8 @@ export function expandOccurrences(
     const interval = Math.max(1, rule?.interval ?? 1);
 
     const push = (s: Date) => {
+      const dateKey = ymd(s);
+      if (it.cancelledDates?.includes(dateKey)) return;
       const e = new Date(s.getTime() + dur);
       if (e < rangeStart || s > rangeEnd) return;
       out.push({
@@ -235,7 +315,10 @@ export function describeRecurrence(it: CalendarItem): string {
       break;
     case "weekly":
       if (rule.byWeekDays && rule.byWeekDays.length) {
-        const days = [...rule.byWeekDays].sort().map((d) => WEEKDAY_SHORT[d]).join(", ");
+        const days = [...rule.byWeekDays]
+          .sort()
+          .map((d) => WEEKDAY_SHORT[d])
+          .join(", ");
         base = interval === 1 ? `Hằng tuần (${days})` : `Mỗi ${interval} tuần (${days})`;
       } else {
         base = interval === 1 ? "Hằng tuần" : `Mỗi ${interval} tuần`;
@@ -254,7 +337,10 @@ export function describeRecurrence(it: CalendarItem): string {
   return base;
 }
 
-export function migrateLegacyEvents(legacy: { id: string; date: string; title: string; note?: string }[], calendarId: string): CalendarItem[] {
+export function migrateLegacyEvents(
+  legacy: { id: string; date: string; title: string; note?: string }[],
+  calendarId: string,
+): CalendarItem[] {
   return legacy.map((l) => ({
     id: l.id,
     title: l.title,

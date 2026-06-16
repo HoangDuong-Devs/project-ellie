@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { badRequest, isObject, json, safeJson } from "@/services/api-utils";
-import {
-  querySchedulerJobs,
-  rescheduleSchedulerJob,
-} from "@/services/scheduler-operator.server";
+import { querySchedulerJobs, rescheduleSchedulerJob } from "@/services/scheduler-operator.server";
 import {
   cancelSchedulerJob,
   createSchedulerJob,
@@ -34,13 +31,14 @@ export const Route = createFileRoute("/api/scheduler/jobs")({
         const type = url.searchParams.get("type");
         const sourceItemId = url.searchParams.get("sourceItemId");
 
-        const jobs = status || type || sourceItemId
-          ? await querySchedulerJobs({
-              ...(isSchedulerJobStatus(status) ? { status } : {}),
-              ...(isSchedulerJobType(type) ? { type } : {}),
-              ...(sourceItemId ? { sourceItemId } : {}),
-            })
-          : await listSchedulerJobs();
+        const jobs =
+          status || type || sourceItemId
+            ? await querySchedulerJobs({
+                ...(isSchedulerJobStatus(status) ? { status } : {}),
+                ...(isSchedulerJobType(type) ? { type } : {}),
+                ...(sourceItemId ? { sourceItemId } : {}),
+              })
+            : await listSchedulerJobs();
         return json({ jobs });
       },
       POST: async ({ request }) => {

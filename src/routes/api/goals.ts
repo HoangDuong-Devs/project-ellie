@@ -24,9 +24,7 @@ function normalizeGoal(input: ReturnType<typeof goalSchema.parse>): Goal {
     })),
     completed:
       input.completed ??
-      ((input.steps ?? []).length > 0
-        ? (input.steps ?? []).every((s) => s.done ?? false)
-        : false),
+      ((input.steps ?? []).length > 0 ? (input.steps ?? []).every((s) => s.done ?? false) : false),
     createdAt: input.createdAt ?? new Date().toISOString(),
   };
 }

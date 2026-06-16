@@ -180,9 +180,7 @@ export function useAssistantInsights(): AssistantInsights {
 
     // Streak (consecutive days from today backwards with ≥1 pomo)
     let focusStreak = 0;
-    const setDays = new Set(
-      sessions.map((s) => startOfDay(new Date(s.date)).getTime()),
-    );
+    const setDays = new Set(sessions.map((s) => startOfDay(new Date(s.date)).getTime()));
     for (let i = 0; i < 365; i++) {
       const t = today - i * 24 * 3600 * 1000;
       if (setDays.has(t)) focusStreak++;

@@ -21,7 +21,13 @@ import {
   startSprint as startSprintApi,
 } from "@/services/work-api-client";
 import { ensureWorkData, makeDefaultWorkData } from "@/services/work-service";
-import { type LabelColor, type Sprint, type WorkCard, type WorkData, type Workspace } from "@/types/work";
+import {
+  type LabelColor,
+  type Sprint,
+  type WorkCard,
+  type WorkData,
+  type Workspace,
+} from "@/types/work";
 
 export function useWorkStore() {
   const [data, setData] = useState<WorkData>(makeDefaultWorkData());
@@ -86,7 +92,9 @@ export function useWorkStore() {
   }, []);
 
   const createCard = useCallback(
-    async (input: Partial<WorkCard> & { workspaceId: string; title: string; columnId?: string }) => {
+    async (
+      input: Partial<WorkCard> & { workspaceId: string; title: string; columnId?: string },
+    ) => {
       const res = await createCardApi(input);
       setData((prev) => ({ ...prev, cards: res.cards }));
       return res.card?.id ?? "";
@@ -104,10 +112,13 @@ export function useWorkStore() {
     setData((prev) => ({ ...prev, cards: res.cards }));
   }, []);
 
-  const moveCard = useCallback(async (cardId: string, targetColumnId: string, targetIndex: number) => {
-    const res = await moveCardApi(cardId, targetColumnId, targetIndex);
-    setData((prev) => ({ ...prev, cards: res.cards }));
-  }, []);
+  const moveCard = useCallback(
+    async (cardId: string, targetColumnId: string, targetIndex: number) => {
+      const res = await moveCardApi(cardId, targetColumnId, targetIndex);
+      setData((prev) => ({ ...prev, cards: res.cards }));
+    },
+    [],
+  );
 
   const createLabel = useCallback(async (name: string, color: LabelColor) => {
     const res = await createLabelApi(name, color);

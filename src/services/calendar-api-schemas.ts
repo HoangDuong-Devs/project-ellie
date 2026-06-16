@@ -53,7 +53,9 @@ export const calendarItemSchema = z.object({
 
 export const calendarItemPatchSchema = z.object({
   id: z.string().min(1),
-  patch: calendarItemSchema.partial().refine((v) => Object.keys(v).length > 0, "patch cannot be empty"),
+  patch: calendarItemSchema
+    .partial()
+    .refine((v) => Object.keys(v).length > 0, "patch cannot be empty"),
 });
 
 export const calendarSchema = z.object({
@@ -65,9 +67,7 @@ export const calendarSchema = z.object({
 
 export const calendarPatchSchema = z.object({
   id: z.string().min(1),
-  patch: calendarSchema
-    .partial()
-    .refine((v) => Object.keys(v).length > 0, "patch cannot be empty"),
+  patch: calendarSchema.partial().refine((v) => Object.keys(v).length > 0, "patch cannot be empty"),
 });
 
 export const todoSchema = z.object({

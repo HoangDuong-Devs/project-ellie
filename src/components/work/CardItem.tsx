@@ -32,7 +32,14 @@ interface Props {
   isDragging?: boolean;
 }
 
-export function CardItem({ card, labels, showSprintFields, onClick, dragHandleProps, isDragging }: Props) {
+export function CardItem({
+  card,
+  labels,
+  showSprintFields,
+  onClick,
+  dragHandleProps,
+  isDragging,
+}: Props) {
   const cardLabels = labels.filter((l) => card.labelIds.includes(l.id));
   const TypeMeta = TYPE_ICON[card.type];
   const Icon = TypeMeta.icon;
@@ -83,12 +90,7 @@ export function CardItem({ card, labels, showSprintFields, onClick, dragHandlePr
         </span>
 
         {dueDate && (
-          <span
-            className={cn(
-              "flex items-center gap-1",
-              overdue && "font-medium text-rose-600",
-            )}
-          >
+          <span className={cn("flex items-center gap-1", overdue && "font-medium text-rose-600")}>
             <CalendarIcon className="h-3 w-3" />
             {dueDate.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })}
           </span>

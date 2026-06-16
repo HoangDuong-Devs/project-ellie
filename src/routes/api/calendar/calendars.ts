@@ -28,7 +28,10 @@ export const Route = createFileRoute("/api/calendar/calendars")({
   server: {
     handlers: {
       GET: async () => {
-        const calendars = await getOrInitValue<Calendar[]>(STORAGE_KEYS.CALENDARS, DEFAULT_CALENDARS);
+        const calendars = await getOrInitValue<Calendar[]>(
+          STORAGE_KEYS.CALENDARS,
+          DEFAULT_CALENDARS,
+        );
         return json({ calendars });
       },
       POST: async ({ request }) => {
@@ -43,7 +46,10 @@ export const Route = createFileRoute("/api/calendar/calendars")({
             visible: parsed.visible ?? true,
           };
 
-          const calendars = await getOrInitValue<Calendar[]>(STORAGE_KEYS.CALENDARS, DEFAULT_CALENDARS);
+          const calendars = await getOrInitValue<Calendar[]>(
+            STORAGE_KEYS.CALENDARS,
+            DEFAULT_CALENDARS,
+          );
           const next = [...calendars, calendar];
           await setValue(STORAGE_KEYS.CALENDARS, next);
           return json({ calendar, calendars: next });
@@ -56,7 +62,10 @@ export const Route = createFileRoute("/api/calendar/calendars")({
         const body = await safeJson(request);
         try {
           const parsed = calendarPatchSchema.parse(body);
-          const calendars = await getOrInitValue<Calendar[]>(STORAGE_KEYS.CALENDARS, DEFAULT_CALENDARS);
+          const calendars = await getOrInitValue<Calendar[]>(
+            STORAGE_KEYS.CALENDARS,
+            DEFAULT_CALENDARS,
+          );
           const hasCalendar = calendars.some((c) => c.id === parsed.id);
           if (!hasCalendar) return json({ error: "Calendar not found" }, { status: 404 });
 
@@ -79,7 +88,10 @@ export const Route = createFileRoute("/api/calendar/calendars")({
         const body = await safeJson(request);
         try {
           const { id } = idPayloadSchema.parse(body);
-          const calendars = await getOrInitValue<Calendar[]>(STORAGE_KEYS.CALENDARS, DEFAULT_CALENDARS);
+          const calendars = await getOrInitValue<Calendar[]>(
+            STORAGE_KEYS.CALENDARS,
+            DEFAULT_CALENDARS,
+          );
           const next = calendars.filter((c) => c.id !== id);
           await setValue(STORAGE_KEYS.CALENDARS, next);
           return json({ calendars: next });

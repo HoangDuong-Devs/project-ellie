@@ -9,7 +9,9 @@ export const Route = createFileRoute("/api/work/data")({
   server: {
     handlers: {
       GET: async () => {
-        const data = ensureWorkData(await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()));
+        const data = ensureWorkData(
+          await getOrInitValue<WorkData>(STORAGE_KEYS.WORK, makeDefaultWorkData()),
+        );
         return json({ data });
       },
     },

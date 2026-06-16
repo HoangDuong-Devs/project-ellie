@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Plus, Trash2, Wallet } from "lucide-react"
 import { DEFAULT_MONTHLY_BUDGET, type MonthlyBudget } from "@/services/finance-service";
 import { cn } from "@/lib/utils";
 import { formatVND } from "@/lib/format";
+import { parseMoneyInput } from "@/lib/math-expression";
 import { EXPENSE_CATEGORIES, type Transaction } from "@/types/finance";
 export function MonthlyBudgetCard({
   budget,
@@ -62,11 +63,12 @@ export function MonthlyBudgetCard({
   const projectionOver = hasBudget && projection > b.total;
 
   function save() {
+    const parsedTotal = parseMoneyInput(totalInput) ?? 0;
     const next: MonthlyBudget = {
-      total: Number(totalInput) || 0,
+      total: parsedTotal,
       categories: Object.fromEntries(
         Object.entries(catInputs)
-          .map(([k, v]) => [k, Number(v) || 0])
+          .map(([k, v]) => [k, parseMoneyInput(v) ?? 0])
           .filter(([, v]) => (v as number) > 0),
       ) as Record<string, number>,
     };
@@ -86,7 +88,9 @@ export function MonthlyBudgetCard({
     <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
       <div className="mb-4 flex items-center gap-2">
         <Wallet className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold">Ngân sách tháng {month + 1}/{year}</h3>
+        <h3 className="font-semibold">
+          Ngân sách tháng {month + 1}/{year}
+        </h3>
         <button
           onClick={() => setEditing((v) => !v)}
           className="ml-auto rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent/10"
@@ -98,26 +102,30 @@ export function MonthlyBudgetCard({
       {editing ? (
         <div className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Hạn mức tổng (VND)</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Hạn mức tổng (VND)
+            </label>
             <input
-              type="number"
+              type="text"
               inputMode="numeric"
-              placeholder="VD: 10000000"
+              placeholder="VD: 10000000 hoặc =8*1250000"
               value={totalInput}
               onChange={(e) => setTotalInput(e.target.value)}
               className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <div className="mb-2 text-xs font-medium text-muted-foreground">Theo danh mục (tùy chọn)</div>
+            <div className="mb-2 text-xs font-medium text-muted-foreground">
+              Theo danh mục (tùy chọn)
+            </div>
             <div className="grid gap-2 sm:grid-cols-2">
               {EXPENSE_CATEGORIES.map((c) => (
                 <div key={c} className="flex items-center gap-2">
                   <span className="w-24 shrink-0 text-xs">{c}</span>
                   <input
-                    type="number"
+                    type="text"
                     inputMode="numeric"
-                    placeholder="0"
+                    placeholder="0 hoặc =50+25"
                     value={catInputs[c] ?? ""}
                     onChange={(e) => setCatInputs((p) => ({ ...p, [c]: e.target.value }))}
                     className="flex-1 rounded-xl border border-input bg-background px-3 py-1.5 text-sm"
@@ -152,7 +160,9 @@ export function MonthlyBudgetCard({
           <div>
             <div className="mb-1 flex items-center justify-between text-sm">
               <span className="font-medium">Tổng đã chi</span>
-              <span className={cn("font-semibold", overTotal ? "text-destructive" : "text-foreground")}>
+              <span
+                className={cn("font-semibold", overTotal ? "text-destructive" : "text-foreground")}
+              >
                 {formatVND(spent)} / {formatVND(b.total)}
               </span>
             </div>
@@ -205,11 +215,21 @@ export function MonthlyBudgetCard({
               )}
               <div>
                 {overTotal ? (
-                  <>Bạn đã vượt hạn mức {formatVND(spent - b.total)}. Hãy giảm chi tiêu trong {daysLeftIncl} ngày còn lại.</>
+                  <>
+                    Bạn đã vượt hạn mức {formatVND(spent - b.total)}. Hãy giảm chi tiêu trong{" "}
+                    {daysLeftIncl} ngày còn lại.
+                  </>
                 ) : projectionOver ? (
-                  <>Với tốc độ hiện tại, bạn sẽ vượt ngân sách khoảng {formatVND(projection - b.total)}. Hãy chi tối đa {formatVND(suggestPerDay)}/ngày để giữ trong hạn mức.</>
+                  <>
+                    Với tốc độ hiện tại, bạn sẽ vượt ngân sách khoảng{" "}
+                    {formatVND(projection - b.total)}. Hãy chi tối đa {formatVND(suggestPerDay)}
+                    /ngày để giữ trong hạn mức.
+                  </>
                 ) : (
-                  <>Bạn còn {formatVND(remaining)} cho {daysLeftIncl} ngày. Có thể chi khoảng {formatVND(suggestPerDay)}/ngày.</>
+                  <>
+                    Bạn còn {formatVND(remaining)} cho {daysLeftIncl} ngày. Có thể chi khoảng{" "}
+                    {formatVND(suggestPerDay)}/ngày.
+                  </>
                 )}
               </div>
             </div>
@@ -227,7 +247,12 @@ export function MonthlyBudgetCard({
                     <li key={cat} className="rounded-xl border border-border bg-muted/30 p-2.5">
                       <div className="mb-1 flex items-center justify-between text-xs">
                         <span className="font-medium">{cat}</span>
-                        <span className={cn("font-semibold", over ? "text-destructive" : "text-muted-foreground")}>
+                        <span
+                          className={cn(
+                            "font-semibold",
+                            over ? "text-destructive" : "text-muted-foreground",
+                          )}
+                        >
                           {formatVND(used)} / {formatVND(limit)}
                         </span>
                       </div>
@@ -235,7 +260,11 @@ export function MonthlyBudgetCard({
                         <div
                           className={cn(
                             "h-full rounded-full",
-                            over ? "bg-destructive" : cpct > 80 ? "bg-orange-500" : "bg-gradient-brand",
+                            over
+                              ? "bg-destructive"
+                              : cpct > 80
+                                ? "bg-orange-500"
+                                : "bg-gradient-brand",
                           )}
                           style={{ width: `${cpct}%` }}
                         />
@@ -273,7 +302,9 @@ function BudgetStat({
           : "text-foreground";
   return (
     <div className="rounded-2xl border border-border bg-muted/30 p-3">
-      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       <div className={cn("mt-1 text-lg font-bold", toneCls)}>{formatVND(value)}</div>
       {hint && <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>}
     </div>

@@ -18,7 +18,10 @@ const EMPTY_SNAPSHOT: StorageSnapshot = {
 };
 
 const DOMAIN_FILE_MAP: Array<{ test: (key: string) => boolean; file: string }> = [
-  { test: (key) => key.startsWith("ellie:calendar") || key.startsWith("ellie:todos"), file: "calendar.json" },
+  {
+    test: (key) => key.startsWith("ellie:calendar") || key.startsWith("ellie:todos"),
+    file: "calendar.json",
+  },
   {
     test: (key) =>
       key.startsWith("ellie:transaction") ||
@@ -29,7 +32,9 @@ const DOMAIN_FILE_MAP: Array<{ test: (key: string) => boolean; file: string }> =
   { test: (key) => key.startsWith("ellie:work"), file: "work.json" },
   {
     test: (key) =>
-      key.startsWith("ellie:focus") || key.startsWith("ellie:pomodoro") || key.startsWith("ellie:goal"),
+      key.startsWith("ellie:focus") ||
+      key.startsWith("ellie:pomodoro") ||
+      key.startsWith("ellie:goal"),
     file: "settings.json",
   },
   {

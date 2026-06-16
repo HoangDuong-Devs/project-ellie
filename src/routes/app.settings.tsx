@@ -34,6 +34,7 @@ const KEYS = [
   "ellie:pomodoros",
   "ellie:focus-settings",
   "ellie:goals",
+  "ellie:journal-entries",
 ];
 
 type BooleanNotificationPrefKey = "calendar" | "finance" | "goal" | "focus" | "dailyDigest";
@@ -345,7 +346,9 @@ function Settings() {
                 tạo sự kiện.
               </div>
               {prefs.defaultCalendarReminders.length === 0 ? (
-                <div className="mb-3 text-xs text-muted-foreground">Hiện đang để: Không nhắc mặc định</div>
+                <div className="mb-3 text-xs text-muted-foreground">
+                  Hiện đang để: Không nhắc mặc định
+                </div>
               ) : (
                 <div className="mb-3 flex flex-wrap gap-1.5">
                   {prefs.defaultCalendarReminders.map((min) => (

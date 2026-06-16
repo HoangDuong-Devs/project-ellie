@@ -181,10 +181,7 @@ function Landing() {
                 { label: "Phí dùng", v: "0₫" },
                 { label: "Quảng cáo", v: "Không" },
               ].map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-2xl bg-white/15 p-5 backdrop-blur-sm"
-                >
+                <div key={s.label} className="rounded-2xl bg-white/15 p-5 backdrop-blur-sm">
                   <div className="text-3xl font-bold">{s.v}</div>
                   <div className="mt-1 text-xs uppercase tracking-wider text-white/80">
                     {s.label}

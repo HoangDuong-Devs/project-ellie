@@ -4,7 +4,11 @@ import { publishServerChanges } from "@/services/server-live-sync.server";
 import type { DataDomain } from "@/services/data-domains";
 
 function domainsForKey(key: string): DataDomain[] {
-  if (key.startsWith("ellie:transaction") || key.startsWith("ellie:savings") || key.startsWith("ellie:monthly-budget")) {
+  if (
+    key.startsWith("ellie:transaction") ||
+    key.startsWith("ellie:savings") ||
+    key.startsWith("ellie:monthly-budget")
+  ) {
     return ["finance"];
   }
   if (key.startsWith("ellie:calendar") || key.startsWith("ellie:todos")) {

@@ -31,7 +31,11 @@ export function listTransactionsForMonth(transactions: Transaction[], year: numb
   });
 }
 
-export function monthlySummary(transactions: Transaction[], year: number, month: number): MonthSummary {
+export function monthlySummary(
+  transactions: Transaction[],
+  year: number,
+  month: number,
+): MonthSummary {
   const monthTx = listTransactionsForMonth(transactions, year, month);
   const income = monthTx.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
   const expense = monthTx.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0);
@@ -82,13 +86,18 @@ export function updateTransaction(
       ...patch,
       note: patch.note != null ? patch.note.trim() || undefined : tx.note,
       amount:
-        patch.amount != null && Number.isFinite(Number(patch.amount)) ? Number(patch.amount) : tx.amount,
+        patch.amount != null && Number.isFinite(Number(patch.amount))
+          ? Number(patch.amount)
+          : tx.amount,
       date: patch.date != null ? new Date(patch.date).toISOString() : tx.date,
     };
   });
 }
 
-export function addSavingsGoal(goals: SavingsGoal[], input: { title: string; target: number }): SavingsGoal[] {
+export function addSavingsGoal(
+  goals: SavingsGoal[],
+  input: { title: string; target: number },
+): SavingsGoal[] {
   const target = Number(input.target);
   if (!input.title.trim() || !Number.isFinite(target) || target <= 0) return goals;
 

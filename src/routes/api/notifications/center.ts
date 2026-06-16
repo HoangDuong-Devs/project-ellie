@@ -7,10 +7,7 @@ import {
   listStoredNotifications,
   patchStoredNotification,
 } from "@/services/notification-center.server";
-import {
-  cancelSchedulerJob,
-  createSchedulerJob,
-} from "@/services/scheduler-service.server";
+import { cancelSchedulerJob, createSchedulerJob } from "@/services/scheduler-service.server";
 import type { NotificationCategory, NotificationKind } from "@/types/notifications";
 
 function isCategory(value: unknown): value is NotificationCategory {
@@ -83,7 +80,9 @@ export const Route = createFileRoute("/api/notifications/center")({
           await createSchedulerJob({
             type: "notification_test",
             scheduledFor: new Date(Date.now() + minutes * 60_000).toISOString(),
-            dedupeKey: notification.dedupeKey ? `${notification.dedupeKey}:snooze:${minutes}` : undefined,
+            dedupeKey: notification.dedupeKey
+              ? `${notification.dedupeKey}:snooze:${minutes}`
+              : undefined,
             payload: {
               title: notification.title,
               body: notification.body,

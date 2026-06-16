@@ -11,6 +11,7 @@ import {
   Sun,
   Kanban,
   MessageCircle,
+  BookOpen,
 } from "lucide-react";
 import { AssistantBubble } from "@/components/assistant/AssistantBubble";
 import { useEffect, useState } from "react";
@@ -28,6 +29,7 @@ type NavItem = {
     | "/app/focus"
     | "/app/goals"
     | "/app/work"
+    | "/app/journal"
     | "/app/assistant";
   label: string;
   icon: typeof LayoutDashboard;
@@ -39,6 +41,7 @@ const NAV: NavItem[] = [
   { to: "/app/finance", label: "Tài chính", icon: Wallet },
   { to: "/app/calendar", label: "Lịch", icon: CalendarRange },
   { to: "/app/work", label: "Công việc", icon: Kanban },
+  { to: "/app/journal", label: "Nhật ký", icon: BookOpen },
   { to: "/app/focus", label: "Focus", icon: Timer },
   { to: "/app/goals", label: "Mục tiêu", icon: Target },
   { to: "/app/assistant", label: "Trợ lý", icon: MessageCircle },
@@ -163,7 +166,7 @@ export function AppShell() {
       <AssistantBubble />
       {/* Bottom nav (mobile) */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur-xl lg:hidden">
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-8">
           {NAV.map((n) => {
             const active = isActive(n.to, n.exact);
             return (

@@ -114,11 +114,8 @@
     oklch(0.96 0.05 295) 50%,
     oklch(0.96 0.05 350)
   );
-  --gradient-aurora: radial-gradient(
-      80% 60% at 15% 10%,
-      oklch(0.92 0.08 350 / 0.55),
-      transparent 60%
-    ),
+  --gradient-aurora:
+    radial-gradient(80% 60% at 15% 10%, oklch(0.92 0.08 350 / 0.55), transparent 60%),
     radial-gradient(70% 60% at 90% 0%, oklch(0.9 0.09 250 / 0.5), transparent 60%),
     radial-gradient(60% 60% at 50% 100%, oklch(0.92 0.08 295 / 0.45), transparent 60%);
 
@@ -177,11 +174,8 @@
     oklch(0.32 0.08 295) 50%,
     oklch(0.32 0.08 350)
   );
-  --gradient-aurora: radial-gradient(
-      80% 60% at 15% 10%,
-      oklch(0.45 0.14 350 / 0.35),
-      transparent 60%
-    ),
+  --gradient-aurora:
+    radial-gradient(80% 60% at 15% 10%, oklch(0.45 0.14 350 / 0.35), transparent 60%),
     radial-gradient(70% 60% at 90% 0%, oklch(0.4 0.14 250 / 0.35), transparent 60%),
     radial-gradient(60% 60% at 50% 100%, oklch(0.42 0.14 295 / 0.3), transparent 60%);
 
@@ -250,6 +244,17 @@
 }
 @utility font-mono-brand {
   font-family: var(--font-mono);
+}
+
+@keyframes journal-page-in {
+  from {
+    opacity: 0.55;
+    transform: rotateY(-8deg) translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0deg) translateX(0);
+  }
 }
 
 /* Pill button reminiscent of Elysia "Get Started" */

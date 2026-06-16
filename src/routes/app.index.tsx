@@ -124,21 +124,15 @@ function Dashboard() {
             <span className="text-foreground/90">đây là tổng quan của bạn ✨</span>
           </h1>
           <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-            Tài chính, lịch, mục tiêu và focus — tất cả gọn trong một trang. Hỏi trợ lý nếu bạn
-            muốn bản tóm tắt nhanh.
+            Tài chính, lịch, mục tiêu và focus — tất cả gọn trong một trang. Hỏi trợ lý nếu bạn muốn
+            bản tóm tắt nhanh.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link
-              to="/app/assistant"
-              className="btn-pill btn-pill-primary"
-            >
+            <Link to="/app/assistant" className="btn-pill btn-pill-primary">
               <Sparkles className="h-4 w-4" /> Mở trợ lý Ellie
             </Link>
-            <Link
-              to="/app/finance"
-              className="btn-pill btn-pill-soft"
-            >
+            <Link to="/app/finance" className="btn-pill btn-pill-soft">
               <PlusCircle className="h-4 w-4" /> Thêm giao dịch
             </Link>
           </div>
@@ -197,7 +191,11 @@ function Dashboard() {
             <ResponsiveContainer>
               <BarChart data={i.last7DaysExpense}>
                 <XAxis dataKey="label" stroke="currentColor" fontSize={11} />
-                <YAxis stroke="currentColor" fontSize={11} tickFormatter={(v) => `${Number(v) / 1_000}k`} />
+                <YAxis
+                  stroke="currentColor"
+                  fontSize={11}
+                  tickFormatter={(v) => `${Number(v) / 1_000}k`}
+                />
                 <Tooltip
                   formatter={(v) => formatVND(Number(v))}
                   labelFormatter={(label) => `Ngày: ${String(label)}`}
@@ -245,10 +243,7 @@ function Dashboard() {
         <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-semibold">Ngân sách tháng</h3>
-            <Link
-              to="/app/finance"
-              className="text-xs font-medium text-primary hover:underline"
-            >
+            <Link to="/app/finance" className="text-xs font-medium text-primary hover:underline">
               Quản lý
             </Link>
           </div>
@@ -317,9 +312,7 @@ function Dashboard() {
             </Link>
           </div>
           {i.todayEvents.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              Không có sự kiện ☕
-            </p>
+            <p className="py-6 text-center text-sm text-muted-foreground">Không có sự kiện ☕</p>
           ) : (
             <ul className="space-y-2">
               {i.todayEvents.slice(0, 4).map((e) => (
@@ -439,10 +432,7 @@ function Dashboard() {
               Bắt đầu một phiên Pomodoro 25 phút và tiến gần hơn tới mục tiêu.
             </p>
           </div>
-          <Link
-            to="/app/focus"
-            className="btn-pill btn-pill-inverse hover:scale-105"
-          >
+          <Link to="/app/focus" className="btn-pill btn-pill-inverse hover:scale-105">
             <CheckCircle2 className="h-4 w-4" /> Bắt đầu Focus
           </Link>
         </div>

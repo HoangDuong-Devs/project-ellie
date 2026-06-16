@@ -21,9 +21,10 @@ async function getNextDelayMs() {
 }
 
 async function runJsonCli(mode) {
-  const script = mode === "scheduler:jobs"
-    ? `import { listSchedulerJobs } from "../src/services/scheduler-service.server.ts"; console.log(JSON.stringify({ jobs: await listSchedulerJobs() }));`
-    : `import { runDueSchedulerJobs } from "../src/services/scheduler-service.server.ts"; console.log(JSON.stringify(await runDueSchedulerJobs()));`;
+  const script =
+    mode === "scheduler:jobs"
+      ? `import { listSchedulerJobs } from "../src/services/scheduler-service.server.ts"; console.log(JSON.stringify({ jobs: await listSchedulerJobs() }));`
+      : `import { runDueSchedulerJobs } from "../src/services/scheduler-service.server.ts"; console.log(JSON.stringify(await runDueSchedulerJobs()));`;
 
   return await new Promise((resolve, reject) => {
     const child = spawn("npx", ["tsx", "--tsconfig", "tsconfig.json", "--eval", script], {
@@ -60,7 +61,9 @@ console.log("[scheduler-worker] starting");
 while (!controller.signal.aborted) {
   const result = await runJsonCli("scheduler:run");
   if (result.processed > 0) {
-    console.log(`[scheduler-worker] processed=${result.processed} completed=${result.completed} failed=${result.failed} wakeEvents=${result.wakeEvents}`);
+    console.log(
+      `[scheduler-worker] processed=${result.processed} completed=${result.completed} failed=${result.failed} wakeEvents=${result.wakeEvents}`,
+    );
   }
   if (controller.signal.aborted) break;
   const delayMs = await getNextDelayMs();

@@ -27,7 +27,9 @@ export const labelPatchSchema = z.object({
   patch: z
     .object({
       name: z.string().min(1).optional(),
-      color: z.enum(["pink", "red", "orange", "yellow", "green", "cyan", "blue", "purple", "gray"]).optional(),
+      color: z
+        .enum(["pink", "red", "orange", "yellow", "green", "cyan", "blue", "purple", "gray"])
+        .optional(),
     })
     .refine((v) => Object.keys(v).length > 0, "patch cannot be empty"),
 });

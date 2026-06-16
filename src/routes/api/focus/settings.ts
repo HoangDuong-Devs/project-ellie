@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { badRequest, json, safeJson } from "@/services/api-utils";
-import {
-  focusSettingsPatchSchema,
-  focusSettingsSchema,
-} from "@/services/goals-focus-api-schemas";
+import { focusSettingsPatchSchema, focusSettingsSchema } from "@/services/goals-focus-api-schemas";
 import { getOrInitValue, setValue } from "@/services/domain-store.server";
 import { STORAGE_KEYS } from "@/services/storage-keys";
 import { ZodError, zodMessage } from "@/services/zod-utils";
@@ -18,7 +15,10 @@ export const Route = createFileRoute("/api/focus/settings")({
   server: {
     handlers: {
       GET: async () => {
-        const settings = await getOrInitValue<FocusSettings>(STORAGE_KEYS.FOCUS_SETTINGS, DEFAULT_SETTINGS);
+        const settings = await getOrInitValue<FocusSettings>(
+          STORAGE_KEYS.FOCUS_SETTINGS,
+          DEFAULT_SETTINGS,
+        );
         return json({ settings });
       },
       POST: async ({ request }) => {
@@ -36,7 +36,10 @@ export const Route = createFileRoute("/api/focus/settings")({
         const body = await safeJson(request);
         try {
           const parsed = focusSettingsPatchSchema.parse(body);
-          const settings = await getOrInitValue<FocusSettings>(STORAGE_KEYS.FOCUS_SETTINGS, DEFAULT_SETTINGS);
+          const settings = await getOrInitValue<FocusSettings>(
+            STORAGE_KEYS.FOCUS_SETTINGS,
+            DEFAULT_SETTINGS,
+          );
           const next = {
             ...settings,
             ...parsed.patch,

@@ -33,10 +33,7 @@ export function BacklogView({
   onDeleteSprint,
   onUpdateSprint,
 }: Props) {
-  const doneCol = useMemo(
-    () => [...columns].sort((a, b) => b.order - a.order)[0],
-    [columns],
-  );
+  const doneCol = useMemo(() => [...columns].sort((a, b) => b.order - a.order)[0], [columns]);
 
   const sprintCards = (sprintId: string | null) =>
     cards.filter((c) => (sprintId === null ? c.sprintId == null : c.sprintId === sprintId));
@@ -138,7 +135,10 @@ function SprintSection({
   return (
     <section className="rounded-xl border border-border bg-card">
       <header className="flex items-center gap-3 px-4 py-3">
-        <button onClick={() => setOpen(!open)} className="text-muted-foreground hover:text-foreground">
+        <button
+          onClick={() => setOpen(!open)}
+          className="text-muted-foreground hover:text-foreground"
+        >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
 
@@ -179,8 +179,17 @@ function SprintSection({
         )}
 
         {sprint && (
-          <span className={cn("rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase", stateBadge)}>
-            {sprint.state === "active" ? "Đang chạy" : sprint.state === "completed" ? "Đã xong" : "Lên kế hoạch"}
+          <span
+            className={cn(
+              "rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase",
+              stateBadge,
+            )}
+          >
+            {sprint.state === "active"
+              ? "Đang chạy"
+              : sprint.state === "completed"
+                ? "Đã xong"
+                : "Lên kế hoạch"}
           </span>
         )}
 
@@ -200,7 +209,8 @@ function SprintSection({
           {sprint?.state === "active" && onComplete && (
             <button
               onClick={() => {
-                if (confirm("Hoàn thành sprint? Card chưa xong sẽ chuyển về backlog.")) onComplete();
+                if (confirm("Hoàn thành sprint? Card chưa xong sẽ chuyển về backlog."))
+                  onComplete();
               }}
               className="flex items-center gap-1 rounded-md bg-slate-700 px-2 py-1 text-xs font-medium text-white hover:bg-slate-800"
             >

@@ -1,13 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Bar, BarChart, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Bar,
+  BarChart,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import {
-  ChevronLeft, ChevronRight, LayoutGrid, List as ListIcon, CalendarDays,
-  Plus, Target, Trash2, TrendingDown, TrendingUp, Wallet, Filter, X,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  List as ListIcon,
+  CalendarDays,
+  Plus,
+  Target,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+  Filter,
+  X,
 } from "lucide-react";
 import { formatVND } from "@/lib/format";
+import { parseMoneyInput } from "@/lib/math-expression";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 import {
@@ -28,7 +49,10 @@ import {
   totalBalance as calculateTotalBalance,
 } from "@/services/finance-service";
 import {
-  EXPENSE_CATEGORIES, INCOME_CATEGORIES, type Transaction, type TxType,
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+  type Transaction,
+  type TxType,
 } from "@/types/finance";
 import type { SavingsGoal } from "@/types/calendar";
 import { MonthlyBudgetCard } from "@/components/finance/MonthlyBudgetCard";
@@ -150,10 +174,12 @@ function Finance() {
   }, [tx, year, month]);
 
   async function add() {
+    const parsedAmount = parseMoneyInput(amount);
+    if (parsedAmount == null) return;
     try {
       const res = await createTransaction({
         type,
-        amount: Number(amount),
+        amount: parsedAmount,
         category,
         note,
         date,
@@ -177,10 +203,16 @@ function Finance() {
   const cats = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   function prevMonth() {
-    if (month === 0) { setMonth(11); setYear(year - 1); } else setMonth(month - 1);
+    if (month === 0) {
+      setMonth(11);
+      setYear(year - 1);
+    } else setMonth(month - 1);
   }
   function nextMonth() {
-    if (month === 11) { setMonth(0); setYear(year + 1); } else setMonth(month + 1);
+    if (month === 11) {
+      setMonth(0);
+      setYear(year + 1);
+    } else setMonth(month + 1);
   }
 
   return (
@@ -194,15 +226,32 @@ function Finance() {
               <button onClick={prevMonth} className="rounded-full p-1 hover:bg-accent/10">
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="px-2 text-sm font-medium">Tháng {month + 1}/{year}</span>
+              <span className="px-2 text-sm font-medium">
+                Tháng {month + 1}/{year}
+              </span>
               <button onClick={nextMonth} className="rounded-full p-1 hover:bg-accent/10">
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
             <div className="inline-flex rounded-full border border-border bg-card p-1">
-              <ViewBtn active={view === "overview"} onClick={() => setView("overview")} icon={LayoutGrid} label="Tổng quan" />
-              <ViewBtn active={view === "list"} onClick={() => setView("list")} icon={ListIcon} label="Danh sách" />
-              <ViewBtn active={view === "calendar"} onClick={() => setView("calendar")} icon={CalendarDays} label="Lịch" />
+              <ViewBtn
+                active={view === "overview"}
+                onClick={() => setView("overview")}
+                icon={LayoutGrid}
+                label="Tổng quan"
+              />
+              <ViewBtn
+                active={view === "list"}
+                onClick={() => setView("list")}
+                icon={ListIcon}
+                label="Danh sách"
+              />
+              <ViewBtn
+                active={view === "calendar"}
+                onClick={() => setView("calendar")}
+                icon={CalendarDays}
+                label="Lịch"
+              />
             </div>
           </div>
         }
@@ -211,7 +260,12 @@ function Finance() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Thu trong tháng" value={summary.income} icon={TrendingUp} positive />
         <StatCard label="Chi trong tháng" value={summary.expense} icon={TrendingDown} />
-        <StatCard label="Số dư tháng" value={summary.balance} icon={Wallet} positive={summary.balance >= 0} />
+        <StatCard
+          label="Số dư tháng"
+          value={summary.balance}
+          icon={Wallet}
+          positive={summary.balance >= 0}
+        />
       </div>
       <MonthlyBudgetCard
         budget={budget}
@@ -238,17 +292,51 @@ function Finance() {
       <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <h3 className="mb-4 font-semibold">Thêm giao dịch</h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-          <select value={type} onChange={(e) => { const v = e.target.value as TxType; setType(v); setCategory(v === "income" ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]); }} className="rounded-xl border border-input bg-background px-3 py-2 text-sm">
+          <select
+            value={type}
+            onChange={(e) => {
+              const v = e.target.value as TxType;
+              setType(v);
+              setCategory(v === "income" ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
+            }}
+            className="rounded-xl border border-input bg-background px-3 py-2 text-sm"
+          >
             <option value="expense">Chi</option>
             <option value="income">Thu</option>
           </select>
-          <input type="number" inputMode="numeric" placeholder="Số tiền" value={amount} onChange={(e) => setAmount(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm">
-            {cats.map((c) => <option key={c}>{c}</option>)}
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="Số tiền hoặc =80+75"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="rounded-xl border border-input bg-background px-3 py-2 text-sm"
+          />
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="rounded-xl border border-input bg-background px-3 py-2 text-sm"
+          >
+            {cats.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
           </select>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-          <input placeholder="Ghi chú" value={note} onChange={(e) => setNote(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm sm:col-span-2 lg:col-span-1" />
-          <button onClick={add} className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-soft hover:scale-[1.02]">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="rounded-xl border border-input bg-background px-3 py-2 text-sm"
+          />
+          <input
+            placeholder="Ghi chú"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="rounded-xl border border-input bg-background px-3 py-2 text-sm sm:col-span-2 lg:col-span-1"
+          />
+          <button
+            onClick={add}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-soft hover:scale-[1.02]"
+          >
             <Plus className="h-4 w-4" /> Thêm
           </button>
         </div>
@@ -263,8 +351,19 @@ function Finance() {
                 <ResponsiveContainer>
                   <BarChart data={monthlyData}>
                     <XAxis dataKey="name" stroke="currentColor" fontSize={12} />
-                    <YAxis stroke="currentColor" fontSize={11} tickFormatter={(v) => `${v / 1_000_000}M`} />
-                    <Tooltip formatter={(v) => formatVND(Number(v))} contentStyle={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--card)" }} />
+                    <YAxis
+                      stroke="currentColor"
+                      fontSize={11}
+                      tickFormatter={(v) => `${v / 1_000_000}M`}
+                    />
+                    <Tooltip
+                      formatter={(v) => formatVND(Number(v))}
+                      contentStyle={{
+                        borderRadius: 12,
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                    />
                     <Legend />
                     <Bar dataKey="income" name="Thu" fill="#06b6d4" radius={[8, 8, 0, 0]} />
                     <Bar dataKey="expense" name="Chi" fill="#ec4899" radius={[8, 8, 0, 0]} />
@@ -277,12 +376,22 @@ function Finance() {
               <h3 className="mb-4 font-semibold">Cơ cấu chi tháng này</h3>
               <div className="h-64">
                 {pieData.length === 0 ? (
-                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Chưa có dữ liệu</div>
+                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                    Chưa có dữ liệu
+                  </div>
                 ) : (
                   <ResponsiveContainer>
                     <PieChart>
-                      <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90}>
-                        {pieData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      <Pie
+                        data={pieData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={50}
+                        outerRadius={90}
+                      >
+                        {pieData.map((_, i) => (
+                          <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                        ))}
                       </Pie>
                       <Tooltip formatter={(v) => formatVND(Number(v))} />
                       <Legend />
@@ -297,31 +406,62 @@ function Finance() {
         </>
       )}
 
-      {view === "list" && (
-        <ListView tx={tx} onRemove={remove} year={year} month={month} />
-      )}
+      {view === "list" && <ListView tx={tx} onRemove={remove} year={year} month={month} />}
 
-      {view === "calendar" && (
-        <CalendarView tx={tx} year={year} month={month} />
-      )}
+      {view === "calendar" && <CalendarView tx={tx} year={year} month={month} />}
     </div>
   );
 }
 
-function ViewBtn({ active, onClick, icon: Icon, label }: { active: boolean; onClick: () => void; icon: typeof LayoutGrid; label: string }) {
+function ViewBtn({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: typeof LayoutGrid;
+  label: string;
+}) {
   return (
-    <button onClick={onClick} className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all", active ? "bg-gradient-brand text-white shadow-soft" : "text-muted-foreground hover:text-foreground")}>
+    <button
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+        active
+          ? "bg-gradient-brand text-white shadow-soft"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
       <Icon className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{label}</span>
     </button>
   );
 }
 
-function StatCard({ label, value, icon: Icon, positive = false }: { label: string; value: number; icon: typeof Wallet; positive?: boolean }) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  positive = false,
+}: {
+  label: string;
+  value: number;
+  icon: typeof Wallet;
+  positive?: boolean;
+}) {
   return (
     <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
-        <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl", positive ? "bg-cyan-500/15 text-cyan-500" : "bg-pink-500/15 text-pink-500")}>
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </span>
+        <div
+          className={cn(
+            "flex h-9 w-9 items-center justify-center rounded-xl",
+            positive ? "bg-cyan-500/15 text-cyan-500" : "bg-pink-500/15 text-pink-500",
+          )}
+        >
           <Icon className="h-4 w-4" />
         </div>
       </div>
@@ -330,7 +470,17 @@ function StatCard({ label, value, icon: Icon, positive = false }: { label: strin
   );
 }
 
-function ListView({ tx, onRemove, year, month }: { tx: Transaction[]; onRemove: (id: string) => void; year: number; month: number }) {
+function ListView({
+  tx,
+  onRemove,
+  year,
+  month,
+}: {
+  tx: Transaction[];
+  onRemove: (id: string) => void;
+  year: number;
+  month: number;
+}) {
   const [filterType, setFilterType] = useState<"all" | TxType>("all");
   const [filterCat, setFilterCat] = useState<string>("all");
   const [from, setFrom] = useState("");
@@ -352,7 +502,8 @@ function ListView({ tx, onRemove, year, month }: { tx: Transaction[]; onRemove: 
   }, [tx, filterType, filterCat, from, to, year, month]);
 
   const allCats = Array.from(new Set([...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES]));
-  const activeCount = (filterType !== "all" ? 1 : 0) + (filterCat !== "all" ? 1 : 0) + (from ? 1 : 0) + (to ? 1 : 0);
+  const activeCount =
+    (filterType !== "all" ? 1 : 0) + (filterCat !== "all" ? 1 : 0) + (from ? 1 : 0) + (to ? 1 : 0);
 
   return (
     <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
@@ -382,30 +533,62 @@ function ListView({ tx, onRemove, year, month }: { tx: Transaction[]; onRemove: 
           <div className="grid gap-2 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-medium text-muted-foreground">Loại</label>
-              <select value={filterType} onChange={(e) => setFilterType(e.target.value as "all" | TxType)} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value as "all" | TxType)}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+              >
                 <option value="all">Tất cả loại</option>
                 <option value="income">Thu</option>
                 <option value="expense">Chi</option>
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Danh mục</label>
-              <select value={filterCat} onChange={(e) => setFilterCat(e.target.value)} className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
+                Danh mục
+              </label>
+              <select
+                value={filterCat}
+                onChange={(e) => setFilterCat(e.target.value)}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+              >
                 <option value="all">Tất cả danh mục</option>
-                {allCats.map((c) => <option key={c}>{c}</option>)}
+                {allCats.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
               </select>
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Khoảng ngày</label>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Khoảng ngày
+            </label>
             <div className="flex items-center gap-2">
-              <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+              <input
+                type="date"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm"
+              />
               <span className="text-xs text-muted-foreground">đến</span>
-              <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+              <input
+                type="date"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm"
+              />
             </div>
           </div>
           {activeCount > 0 && (
-            <button onClick={() => { setFrom(""); setTo(""); setFilterType("all"); setFilterCat("all"); }} className="inline-flex items-center gap-1 rounded-xl border border-border bg-background px-3 py-1.5 text-xs hover:bg-accent/10">
+            <button
+              onClick={() => {
+                setFrom("");
+                setTo("");
+                setFilterType("all");
+                setFilterCat("all");
+              }}
+              className="inline-flex items-center gap-1 rounded-xl border border-border bg-background px-3 py-1.5 text-xs hover:bg-accent/10"
+            >
               <X className="h-3 w-3" /> Xóa tất cả bộ lọc
             </button>
           )}
@@ -418,19 +601,40 @@ function ListView({ tx, onRemove, year, month }: { tx: Transaction[]; onRemove: 
         <ul className="divide-y divide-border">
           {filtered.map((t) => (
             <li key={t.id} className="flex items-center gap-3 py-3">
-              <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl", t.type === "income" ? "bg-cyan-500/15 text-cyan-500" : "bg-pink-500/15 text-pink-500")}>
-                {t.type === "income" ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+              <div
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-xl",
+                  t.type === "income"
+                    ? "bg-cyan-500/15 text-cyan-500"
+                    : "bg-pink-500/15 text-pink-500",
+                )}
+              >
+                {t.type === "income" ? (
+                  <TrendingUp className="h-4 w-4" />
+                ) : (
+                  <TrendingDown className="h-4 w-4" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="truncate text-sm font-medium">{t.category}</div>
                 <div className="truncate text-xs text-muted-foreground">
-                  {new Date(t.date).toLocaleDateString("vi-VN")}{t.note && ` · ${t.note}`}
+                  {new Date(t.date).toLocaleDateString("vi-VN")}
+                  {t.note && ` · ${t.note}`}
                 </div>
               </div>
-              <div className={cn("text-sm font-semibold", t.type === "income" ? "text-cyan-500" : "text-pink-500")}>
-                {t.type === "income" ? "+" : "-"}{formatVND(t.amount)}
+              <div
+                className={cn(
+                  "text-sm font-semibold",
+                  t.type === "income" ? "text-cyan-500" : "text-pink-500",
+                )}
+              >
+                {t.type === "income" ? "+" : "-"}
+                {formatVND(t.amount)}
               </div>
-              <button onClick={() => onRemove(t.id)} className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+              <button
+                onClick={() => onRemove(t.id)}
+                className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
                 <Trash2 className="h-4 w-4" />
               </button>
             </li>
@@ -478,7 +682,9 @@ function CalendarView({ tx, year, month }: { tx: Transaction[]; year: number; mo
   return (
     <section className="mt-6 rounded-3xl border border-border bg-card p-5 shadow-soft">
       <div className="grid grid-cols-7 border-b border-border pb-2 text-center text-xs font-semibold text-muted-foreground">
-        {["T2","T3","T4","T5","T6","T7","CN"].map((d) => <div key={d}>{d}</div>)}
+        {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((d) => (
+          <div key={d}>{d}</div>
+        ))}
       </div>
       <div className="mt-2 grid grid-cols-7 gap-1">
         {grid.map((c, i) => {
@@ -492,14 +698,26 @@ function CalendarView({ tx, year, month }: { tx: Transaction[]; year: number; mo
               onClick={() => setSelected(c.key)}
               className={cn(
                 "min-h-[80px] rounded-xl border p-1.5 text-left transition-all",
-                isSel ? "border-primary bg-pink-500/10" : isToday ? "border-primary" : "border-border bg-muted/20 hover:bg-muted/40",
+                isSel
+                  ? "border-primary bg-pink-500/10"
+                  : isToday
+                    ? "border-primary"
+                    : "border-border bg-muted/20 hover:bg-muted/40",
               )}
             >
               <div className="text-sm font-semibold">{c.date.getDate()}</div>
               {data && (
                 <div className="mt-1 space-y-0.5 text-[10px] leading-tight">
-                  {data.income > 0 && <div className="rounded bg-cyan-500/15 px-1 py-0.5 text-cyan-600 dark:text-cyan-400">+{formatVND(data.income)}</div>}
-                  {data.expense > 0 && <div className="rounded bg-pink-500/15 px-1 py-0.5 text-pink-600 dark:text-pink-400">-{formatVND(data.expense)}</div>}
+                  {data.income > 0 && (
+                    <div className="rounded bg-cyan-500/15 px-1 py-0.5 text-cyan-600 dark:text-cyan-400">
+                      +{formatVND(data.income)}
+                    </div>
+                  )}
+                  {data.expense > 0 && (
+                    <div className="rounded bg-pink-500/15 px-1 py-0.5 text-pink-600 dark:text-pink-400">
+                      -{formatVND(data.expense)}
+                    </div>
+                  )}
                 </div>
               )}
             </button>
@@ -514,13 +732,22 @@ function CalendarView({ tx, year, month }: { tx: Transaction[]; year: number; mo
           </h4>
           <ul className="space-y-2">
             {sel.items.map((t) => (
-              <li key={t.id} className="flex items-center justify-between rounded-lg bg-background px-3 py-2 text-sm">
+              <li
+                key={t.id}
+                className="flex items-center justify-between rounded-lg bg-background px-3 py-2 text-sm"
+              >
                 <div>
                   <span className="font-medium">{t.category}</span>
                   {t.note && <span className="ml-2 text-xs text-muted-foreground">{t.note}</span>}
                 </div>
-                <span className={cn("font-semibold", t.type === "income" ? "text-cyan-500" : "text-pink-500")}>
-                  {t.type === "income" ? "+" : "-"}{formatVND(t.amount)}
+                <span
+                  className={cn(
+                    "font-semibold",
+                    t.type === "income" ? "text-cyan-500" : "text-pink-500",
+                  )}
+                >
+                  {t.type === "income" ? "+" : "-"}
+                  {formatVND(t.amount)}
                 </span>
               </li>
             ))}
@@ -544,8 +771,10 @@ function SavingsGoalsCard({
   const [target, setTarget] = useState("");
 
   async function add() {
+    const parsedTarget = parseMoneyInput(target);
+    if (parsedTarget == null) return;
     try {
-      const res = await createSavingsGoal({ title, target: Number(target) });
+      const res = await createSavingsGoal({ title, target: parsedTarget });
       setGoals(res.goals);
       setTitle("");
       setTarget("");
@@ -567,12 +796,29 @@ function SavingsGoalsCard({
       <div className="mb-4 flex items-center gap-2">
         <Target className="h-5 w-5 text-primary" />
         <h3 className="font-semibold">Mục tiêu tiết kiệm</h3>
-        <span className="ml-auto text-xs text-muted-foreground">Số dư: <span className="font-semibold text-foreground">{formatVND(balance)}</span></span>
+        <span className="ml-auto text-xs text-muted-foreground">
+          Số dư: <span className="font-semibold text-foreground">{formatVND(balance)}</span>
+        </span>
       </div>
       <div className="mb-4 grid gap-2 sm:grid-cols-[1fr_180px_auto]">
-        <input placeholder="Tên mục tiêu (vd: Mua laptop)" value={title} onChange={(e) => setTitle(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <input type="number" placeholder="Số tiền mục tiêu" value={target} onChange={(e) => setTarget(e.target.value)} className="rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-        <button onClick={add} className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-soft hover:scale-[1.02]">
+        <input
+          placeholder="Tên mục tiêu (vd: Mua laptop)"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="rounded-xl border border-input bg-background px-3 py-2 text-sm"
+        />
+        <input
+          type="text"
+          inputMode="numeric"
+          placeholder="Số tiền mục tiêu hoặc =5*1000000"
+          value={target}
+          onChange={(e) => setTarget(e.target.value)}
+          className="rounded-xl border border-input bg-background px-3 py-2 text-sm"
+        />
+        <button
+          onClick={add}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-soft hover:scale-[1.02]"
+        >
           <Plus className="h-4 w-4" /> Thêm
         </button>
       </div>
@@ -587,17 +833,25 @@ function SavingsGoalsCard({
                 <div className="mb-1.5 flex items-center justify-between">
                   <div>
                     <div className="text-sm font-medium">{g.title}</div>
-                    <div className="text-xs text-muted-foreground">{formatVND(Math.max(0, balance))} / {formatVND(g.target)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatVND(Math.max(0, balance))} / {formatVND(g.target)}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gradient-brand">{pct.toFixed(0)}%</span>
-                    <button onClick={() => remove(g.id)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                    <button
+                      onClick={() => remove(g.id)}
+                      className="rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full rounded-full bg-gradient-brand transition-all" style={{ width: `${pct}%` }} />
+                  <div
+                    className="h-full rounded-full bg-gradient-brand transition-all"
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
               </li>
             );

@@ -446,7 +446,9 @@ export function useNightlySummaryWatcher(feed: NotificationWatcherFeed, enabled 
       const goalDone = feed.goals.filter((g) => g.completed).length;
       const goalActive = feed.goals.length - goalDone;
 
-      const focusToday = feed.focusSessions.filter((s) => localDateKey(new Date(s.date)) === reportKey);
+      const focusToday = feed.focusSessions.filter(
+        (s) => localDateKey(new Date(s.date)) === reportKey,
+      );
       const focusCount = focusToday.length;
       const focusMinutes = focusToday.reduce((sum, s) => sum + s.minutes, 0);
 

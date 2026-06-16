@@ -1,5 +1,3 @@
-
-
 # ProjectEllie — Trợ lý cá nhân All-in-One
 
 Xây dựng lại SmartLife với tên **ProjectEllie**, phong cách **gradient hồng-xanh**. Lưu trữ cục bộ (localStorage), chưa cần đăng nhập hay AI thật. Đã loại: GPA Tracker, Music Player, Đếm ngược ngày lễ/Lịch vạn niên, My Storage.
@@ -15,9 +13,11 @@ Xây dựng lại SmartLife với tên **ProjectEllie**, phong cách **gradient 
 ## 🗺️ Cấu trúc route
 
 **Trang giới thiệu (public):**
+
 - `/` — Landing: hero "Quản lý cuộc sống Thông minh & Hiệu quả", các section feature (Tổng quan, Tài chính, Lịch trình, Focus, Mục tiêu), CTA "Vào ứng dụng", footer liên hệ
 
 **Ứng dụng (app shell có sidebar/bottom nav):**
+
 - `/app` — Dashboard tổng quan: thẻ tóm tắt thu/chi tháng, todo hôm nay, mục tiêu đang chạy, mini Pomodoro
 - `/app/finance` — Tài chính: thêm thu/chi, danh mục, biểu đồ cột & tròn, báo cáo theo tháng, mục tiêu tiết kiệm
 - `/app/schedule` — Lịch trình & Todo: thời khóa biểu tuần, todo list theo mức ưu tiên (cao/trung/thấp), đánh dấu hoàn thành
@@ -56,4 +56,3 @@ Xây dựng lại SmartLife với tên **ProjectEllie**, phong cách **gradient 
 ## ✅ Sau khi xong
 
 Bạn có một bản app hoàn chỉnh hoạt động hoàn toàn offline. Có thể nâng cấp sau: thêm Lovable Cloud để đồng bộ tài khoản, thêm AI Advisor thật bằng Lovable AI Gateway.
-
