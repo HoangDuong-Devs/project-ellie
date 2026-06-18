@@ -14,7 +14,7 @@ import {
   type NodeChange,
   type EdgeChange,
   type Connection,
-  type NodeMouseHandler,
+  type OnNodeDrag,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -225,7 +225,7 @@ function Inner() {
   );
 
   // Re-parenting via drag-over-node
-  const onNodeDragStop: NodeMouseHandler = useCallback(
+  const onNodeDragStop: OnNodeDrag<Node<MindNodeData>> = useCallback(
     (_evt, draggedNode) => {
       if (draggedNode.id === ROOT_ID) return;
       // find a node under the drag position (within ~110px center distance)
