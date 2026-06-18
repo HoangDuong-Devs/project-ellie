@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppWorkRouteImport } from './routes/app.work'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppMindmapRouteImport } from './routes/app.mindmap'
 import { Route as AppJournalRouteImport } from './routes/app.journal'
 import { Route as AppGoalsRouteImport } from './routes/app.goals'
 import { Route as AppFocusRouteImport } from './routes/app.focus'
@@ -46,6 +47,11 @@ const AppWorkRoute = AppWorkRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMindmapRoute = AppMindmapRouteImport.update({
+  id: '/mindmap',
+  path: '/mindmap',
   getParentRoute: () => AppRoute,
 } as any)
 const AppJournalRoute = AppJournalRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
   '/app/journal': typeof AppJournalRoute
+  '/app/mindmap': typeof AppMindmapRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app/': typeof AppIndexRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
   '/app/journal': typeof AppJournalRoute
+  '/app/mindmap': typeof AppMindmapRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app': typeof AppIndexRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
   '/app/journal': typeof AppJournalRoute
+  '/app/mindmap': typeof AppMindmapRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app/': typeof AppIndexRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/app/focus'
     | '/app/goals'
     | '/app/journal'
+    | '/app/mindmap'
     | '/app/settings'
     | '/app/work'
     | '/app/'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/app/focus'
     | '/app/goals'
     | '/app/journal'
+    | '/app/mindmap'
     | '/app/settings'
     | '/app/work'
     | '/app'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/app/focus'
     | '/app/goals'
     | '/app/journal'
+    | '/app/mindmap'
     | '/app/settings'
     | '/app/work'
     | '/app/'
@@ -222,6 +234,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/app/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/mindmap': {
+      id: '/app/mindmap'
+      path: '/mindmap'
+      fullPath: '/app/mindmap'
+      preLoaderRoute: typeof AppMindmapRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/journal': {
@@ -291,6 +310,7 @@ interface AppRouteChildren {
   AppFocusRoute: typeof AppFocusRoute
   AppGoalsRoute: typeof AppGoalsRoute
   AppJournalRoute: typeof AppJournalRoute
+  AppMindmapRoute: typeof AppMindmapRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppWorkRoute: typeof AppWorkRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -304,6 +324,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFocusRoute: AppFocusRoute,
   AppGoalsRoute: AppGoalsRoute,
   AppJournalRoute: AppJournalRoute,
+  AppMindmapRoute: AppMindmapRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppWorkRoute: AppWorkRoute,
   AppIndexRoute: AppIndexRoute,
