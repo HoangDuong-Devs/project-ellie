@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -321,7 +321,7 @@ function EditDialog({
   const [tagInput, setTagInput] = useState("");
 
   // Reset when doc changes
-  useMemo(() => {
+  useEffect(() => {
     if (doc) {
       setName(doc.name);
       setTags(doc.tags);
