@@ -10,6 +10,7 @@ export interface MindNodeData {
 export interface MindMapDoc {
   id: string;
   name: string;
+  tags: string[];
   nodes: Array<{
     id: string;
     position: { x: number; y: number };
@@ -20,5 +21,6 @@ export interface MindMapDoc {
     source: string;
     target: string;
   }>;
+  createdAt: number;
   updatedAt: number;
 }
