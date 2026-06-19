@@ -23,6 +23,8 @@ import { Route as AppCompanionRouteImport } from './routes/app.companion'
 import { Route as AppCalendarRouteImport } from './routes/app.calendar'
 import { Route as AppAssistantRouteImport } from './routes/app.assistant'
 import { Route as ApiCompanionChatRouteImport } from './routes/api.companion-chat'
+import { Route as AppMindmapIndexRouteImport } from './routes/app.mindmap.index'
+import { Route as AppMindmapIdRouteImport } from './routes/app.mindmap.$id'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -94,6 +96,16 @@ const ApiCompanionChatRoute = ApiCompanionChatRouteImport.update({
   path: '/api/companion-chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppMindmapIndexRoute = AppMindmapIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppMindmapRoute,
+} as any)
+const AppMindmapIdRoute = AppMindmapIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppMindmapRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -106,10 +118,12 @@ export interface FileRoutesByFullPath {
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
   '/app/journal': typeof AppJournalRoute
-  '/app/mindmap': typeof AppMindmapRoute
+  '/app/mindmap': typeof AppMindmapRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app/': typeof AppIndexRoute
+  '/app/mindmap/$id': typeof AppMindmapIdRoute
+  '/app/mindmap/': typeof AppMindmapIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -121,10 +135,11 @@ export interface FileRoutesByTo {
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
   '/app/journal': typeof AppJournalRoute
-  '/app/mindmap': typeof AppMindmapRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app': typeof AppIndexRoute
+  '/app/mindmap/$id': typeof AppMindmapIdRoute
+  '/app/mindmap': typeof AppMindmapIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -138,10 +153,12 @@ export interface FileRoutesById {
   '/app/focus': typeof AppFocusRoute
   '/app/goals': typeof AppGoalsRoute
   '/app/journal': typeof AppJournalRoute
-  '/app/mindmap': typeof AppMindmapRoute
+  '/app/mindmap': typeof AppMindmapRouteWithChildren
   '/app/settings': typeof AppSettingsRoute
   '/app/work': typeof AppWorkRoute
   '/app/': typeof AppIndexRoute
+  '/app/mindmap/$id': typeof AppMindmapIdRoute
+  '/app/mindmap/': typeof AppMindmapIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,6 +177,8 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/work'
     | '/app/'
+    | '/app/mindmap/$id'
+    | '/app/mindmap/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,10 +190,11 @@ export interface FileRouteTypes {
     | '/app/focus'
     | '/app/goals'
     | '/app/journal'
-    | '/app/mindmap'
     | '/app/settings'
     | '/app/work'
     | '/app'
+    | '/app/mindmap/$id'
+    | '/app/mindmap'
   id:
     | '__root__'
     | '/'
@@ -191,6 +211,8 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/work'
     | '/app/'
+    | '/app/mindmap/$id'
+    | '/app/mindmap/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -299,8 +321,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCompanionChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/mindmap/': {
+      id: '/app/mindmap/'
+      path: '/'
+      fullPath: '/app/mindmap/'
+      preLoaderRoute: typeof AppMindmapIndexRouteImport
+      parentRoute: typeof AppMindmapRoute
+    }
+    '/app/mindmap/$id': {
+      id: '/app/mindmap/$id'
+      path: '/$id'
+      fullPath: '/app/mindmap/$id'
+      preLoaderRoute: typeof AppMindmapIdRouteImport
+      parentRoute: typeof AppMindmapRoute
+    }
   }
 }
+
+interface AppMindmapRouteChildren {
+  AppMindmapIdRoute: typeof AppMindmapIdRoute
+  AppMindmapIndexRoute: typeof AppMindmapIndexRoute
+}
+
+const AppMindmapRouteChildren: AppMindmapRouteChildren = {
+  AppMindmapIdRoute: AppMindmapIdRoute,
+  AppMindmapIndexRoute: AppMindmapIndexRoute,
+}
+
+const AppMindmapRouteWithChildren = AppMindmapRoute._addFileChildren(
+  AppMindmapRouteChildren,
+)
 
 interface AppRouteChildren {
   AppAssistantRoute: typeof AppAssistantRoute
@@ -310,7 +360,7 @@ interface AppRouteChildren {
   AppFocusRoute: typeof AppFocusRoute
   AppGoalsRoute: typeof AppGoalsRoute
   AppJournalRoute: typeof AppJournalRoute
-  AppMindmapRoute: typeof AppMindmapRoute
+  AppMindmapRoute: typeof AppMindmapRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppWorkRoute: typeof AppWorkRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -324,7 +374,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFocusRoute: AppFocusRoute,
   AppGoalsRoute: AppGoalsRoute,
   AppJournalRoute: AppJournalRoute,
-  AppMindmapRoute: AppMindmapRoute,
+  AppMindmapRoute: AppMindmapRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppWorkRoute: AppWorkRoute,
   AppIndexRoute: AppIndexRoute,
@@ -340,12 +390,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
