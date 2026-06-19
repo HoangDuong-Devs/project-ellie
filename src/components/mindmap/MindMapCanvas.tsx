@@ -19,49 +19,32 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { LayoutGrid, Download, Plus, Trash2, Sparkles } from "lucide-react";
+import { LayoutGrid, Download, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { uid } from "@/lib/format";
 import { MindNode } from "./MindNode";
 import { autoLayout, recolor, depthMap, hueToColor } from "./layout";
+import { useMindMaps, ROOT_ID } from "./mindmapStore";
 import type { MindMapDoc, MindNodeData } from "@/types/mindmap";
-
-const STORAGE_KEY = "ellie:mindmap";
-const ROOT_ID = "root";
 
 const nodeTypes = { mind: MindNode } as const;
 
-function initialDoc(): MindMapDoc {
-  return {
-    id: uid(),
-    name: "Sơ đồ tư duy",
-    nodes: [
-      {
-        id: ROOT_ID,
-        position: { x: 0, y: 0 },
-        data: { label: "Ý tưởng trung tâm", depth: 0 },
-      },
-    ],
-    edges: [],
-    updatedAt: Date.now(),
-  };
-}
+function Inner({ docId }: { docId: string }) {
+  const { docs, update } = useMindMaps();
+  const doc = docs.find((d) => d.id === docId);
 
-function Inner() {
-  const [doc, setDoc] = useLocalStorage<MindMapDoc>(STORAGE_KEY, initialDoc());
-
-  // Local React Flow state, hydrated from doc
+  // Local React Flow state, hydrated from doc once.
   const [nodes, setNodes] = useState<Node<MindNodeData>[]>(() =>
-    hydrate(doc).nodes,
+    doc ? hydrate(doc).nodes : [],
   );
-  const [edges, setEdges] = useState<Edge[]>(() => hydrate(doc).edges);
+  const [edges, setEdges] = useState<Edge[]>(() => (doc ? hydrate(doc).edges : []));
   const [editingId, setEditingId] = useState<string | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const rf = useReactFlow();
 
-  // Persist on change (debounced via microtask)
+  // Persist on change
   useEffect(() => {
+    if (!doc) return;
     const cleanNodes = nodes.map((n) => ({
       id: n.id,
       position: n.position,
@@ -72,13 +55,9 @@ function Inner() {
       source: e.source,
       target: e.target,
     }));
-    setDoc((prev) => ({
-      ...prev,
-      nodes: cleanNodes,
-      edges: cleanEdges,
-      updatedAt: Date.now(),
-    }));
-  }, [nodes, edges, setDoc]);
+    update(docId, { nodes: cleanNodes, edges: cleanEdges });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, edges]);
 
   const selectedId = useMemo(() => nodes.find((n) => n.selected)?.id, [nodes]);
 
@@ -131,7 +110,7 @@ function Inner() {
   const addSibling = useCallback(
     (id: string) => {
       const parentEdge = edges.find((e) => e.target === id);
-      if (!parentEdge) return; // root has no sibling
+      if (!parentEdge) return;
       addChild(parentEdge.source);
     },
     [edges, addChild],
@@ -140,7 +119,6 @@ function Inner() {
   const deleteNode = useCallback(
     (id: string) => {
       if (id === ROOT_ID) return;
-      // Collect descendants
       const toRemove = new Set<string>([id]);
       let added = true;
       while (added) {
@@ -170,7 +148,6 @@ function Inner() {
     );
   }, []);
 
-  // Attach node callbacks
   const decoratedNodes = useMemo<Node<MindNodeData>[]>(
     () =>
       nodes.map((n) => ({
@@ -190,7 +167,6 @@ function Inner() {
     [nodes, editingId, addChild, deleteNode, renameNode],
   );
 
-  // Color edges by branch hue
   const decoratedEdges = useMemo<Edge[]>(() => {
     const nodeMap = new Map(nodes.map((n) => [n.id, n]));
     return edges.map((e) => {
@@ -198,7 +174,7 @@ function Inner() {
       const color = hueToColor(target?.data.hue, target?.data.depth ?? 0);
       return {
         ...e,
-        type: "default", // bezier
+        type: "default",
         animated: false,
         style: { stroke: color, strokeWidth: 2.5 },
       };
@@ -224,11 +200,9 @@ function Inner() {
     [nodes, rebuildWithMeta],
   );
 
-  // Re-parenting via drag-over-node
   const onNodeDragStop: OnNodeDrag<Node<MindNodeData>> = useCallback(
     (_evt, draggedNode) => {
       if (draggedNode.id === ROOT_ID) return;
-      // find a node under the drag position (within ~110px center distance)
       const target = nodes.find((n) => {
         if (n.id === draggedNode.id) return false;
         const dx = (n.position.x + 100) - (draggedNode.position.x + 100);
@@ -236,7 +210,6 @@ function Inner() {
         return Math.sqrt(dx * dx + dy * dy) < 90;
       });
       if (!target) return;
-      // avoid creating a cycle: target must not be a descendant of draggedNode
       const descendants = new Set<string>([draggedNode.id]);
       let grew = true;
       while (grew) {
@@ -264,7 +237,6 @@ function Inner() {
     [nodes, edges, rebuildWithMeta],
   );
 
-  // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
@@ -298,39 +270,33 @@ function Inner() {
   }, [nodes, edges, rf]);
 
   const exportPng = useCallback(async () => {
-    const el = wrapperRef.current?.querySelector(
-      ".react-flow__viewport",
-    ) as HTMLElement | null;
-    const host = wrapperRef.current?.querySelector(
-      ".react-flow",
-    ) as HTMLElement | null;
+    const host = wrapperRef.current?.querySelector(".react-flow") as HTMLElement | null;
     if (!host) return;
     try {
       const dataUrl = await toPng(host, {
         backgroundColor: getComputedStyle(document.body).backgroundColor,
         filter: (node) => {
-          // skip controls, minimap, attribution
           const cls = (node as HTMLElement).className?.toString?.() ?? "";
           return !/react-flow__(controls|minimap|attribution|panel)/.test(cls);
         },
         pixelRatio: 2,
       });
-      void el;
       const a = document.createElement("a");
-      a.download = `mindmap-${Date.now()}.png`;
+      a.download = `${doc?.name ?? "mindmap"}-${Date.now()}.png`;
       a.href = dataUrl;
       a.click();
     } catch {
-      // ignore
+      /* ignore */
     }
-  }, []);
+  }, [doc?.name]);
 
-  const reset = () => {
-    const fresh = initialDoc();
-    const h = hydrate(fresh);
-    setNodes(h.nodes);
-    setEdges(h.edges);
-  };
+  if (!doc) {
+    return (
+      <div className="flex h-[calc(100vh-12rem)] items-center justify-center text-muted-foreground">
+        Không tìm thấy sơ đồ.
+      </div>
+    );
+  }
 
   return (
     <div
@@ -354,51 +320,32 @@ function Inner() {
         <MiniMap pannable zoomable className="!bg-background/70 !rounded-xl" />
       </ReactFlow>
 
-      {/* Floating toolbar */}
       <div className="pointer-events-auto absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-border bg-background/80 p-1.5 shadow-lg backdrop-blur-xl">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => addChild(selectedId ?? ROOT_ID)}
-          title="Thêm nhánh (Tab)"
-        >
+        <Button variant="ghost" size="sm" onClick={() => addChild(selectedId ?? ROOT_ID)} title="Thêm nhánh (Tab)">
           <Plus className="h-4 w-4" /> Nhánh
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={runAutoLayout}
-          title="Tự sắp xếp"
-        >
+        <Button variant="ghost" size="sm" onClick={runAutoLayout} title="Tự sắp xếp">
           <LayoutGrid className="h-4 w-4" /> Auto layout
         </Button>
         <Button variant="ghost" size="sm" onClick={exportPng} title="Xuất PNG">
           <Download className="h-4 w-4" /> Export
         </Button>
-        <div className="mx-1 h-5 w-px bg-border" />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={reset}
-          title="Tạo sơ đồ mới"
-          className="text-muted-foreground"
-        >
-          <Sparkles className="h-4 w-4" /> Mới
-        </Button>
         {selectedId && selectedId !== ROOT_ID && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => deleteNode(selectedId)}
-            className="text-destructive hover:text-destructive"
-            title="Xóa nhánh (Delete)"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <>
+            <div className="mx-1 h-5 w-px bg-border" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deleteNode(selectedId)}
+              className="text-destructive hover:text-destructive"
+              title="Xóa nhánh (Delete)"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
 
-      {/* Help hint */}
       <div className="pointer-events-none absolute bottom-3 left-3 rounded-xl border border-border bg-background/80 px-3 py-2 text-xs text-muted-foreground backdrop-blur-md">
         <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10px]">Tab</kbd> nhánh con ·{" "}
         <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10px]">Enter</kbd> ngang hàng ·{" "}
@@ -434,10 +381,10 @@ function hydrate(doc: MindMapDoc): { nodes: Node<MindNodeData>[]; edges: Edge[] 
   return { nodes: colored, edges };
 }
 
-export function MindMapCanvas() {
+export function MindMapCanvas({ docId }: { docId: string }) {
   return (
     <ReactFlowProvider>
-      <Inner />
+      <Inner key={docId} docId={docId} />
     </ReactFlowProvider>
   );
 }
